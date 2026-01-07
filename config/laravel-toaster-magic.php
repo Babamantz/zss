@@ -11,6 +11,6 @@ return [
         "gradient_enable" => false, // Only Available for default and material theme
         "color_mode" => false // Color mode (true or false)
     ],
-    'livewire_enabled' => false,
+    'livewire_enabled' => true,
     'livewire_version' => 'v3'
 ];

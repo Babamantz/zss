@@ -50,6 +50,8 @@
                         <ul class="nav-submenu menu-content" style="display: {{ prefixBlock('/index') }};">
                             <li><a href="{{ route('users.index') }}" class="{{ routeActive('users.index') }}">Users</a>
                             </li>
+                            <li><a href="{{ route('password.reset') }}" class="{{ routeActive('password.reset') }}">reset</a>
+                            </li>
                             <li><a href="{{ route('roles.index') }}" class="{{ routeActive('roles.index') }}">Roles</a>
                             </li>
                         </ul>

@@ -22,71 +22,21 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>Rhona Davidson</td>
-                                    <td>Integration Specialist</td>
-                                    <td>Tokyo</td>
-                                 
-                                </tr>
-                                <tr>
-                                    <td>Colleen Hurst</td>
-                                    <td>Javascript Developer</td>
-                                    <td>San Francisco</td>
-                                  
-                                </tr>
-                                <tr>
-                                    <td>Sonya Frost</td>
-                                    <td>Software Engineer</td>
-                                    <td>Edinburgh</td>
-                               
-                                </tr>
-                                <tr>
-                                    <td>Jena Gaines</td>
-                                    <td>Office Manager</td>
-                                    <td>London</td>
-                                
-                                </tr>
-                                <tr>
-                                    <td>Quinn Flynn</td>
-                                    <td>Support Lead</td>
-                                    <td>Edinburgh</td>
-                               
-                                </tr>
-                                <tr>
-                                    <td>Charde Marshall</td>
-                                    <td>Regional Director</td>
-                                    <td>San Francisco</td>
-                         
-                                </tr>
-                                <tr>
-                                    <td>Haley Kennedy</td>
-                                    <td>Senior Marketing Designer</td>
-                                    <td>London</td>
-                              
-                                <tr>
-                                    <td>Tatyana Fitzpatrick</td>
-                                    <td>Regional Director</td>
-                                    <td>London</td>
-                                  
-                                </tr>
-                                <tr>
-                                    <td>Michael Silva</td>
-                                    <td>Marketing Designer</td>
-                                    <td>London</td>
-                                  
-                                </tr>
-                                <tr>
-                                    <td>Paul Byrd</td>
-                                    <td>Chief Financial Officer (CFO)</td>
-                                    <td>New York</td>
-                               
-                                </tr>
-                                <tr>
-                                    <td>Gloria Little</td>
-                                    <td>Systems Administrator</td>
-                                    <td>New York</td>
-                                
-                                </tr>
+                                @forelse ($roles as $role)
+                                    <tr>
+                                        <td>{{ $role->name }}</td>
+                                        <td>{{ $role->getAllPermissions()->pluck('name')->implode(',') }}</td>
+                                        <td>
+                                            <a class="btn btn-primary"
+                                                href="{{ route('roles.edit', ['roleName' => $role->name]) }}">edit</a>
+                                        </td>
+
+                                    </tr>
+                                @empty
+                                    <p>No users found</p>
+                                @endforelse
+
+
 
                             </tbody>
                         </table>
@@ -95,6 +45,13 @@
             </div>
         </div>
     </div>
+    @if (session()->has('toastMagic'))
+        <script>
+            document.addEventListener('livewire:navigated', function() {
+                Livewire.dispatch('toastMagic', @js(session('toastMagic')));
+            });
+        </script>
+    @endif
 </div>
 
 

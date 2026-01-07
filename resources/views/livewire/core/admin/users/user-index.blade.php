@@ -47,13 +47,14 @@
                                         </td>
 
                                         <td>
-                                            <button class="btn btn-primary" type="button" data-bs-toggle="modal"
-                                                data-bs-target="#exampleModalCenter"
-                                                wire:click=''>view</button>
-                                            <button class="btn btn-primary" type="button" data-bs-toggle="modal"
-                                                data-bs-target="#exampleModalCenter"
-                                                wire:click="">edit</button>
-                                            <button class="btn btn-primary">delete</button>
+                                            <a class="btn btn-primary"
+                                                href="{{ route('users.edit', ['id' => $user->id, 'mode' => 'view']) }}"
+                                                wire:navigate>view</a>
+                                            <a class="btn btn-primary"
+                                                href="{{ route('users.edit', ['id' => $user->id, 'mode' => 'edit']) }}"
+                                                wire:navigate>edit</a>
+                                            {{-- <a class="btn btn-primary" wire:click="deleteUser({{ $user->id }})"
+                                                wire:confirm="Are you sure you want to delete this user?">delete</a> --}}
                                         </td>
                                     </tr>
 
@@ -71,8 +72,12 @@
         </div>
     </div>
 
-    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenter"
-        aria-hidden="true">
+
+
+    {{-- <div x-show="" x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 -translate-x-4" x-transition:enter-end="opacity-100 translate-x-0"
+        x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-x-0"
+        x-transition:leave-end="opacity-0 translate-x-4">
         <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -184,7 +189,8 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> --}}
+
 </div>
 
 

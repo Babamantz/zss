@@ -15,28 +15,29 @@
                         <div class="tab">
                             <div class="form-group">
                                 <label for="fname">First Name</label>
-                                <input class="form-control" id="name" type="text" wire:model.defer="first_name">
+                                <input class="form-control" id="name" type="text" wire:model="first_name"
+                                    required="required">
                                 @error('first_name')
                                     <span class="text-danger">{{ $message }}</span>
                                 @enderror
                             </div>
                             <div class="form-group">
                                 <label for="Mname">Middle Name</label>
-                                <input class="form-control" id="Mname" type="text" wire:model.defer="middle_name">
+                                <input class="form-control" id="Mname" type="text" wire:model="middle_name">
                                 @error('middle_name')
                                     <span class="text-danger">{{ $message }}</span>
                                 @enderror
                             </div>
                             <div class="form-group">
                                 <label for="lname">Last Name</label>
-                                <input class="form-control digits" id="lname" type="text" wire:model.defer="last_name">
+                                <input class="form-control digits" id="lname" type="text" wire:model="last_name">
                                 @error('last_name')
                                     <span class="text-danger">{{ $message }}</span>
                                 @enderror
                             </div>
                             <div class="form-group">
                                 <label for="email">Email</label>
-                                <input class="form-control digits" id="email" type="email" wire:model.defer="email">
+                                <input class="form-control digits" id="email" type="email" wire:model="email">
                                 @error('email')
                                     <span class="text-danger">{{ $message }}</span>
                                 @enderror
@@ -45,7 +46,7 @@
                                 <div class="mb-2">
                                     <label class="col-form-label">Location</label>
                                     <select class="form-control form-control-info btn-square" name="select"
-                                        wire:model.defer="location">
+                                        wire:model="location">
                                         <option value="">--select location--</option>
                                         @forelse ($this->locations as $location)
                                             <option value="{{ $location->id }}">{{ $location->name }}</option>
@@ -90,7 +91,10 @@
                         </div>
                         <div>
                             <div class="text-end btn-mb">
-                                <button class="btn btn-primary" type="submit">Submit</button>
+                                <button x-show="$wire.mode !== 'view'" type="submit" wire:loading.attr="disabled"
+                                    class="btn btn-primary" type="submit">
+                                    {{ $this->isEdit ? 'Update' : 'Save' }}</button>
+
                             </div>
                         </div>
                     </form>
