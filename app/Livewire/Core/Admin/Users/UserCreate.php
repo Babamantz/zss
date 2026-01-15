@@ -11,6 +11,7 @@ use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class UserCreate extends Component
 {
@@ -85,8 +86,8 @@ class UserCreate extends Component
 
     public function save()
     {
-        // dd($this->location);
-        $this->validate();
+        // dd($this->direct_permissions);
+        // $this->validate();
         try {
             DB::transaction(function () {
 
@@ -97,7 +98,8 @@ class UserCreate extends Component
                     'last_name' => $this->last_name,
                     'email' => $this->email,
                     'tenant_id' => $this->location,
-                    'password' => Hash::make($this->last_name)
+                    'password' => Hash::make($this->last_name),
+                    'created_by' => auth()->id()
                 ]);
 
                 // dd('nafika hapa kwanza ');    
@@ -119,7 +121,7 @@ class UserCreate extends Component
 
                 // dd($this->direct_permissions);
             });
-        } catch (\Exception $e) {
+        } catch (Throwable $e) {
             Log::error('User creation failed', [
                 'email' => $this->email,
                 'error' => $e->getMessage(),

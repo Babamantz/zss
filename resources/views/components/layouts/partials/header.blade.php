@@ -10,6 +10,7 @@
         </div>
         <div class="nav-right col pull-right right-menu p-0">
             <ul class="nav-menus">
+                <li><a class="text-dark" href="{{ route('index') }}"><i data-feather="home"></i></a></li>
                 <li><a class="text-dark" href="#!" onclick="javascript:toggleFullScreen()"><i
                             data-feather="maximize"></i></a></li>
                 <li class="onhover-dropdown">
@@ -64,9 +65,9 @@
 
                 <li class="onhover-dropdown p-0">
                     <form method="POST" action="{{ route('logout') }}">
-                      @csrf
-                        <button class="btn btn-primary-light" type="submit"><i
-                                data-feather="log-out"></i>Log out</button>
+                        @csrf
+                        <button class="btn btn-primary-light" type="submit"><i data-feather="log-out"></i>Log
+                            out</button>
 
                     </form>
 

@@ -3,10 +3,11 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Modules\HRM\Models\Employee;
+use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
@@ -23,6 +24,8 @@ class User extends Authenticatable
         'middle_name',
         'last_name',
         'email',
+        'created_by',
+        'updated_by',
         'tenant_id',
         'password',
     ];
@@ -52,8 +55,14 @@ class User extends Authenticatable
 
     public function tenant()
     {
-        return $this->belongsTo(Tenant::class,'tenant_id');
+        return $this->belongsTo(Tenant::class, 'tenant_id');
     }
+    public function employee()
+    {
+        return  $this->hasOne(Employee::class);
+    }
+
+
 
     // // Override boot to add tenant scoping
     // protected static function booted()

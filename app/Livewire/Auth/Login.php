@@ -48,7 +48,7 @@ class Login extends Component
         $user = Auth::user();
 
         if ($user->tenant) {
-            session(['tenant_name' => $user->tenant->name]);
+            session(['tenant_name' => $user->tenant->name,'module'=>"general"]);
             app()->instance('tenant', $user->tenant);
             app()->instance('tenant.id', $user->tenant_id);
 
