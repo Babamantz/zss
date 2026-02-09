@@ -14,9 +14,12 @@ return new class extends Migration
         Schema::create('employees', function (Blueprint $table) {
             $table->id();
             $table->string('nida_no', 50)->nullable();
-            $table->string('nida_file', 50)->nullable();
+            $table->string('nida_file', 100)->nullable();
+            $table->string('photo_file', 100)->nullable();
             $table->string('zan_id_no', 50)->nullable();
-            $table->string('zan_id_file', 50)->nullable();
+            $table->string('zan_id_file', 100)->nullable();
+            $table->string('birth_certificate_file', 100)->nullable();
+            $table->string('employment_contract_file', 100)->nullable();
             $table->string('opf_number', 50)->nullable();
             $table->string('health_insurance_no', 50)->nullable();
             $table->string('designation', 50)->nullable();
@@ -29,12 +32,14 @@ return new class extends Migration
             $table->string('marital_status', 10); // ['married', 'single', 'divorced'])->default('single');
             $table->string('phone_number', 15)->nullable()->index();
             $table->date('dob')->nullable(); // Added nullable()
-            $table->date('hired_date')->nullable();
+            $table->date('hired_date')->nullable(); //add 
             $table->date('retiring_date')->nullable();
-            $table->boolean('is_employee')->nullable();
-            $table->boolean('is_manager')->nullable();
-            $table->boolean('is_director')->nullable();
-            $table->boolean('is_coordinator')->nullable();
+            $table->boolean('hr_registered')->default(false);
+            $table->boolean('is_officer')->default(true);
+            $table->boolean('is_manager')->default(false);
+            $table->boolean('is_director')->default(false);
+            $table->boolean('is_director_general')->default(false);
+            $table->boolean('is_coordinator')->default(false);
 
             // Foreign keys (Added nullable to avoid constraints issues)
             $table->foreignId('bank_name_id')->nullable()->constrained('banks')->cascadeOnDelete();

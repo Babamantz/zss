@@ -21,37 +21,39 @@
                                     <th>Email</th>
                                     <th>Phone</th>
                                     <th>Location</th>
+                                    <th>Unit</th>
                                     <th>Department</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse ($users as $user)
-                                    <tr wire:key="user-{{ $user->id }}">
+                                @forelse ($employees as $employee)
+                                    <tr wire:key="user-{{ $employee->user?->id }}">
                                         <!-- Combined Name -->
-                                        <td>{{ "{$user->first_name} {$user->middle_name} {$user->last_name}" }}</td>
+                                        <td>{{ "{$employee->user->first_name} {$employee->user?->middle_name} {$employee->user?->last_name}" }}
+                                        </td>
 
-                                        <td>{{ $user->email }}</td>
+                                        <td>{{ $employee->user?->email }}</td>
 
                                         <!-- Null-safe Tenant Name -->
-                                        <td>{{ $user->tenant->name ?? 'N/A' }}</td>
 
                                         <!-- Role Name (Assumes Spatie or similar method) -->
-                                        <td>{{ $user->getRoleNames()->implode(', ') }}</td>
+                                        <td>{{ $employee->phone_number }}</td>
+                                        <td>{{ $employee->user?->tenant?->name ?? 'N/A' }}</td>
 
-                                        <!-- Permissions List -->
                                         <td>
-                                            <small class="text-muted">
-                                                {{ $user->getAllPermissions()->pluck('name')->implode(', ') }}
-                                            </small>
+                                            {{ $employee->unit?->name ?? 'N/A' }}
+                                        </td>
+                                        <td>
+                                            {{ $employee->department?->name ?? 'N/A' }}
                                         </td>
 
                                         <td>
                                             <a class="btn btn-primary"
-                                                href="{{ route('users.edit', ['id' => $user->id, 'mode' => 'view']) }}"
+                                                href="{{ route('hrm.employee.edit', ['employeeId' => $employee->id, 'mode' => 'view']) }}"
                                                 wire:navigate>view</a>
                                             <a class="btn btn-primary"
-                                                href="{{ route('users.edit', ['id' => $user->id, 'mode' => 'edit']) }}"
+                                                href="{{ route('hrm.employee.edit', ['employeeId' => $employee->id]) }}"
                                                 wire:navigate>edit</a>
                                             {{-- <a class="btn btn-primary" wire:click="deleteUser({{ $user->id }})"
                                                 wire:confirm="Are you sure you want to delete this user?">delete</a> --}}

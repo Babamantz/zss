@@ -117,8 +117,8 @@
           <div class="card card-body mx-3 col-md-3 link d-flex justify-content-start" style="z-index: 1;">
               <li class="{{ session('active_module') === 'sales' ? 'active' : '' }}">
                   <a href="">
-                      <i class="icofont icofont-bill fa-3x"></i>
-                      <p class="mx-1 fw-bold txt-dark">PMU</p>
+                      <i class="icofont icofont-calendar fa-3x"></i>
+                      <p class="mx-1 fw-bold txt-dark">Leave</p>
                   </a>
               </li>
           </div>
@@ -136,5 +136,8 @@
   </div>
 
   @push('scripts')
+
       {{-- <script src="{{ asset('assets/js/dashboard/dashboard_2.js') }}"></script> --}}
+
+      
   @endpush

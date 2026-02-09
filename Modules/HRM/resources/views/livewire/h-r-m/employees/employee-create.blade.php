@@ -8,7 +8,7 @@
             <div class="card">
                 <div class="card-header pb-0">
                     <h5>{{ $employeeId ? 'Edit Employee' : 'Create Employee' }}</h5>
-                    <a class="btn btn-primary" href="{{ route('users.index') }}">Back</a>
+                    <a class="btn btn-primary" href="{{ route('hrm.employees.index') }}">Back</a>
                 </div>
                 <div class="card-body">
                     @if (session()->has('success'))
@@ -313,11 +313,19 @@
                                     </div>
                                 </div>
 
-                                <div class="col-md-6">
+                                <div class="col-md-6" x-data="{ pdfUrl: '{{ Storage::disk('public')->url($existing_zan_id_file) }}' }">
                                     <div class="form-group">
                                         <label for="zan_id_file">Zanzibar ID File:</label>
                                         <input class="form-control" type="file" id="zan_id_file"
                                             wire:model="zan_id_file">
+
+                                        @if ($existing_zan_id_file)
+                                            <button type="button" class="btn btn-sm btn-primary mt-2"
+                                                @click="window.open(pdfUrl, '_blank')">
+                                                Preview PDF
+                                            </button>
+                                        @endif
+
                                         @error('zan_id_file')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
@@ -340,11 +348,19 @@
                                     </div>
                                 </div>
 
-                                <div class="col-md-6">
+                                <div class="col-md-6" x-data="{ nidapdfUrl: '{{ Storage::disk('public')->url($existing_nida_file) }}' }">
                                     <div class="form-group">
                                         <label for="nida_file">NIDA File:</label>
                                         <input class="form-control" type="file" id="nida_file"
                                             wire:model="nida_file">
+                                        @if ($existing_nida_file)
+                                            <button type="button" class="btn btn-sm btn-primary mt-2"
+                                                @click="window.open(nidapdfUrl, '_blank')">
+                                                Preview PDF
+                                            </button>
+                                        @endif
+
+
                                         @error('nida_file')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
@@ -354,12 +370,59 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6" x-data="{ birthPdfUrl: '{{ Storage::disk('public')->url($existing_birth_certificate_file) }}' }">
+                                    <div class="form-group">
+                                        <label for="birth_certificate_file">Birth Certificate File:</label>
+                                        <input class="form-control" type="file" id="birth_certificate_file"
+                                            wire:model="birth_certificate_file" accept="application/pdf">
+                                        @if ($existing_birth_certificate_file)
+                                            <button type="button" class="btn btn-sm btn-primary mt-2"
+                                                @click="window.open(birthPdfUrl, '_blank')">
+                                                Preview PDF
+                                            </button>
+                                        @endif
+
+
+                                        @error('nida_file')
+                                            <small class="text-danger">{{ $message }}</small>
+                                        @enderror
+                                        <div wire:loading wire:target="nida_file" class="text-primary mt-1">
+                                            <small>Uploading...</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <div class="col-md-6" x-data="{ contractPdfUrl: '{{ Storage::disk('public')->url($existing_employment_contract_file) }}' }">
+                                    <div class="form-group">
+                                        <label for="">Employment Contract File:</label>
+                                        <input class="form-control" type="file" id="employment_contract_file"
+                                            wire:model="employment_contract_file" accept="application/pdf">
+                                        @if ($existing_employment_contract_file)
+                                            <button type="button" class="btn btn-sm btn-primary mt-2"
+                                                @click="window.open(contractPdfUrl, '_blank')">
+                                                Preview PDF
+                                            </button>
+                                        @endif
+
+
+                                        @error('employment_contract_file')
+                                            <small class="text-danger">{{ $message }}</small>
+                                        @enderror
+                                        <div wire:loading wire:target="nida_file" class="text-primary mt-1">
+                                            <small>Uploading...</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
 
                             <div class="row mb-3">
                                 <div class="col-md-6">
                                     <div wire:ignore class="form-group">
                                         <label for="select-role">Role: <span class="text-danger">*</span></label>
-                                        <select wire:model="selectedRole" id="select-role"
+                                        <select wire:model="selectedRole" id="selected-role"
                                             class="js-example-basic-single form-control">
                                             <option value="">--Select Role--</option>
                                             @foreach ($roles as $role)
@@ -374,21 +437,35 @@
                                 </div>
 
                                 <div class="col-md-6">
-                                    <div wire:ignore class="form-group">
-                                        <label for="select-location">Location: <span
-                                                class="text-danger">*</span></label>
-                                        <select wire:model="location" id="select-location"
-                                            class="js-example-basic-single form-control">
-                                            <option value="">--Select Location--</option>
-                                            @foreach ($locations as $id => $locationName)
-                                                <option value="{{ $id }}">{{ $locationName }}</option>
-                                            @endforeach
-                                        </select>
-                                        @error('location')
+                                    <div class="form-group">
+                                        <label for="photo_file">PHOTO:</label>
+                                        <input class="form-control" type="file" id="photo_file"
+                                            wire:model="photo_file">
+                                        @error('photo_file')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
+                                        <div wire:loading wire:target="photo_file" class="text-primary mt-1">
+                                            <small>Uploading...</small>
+                                        </div>
                                     </div>
                                 </div>
+
+                                {{-- Image Preview --}}
+                                @if ($existing_photo_file)
+                                    <div class="mt-4">
+                                        Photo Preview:
+                                        <img src="{{ Storage::disk('public')->url($existing_photo_file) }}"
+                                            class="mt-2 rounded"
+                                            style="width: 60px; height: 60px; object-fit: cover;">
+
+                                    </div>
+                                @endif
+
+                                @error('photo')
+                                    <span class="error">{{ $message }}</span>
+                                @enderror
+
+
                             </div>
 
                             <div class="row mb-3">
@@ -424,6 +501,78 @@
                                     </div>
                                 </div>
                             </div>
+
+
+
+                            {{-- <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="col-form-label">User Title</label>
+                                        <div class="col">
+                                            <div class="form-group m-t-15 m-checkbox-inline mb-0 custom-radio-ml">
+                                                <div class="radio radio-primary" wire:model="user_title">
+                                                    <input id="radioinline1" type="radio" name="radio1"
+                                                        value="officer">
+                                                    <label class="mb-0" for="radioinline1">Officer</label>
+                                                </div>
+                                                <div class="radio radio-primary" wire:model="user_title">
+                                                    <input id="radioinline2" type="radio" name="radio1"
+                                                        value="manager">
+                                                    <label class="mb-0" for="radioinline2">Manager</label>
+                                                </div>
+                                                <div class="radio radio-primary" wire:model="user_title">
+                                                    <input id="radioinline3" type="radio" name="radio1"
+                                                        value="director">
+                                                    <label class="mb-0" for="radioinline3">Director</label>
+                                                </div>
+                                                <div class="radio radio-primary" wire:model="user_title">
+                                                    <input id="radioinline4" type="radio" name="radio1"
+                                                        value="director_general">
+                                                    <label class="mb-0" for="radioinline4">Director General</label>
+                                                </div>
+                                                <div class="radio radio-primary" wire:model="user_title">
+                                                    <input id="radioinline5" type="radio" name="radio1"
+                                                        value="co-ordinator">
+                                                    <label class="mb-0" for="radioinline5">Coordinator</label>
+                                                </div>
+
+                                            </div>
+                                            @error('user_title')
+                                                <span class="text-danger">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
+                            </div> --}}
+                            {{-- <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="col-form-label">Is Disable</label>
+                                        <div class="col">
+                                            <div class="form-group m-t-15 m-checkbox-inline mb-0 custom-radio-ml">
+                                                <div class="radio radio-primary">
+                                                    <!-- wire:model moved to input -->
+                                                    <input type="radio" name="radio2" id="radioinline7"
+                                                        value="disable" wire:model="user_disability_check">
+                                                    <label class="mb-0" for="radioinline7">Yes</label>
+                                                </div>
+                                                <div class="radio radio-primary">
+                                                    <!-- wire:model moved to input -->
+                                                    <input type="radio" name="radio2" id="radioinline8"
+                                                        value="notDisable" wire:model="user_disability_check">
+                                                    <label class="mb-0" for="radioinline8">No</label>
+                                                </div>
+                                            </div>
+                                            <!-- Ensure this matches your property name if the error is for user_title -->
+                                            @error('user_disability_check')
+                                                <span class="text-danger">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
+                            </div> --}}
+
+
 
                             <div class="mt-4">
                                 <button type="button" class="btn btn-secondary"
@@ -472,11 +621,20 @@
                                                             x-model="edu.holder_certificate_no">
                                                     </div>
                                                 </div>
-                                                <div class="col-md-6">
+                                                <div class="col-md-6" x-data="{ getPdfUrl() { return edu.existing_file ? '{{ Storage::disk('public')->url('') }}/' + edu.existing_file : null } }">
                                                     <div class="form-group">
                                                         <label>Certificate File:</label>
                                                         <input type="file" class="form-control"
                                                             @change="$wire.upload(`certificate_files.${index}`, $event.target.files[0])">
+
+                                                        <!-- Preview Button for Existing Certificate -->
+                                                        <template x-if="edu.existing_file">
+                                                            <button type="button" class="btn btn-sm btn-primary mt-2"
+                                                                @click="window.open(getPdfUrl(), '_blank')">
+                                                                Preview PDF
+                                                            </button>
+                                                        </template>
+
                                                         <div wire:loading wire:target="certificate_files"
                                                             class="text-primary mt-1">
                                                             <small>Uploading...</small>
@@ -498,13 +656,15 @@
                                 <div class="mt-4">
                                     <button type="button" class="btn btn-secondary"
                                         wire:click="previousStep">Back</button>
-                                    <button type="submit" class="btn btn-success" wire:loading.attr="disabled">
-                                        <span wire:loading.remove wire:target="submitForm">Submit</span>
-                                        <span wire:loading wire:target="submitForm">
-                                            <span class="spinner-border spinner-border-sm" role="status"></span>
-                                            Saving...
-                                        </span>
-                                    </button>
+                                    @if (!$this->isViewMode)
+                                        <button type="submit" class="btn btn-success" wire:loading.attr="disabled">
+                                            <span wire:loading.remove wire:target="submitForm">Submit</span>
+                                            <span wire:loading wire:target="submitForm">
+                                                <span class="spinner-border spinner-border-sm" role="status"></span>
+                                                Saving...
+                                            </span>
+                                        </button>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -518,43 +678,46 @@
 @push('scripts')
     <script src="{{ asset('./assets/js/select2/select2.full.min.js') }}"></script>
     <script src="{{ asset('./assets/js/select2/select2-custom.js') }}"></script>
-    <script>
+    {{-- <script>
         document.addEventListener('livewire:initialized', () => {
             // Initialize Select2 on email dropdown
             $('#select-user').select2();
             $('#select-user').on('change', function(e) {
-                @this.set('email', e.target.value);
+                @this.set('email', $(this).val());
                 @this.dispatch('user-selected');
             });
+
+        });
+        document.addEventListener('DOMContentLoaded', () => {
 
             // Initialize Select2 on bank dropdown
             $('#select-bank').select2();
             $('#select-bank').on('change', function(e) {
-                @this.set('bank_name', e.target.value);
+                @this.set('bank_name', $(this).val());
             });
 
             // Initialize Select2 on role dropdown
-            $('#select-role').select2();
-            $('#select-role').on('change', function(e) {
-                @this.set('selectedRole', e.target.value);
+            $('#selected-role').select2();
+            $('#selected-role').on('change', function(e) {
+                @this.set('selectedRole', $(this).val());
             });
 
             // Initialize Select2 on location dropdown
             $('#select-location').select2();
             $('#select-location').on('change', function(e) {
-                @this.set('location', e.target.value);
+                @this.set('location', $(this).val());
             });
 
             // Initialize Select2 on unit dropdown
             $('#select-unit').select2();
             $('#select-unit').on('change', function(e) {
-                @this.set('unit', e.target.value);
+                @this.set('unit', $(this).val());
             });
 
             // Initialize Select2 on department dropdown
             $('#select-department').select2();
             $('#select-department').on('change', function(e) {
-                @this.set('department', e.target.value);
+                @this.set('department', $(this).val());
             });
 
             // Listen for eventEmail to update Select2
@@ -569,9 +732,81 @@
 
             // Reset file inputs when needed
             Livewire.on('resetFileState', () => {
-                document.getElementById('zan_id_file').value = '';
-                document.getElementById('nida_file').value = '';
+                ['zan_id_file', 'nida_file'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = '';
+                });
             });
         });
-    </script>
+    </script> --}}
+
+    @script
+        <script>
+            document.addEventListener('livewire:initialized', () => {
+
+                const initSelect2Fields = () => {
+                    const selects = [{
+                            id: '#select-user',
+                            field: 'email',
+                            event: 'user-selected'
+                        },
+                        {
+                            id: '#select-bank',
+                            field: 'bank_name'
+                        },
+                        {
+                            id: '#selected-role',
+                            field: 'selectedRole'
+                        },
+                        {
+                            id: '#select-location',
+                            field: 'location'
+                        },
+                        {
+                            id: '#select-unit',
+                            field: 'unit'
+                        },
+                        {
+                            id: '#select-department',
+                            field: 'department'
+                        }
+                    ];
+
+                    selects.forEach(select => {
+                        let $el = $(select.id);
+                        if ($el.length) {
+                            $el.select2();
+                            // .off().on() prevents duplicate listeners
+                            $el.off('change').on('change', function(e) {
+                                $wire.set(select.field, e.target.value);
+                                if (select.event) $wire.dispatch(select.event);
+                            });
+                        }
+                    });
+                }
+
+                // 1. Initial Load
+                initSelect2Fields();
+
+                // 2. Re-init when Livewire updates the DOM (Crucial for Steps/Edit)
+                Livewire.hook('morph.updated', (el, component) => {
+                    initSelect2Fields();
+                });
+
+                // 3. Update Visuals when Edit Data is loaded
+                Livewire.on('eventEmail', (data) => {
+
+                    // Handle both object and array formats
+                    const row = Array.isArray(data) ? data[0] : data;
+
+                    $('#select-user').val(row.employee_id).trigger('change');
+                    $('#selected-role').val(row.employee_role).trigger('change');
+                    $('#select-bank').val(row.bank_name).trigger('change');
+                    $('#select-location').val(row.location_id).trigger('change');
+                    $('#select-unit').val(row.unit_id).trigger('change');
+                    $('#select-department').val(row.department_id).trigger('change');
+                });
+            });
+        </script>
+    @endscript
 @endpush

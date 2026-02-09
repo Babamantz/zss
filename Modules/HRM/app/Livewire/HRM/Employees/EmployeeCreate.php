@@ -19,15 +19,13 @@ use Illuminate\Support\Facades\Storage;
 class EmployeeCreate extends Component
 {
     use WithFileUploads;
-
     // Employee identification
     public $userId;
     public $employeeId;
+    public $mode;
     public $employee;
-
     // Form navigation
     public $currentStep = 1;
-
     // Basic Information (Step 1)
     public $first_name;
     public $middle_name;
@@ -41,11 +39,9 @@ class EmployeeCreate extends Component
     public $marital_status;
     public $gender;
     public $disability = 'no';
-
     // Bank Information (Step 1)
     public $bank_name;
     public $bank_account_no;
-
     // Employment Details (Step 2)
     public $health_insurance_no;
     public $designation;
@@ -53,30 +49,45 @@ class EmployeeCreate extends Component
     public $social_security_no;
     public $zan_id_no;
     public $zan_id_file;
+    public $existing_zan_id_file; // For preview
+    public $birth_certificate_file;
+    public $existing_birth_certificate_file;
+    public $employment_contract_file;
+    public $existing_employment_contract_file;  //For preview
     public $nida_no;
     public $nida_file;
+    public $existing_nida_file; // For preview
+    public $photo_file;
+    public $existing_photo_file; // For preview
     public $unit;
     public $department;
-    public $location; // Read-only, loaded from user
-    public $selectedRole;
+    public $location;
+    public $selectedRole = '';
+    public $is_officer = false;
     public $is_manager = false;
     public $is_director = false;
+    public $is_director_general = false;
     public $is_coordinator = false;
-
     // Education Levels (Step 3)
     public $education_levels = [];
     public $certificate_files = [];
-
+    public $existing_certificate_files = []; // For preview
+    // Edit mode flag
+    public $isEditMode = false;
+    public $isViewMode = false;
     // Constants
-    public $roles = ['employee', 'manager', 'director', 'director_general', 'coordinator'];
-    public $educationLevels = ['certificate', 'diploma', 'advance diploma', 'bachelor', 'master', 'phd'];
+    public $roles = ['officer', 'manager', 'director', 'director_general', 'coordinator'];
+    public $educationLevels = ['certificate', 'diploma', 'advance_diploma', 'bachelor', 'master', 'phd'];
 
     protected $listeners = ['user-selected' => 'selectUser'];
 
-    public function mount($employeeId = null)
+    public function mount($employeeId = null, $mode = null)
     {
         $this->employeeId = $employeeId;
+        $this->isEditMode = !is_null($employeeId);
+        $this->isViewMode = $mode == 'view';
         $this->initializeEducationLevels();
+        $this->initializeRoleFlags();
 
         if ($employeeId) {
             $this->loadEmployee();
@@ -94,8 +105,8 @@ class EmployeeCreate extends Component
 
     protected function loadEmployee()
     {
-        $this->employee = Employee::with(['user.location', 'education_levels'])->where('user_id', $this->employeeId)->first();
-
+        $this->employee = Employee::with(['user', 'user.tenant', 'education_levels'])->where('id', $this->employeeId)->first();
+        //  dd($this->employee);
         if (!$this->employee) {
             session()->flash('error', 'Employee not found.');
             return redirect()->route('hrm.employee.index');
@@ -125,9 +136,16 @@ class EmployeeCreate extends Component
             'disability' => $this->employee->disability ?? 'no',
             'is_manager' => $this->employee->is_manager ?? false,
             'is_director' => $this->employee->is_director ?? false,
+            'is_director_general' => $this->employee->is_director_general ?? false,
+            'is_officer' => $this->employee->is_officer ?? false,
             'is_coordinator' => $this->employee->is_coordinator ?? false,
         ]);
-
+        // Store existing file paths for preview
+        $this->existing_nida_file = $this->employee->nida_file;
+        $this->existing_zan_id_file = $this->employee->zan_id_file;
+        $this->existing_photo_file = $this->employee->photo_file;
+        $this->existing_birth_certificate_file = $this->employee->birth_certificate_file;
+        $this->existing_employment_contract_file = $this->employee->employment_contract_file;
         // User data
         $this->userId = $this->employee->user_id;
         $this->email = $this->employee->user_id;
@@ -135,27 +153,138 @@ class EmployeeCreate extends Component
         $this->middle_name = $this->employee->user->middle_name;
         $this->last_name = $this->employee->user->last_name;
         $this->location = $this->employee->user->location?->name;
-
         // Related data
-        $this->selectedRole = $this->determineRole();
+        $this->initializeRoleFlags();
         $this->unit = $this->employee->unit_id;
         $this->bank_name = $this->employee->bank_name_id;
         $this->department = $this->employee->department_id;
 
-        // Education levels
-        $educationLevels = $this->employee->education_levels->toArray();
+        // Education levels with existing files
+        $educationLevels = $this->employee->education_levels->map(function ($edu) {
+            return [
+                'id' => $edu->id,
+                'course_name' => $edu->course_name,
+                'certificate_name' => $edu->certificate_name,
+                'holder_certificate_no' => $edu->holder_certificate_no,
+                'certificate_file' => $edu->certificate_file,
+                'existing_file' => $edu->certificate_file, // For preview
+            ];
+        })->toArray();
+
         $this->education_levels = !empty($educationLevels) ? $educationLevels : $this->education_levels;
 
         $this->loadEmail();
     }
 
-    protected function determineRole()
+    // Download file method
+    public function downloadFile($type, $index = null)
     {
-        // Determine role based on boolean flags
-        if ($this->is_coordinator) return 'coordinator';
-        if ($this->is_director) return 'director';
-        if ($this->is_manager) return 'manager';
-        return 'employee';
+        try {
+            $filePath = null;
+
+            switch ($type) {
+                case 'nida':
+                    $filePath = $this->existing_nida_file;
+                    break;
+                case 'zan_id':
+                    $filePath = $this->existing_zan_id_file;
+                    break;
+                case 'photo':
+                    $filePath = $this->existing_photo_file;
+                    break;
+                case 'birth':
+                    $filePath = $this->existing_birth_certificate_file;
+                    break;
+                case 'contract':
+                    $filePath = $this->existing_employment_contract_file;
+                    break;
+                case 'certificate':
+                    if (isset($this->education_levels[$index]['existing_file'])) {
+                        $filePath = $this->education_levels[$index]['existing_file'];
+                    }
+                    break;
+            }
+
+            if ($filePath && Storage::disk('public')->exists($filePath)) {
+                return Storage::disk('public')->download($filePath);
+            }
+
+            session()->flash('error', 'File not found.');
+        } catch (Exception $e) {
+            Log::error('File Download Error: ' . $e->getMessage());
+            session()->flash('error', 'Failed to download file.');
+        }
+    }
+
+    // Remove existing file
+    public function removeExistingFile($type, $index = null)
+    {
+        try {
+            switch ($type) {
+                case 'nida':
+                    if ($this->existing_nida_file && Storage::disk('public')->exists($this->existing_nida_file)) {
+                        Storage::disk('public')->delete($this->existing_nida_file);
+                    }
+                    $this->existing_nida_file = null;
+                    break;
+                case 'zan_id':
+                    if ($this->existing_zan_id_file && Storage::disk('public')->exists($this->existing_zan_id_file)) {
+                        Storage::disk('public')->delete($this->existing_zan_id_file);
+                    }
+                    $this->existing_zan_id_file = null;
+                    break;
+                case 'photo':
+                    if ($this->existing_photo_file && Storage::disk('public')->exists($this->existing_photo_file)) {
+                        Storage::disk('public')->delete($this->existing_photo_file);
+                    }
+                    $this->existing_photo_file = null;
+                    break;
+                case 'birth':
+                    if ($this->existing_photo_file && Storage::disk('public')->exists($this->existing_birth_certificate_file)) {
+                        Storage::disk('public')->delete($this->existing_birth_certificate_file);
+                    }
+                    $this->existing_birth_certificate_file = null;
+                    break;
+                case 'contract':
+                    if ($this->existing_photo_file && Storage::disk('public')->exists($this->existing_employment_contract_file)) {
+                        Storage::disk('public')->delete($this->existing_employment_contract_file);
+                    }
+                    $this->existing_employment_contract_file = null;
+                    break;
+                case 'certificate':
+                    if (isset($this->education_levels[$index]['existing_file'])) {
+                        $filePath = $this->education_levels[$index]['existing_file'];
+                        if (Storage::disk('public')->exists($filePath)) {
+                            Storage::disk('public')->delete($filePath);
+                        }
+                        $this->education_levels[$index]['existing_file'] = null;
+                    }
+                    break;
+            }
+
+            session()->flash('success', 'File removed successfully.');
+        } catch (Exception $e) {
+            Log::error('File Removal Error: ' . $e->getMessage());
+            session()->flash('error', 'Failed to remove file.');
+        }
+    }
+
+    // Helper method to get file preview URL
+    public function getFileUrl($filePath)
+    {
+        if ($filePath && Storage::disk('public')->exists($filePath)) {
+            return Storage::disk('public')->url($filePath);
+        }
+        return null;
+    }
+
+    // Helper method to check if file is image
+    public function isImageFile($filePath)
+    {
+        if (!$filePath) return false;
+
+        $extension = pathinfo($filePath, PATHINFO_EXTENSION);
+        return in_array(strtolower($extension), ['jpg', 'jpeg', 'png', 'gif']);
     }
 
     #[On('user-selected')]
@@ -172,7 +301,7 @@ class EmployeeCreate extends Component
             $this->middle_name = $user->middle_name;
             $this->last_name = $user->last_name;
             $this->userId = $user->id;
-            $this->selectedLocation = $user->tenant?->name;
+            $this->location = $user->tenant?->name;
 
             $this->dispatch('setUserDetails', [
                 'first_name' => $this->first_name,
@@ -192,10 +321,10 @@ class EmployeeCreate extends Component
         if ($this->employee?->user) {
             $this->dispatch('eventEmail', [
                 'employee_id' => $this->employee->user->id,
-                'employee_role' => $this->selectedRole,
-                'bank_name' => $this->employee->bank_name_id,
-                'unit_id' => $this->employee->unit_id,
-                'department_id' => $this->employee->department_id
+                // 'employee_role' => $this->selectedRole,
+                // 'bank_name' => $this->employee->bank_name_id,
+                // 'unit_id' => $this->employee->unit_id,
+                // 'department_id' => $this->employee->department_id
             ]);
         }
     }
@@ -217,6 +346,8 @@ class EmployeeCreate extends Component
             'gender' => 'required|in:male,female',
             'disability' => 'required|in:yes,no',
 
+
+
             // Bank Information
             'bank_name' => 'required|exists:banks,id',
             'bank_account_no' => 'required|string|max:50',
@@ -228,8 +359,11 @@ class EmployeeCreate extends Component
             'social_security_no' => 'nullable|string|max:50',
             'zan_id_no' => 'nullable|string|max:50',
             'zan_id_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'birth_certificate_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'employment_contract_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'nida_no' => 'nullable|string|max:50',
             'nida_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'photo_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'unit' => 'nullable|exists:units,id',
             'department' => 'nullable|exists:departments,id',
             'selectedRole' => 'required|in:' . implode(',', $this->roles),
@@ -299,11 +433,14 @@ class EmployeeCreate extends Component
                 'social_security_no',
                 'zan_id_no',
                 'zan_id_file',
+                'birth_certificate_file',
+                'employment_contract_file',
                 'nida_no',
                 'nida_file',
+                'photo_file',
                 'unit',
                 'department',
-                'selectedRole'
+                'selectedRole',
             ],
             3 => [
                 'education_levels.*.course_name',
@@ -334,11 +471,15 @@ class EmployeeCreate extends Component
 
             DB::commit();
 
-            session()->flash('success', 'Employee saved successfully!');
-            $this->resetFormFields();
-            $this->dispatch('resetFileState');
+            $message = $this->isEditMode ? 'Employee updated successfully!' : 'Employee created successfully!';
+            session()->flash('success', $message);
 
-            return redirect()->route('hrm.employee.index');
+            if (!$this->isEditMode) {
+                $this->resetFormFields();
+                $this->dispatch('resetFileState');
+            }
+
+            return redirect()->route('hrm.employees.create');
         } catch (Exception $e) {
             DB::rollBack();
 
@@ -354,7 +495,6 @@ class EmployeeCreate extends Component
 
     protected function saveEmployee()
     {
-        // Set role-based boolean flags
         $this->setRoleFlags();
 
         $employeeData = [
@@ -372,23 +512,26 @@ class EmployeeCreate extends Component
             'opf_number' => $this->opf_number,
             'social_security_no' => $this->social_security_no,
             'zan_id_no' => $this->zan_id_no,
+            'hr_registered' => true,
+            'is_director_general' => $this->is_director_general,
+            'is_manager' => $this->is_manager,
+            'is_officer' => $this->is_officer,
+            'is_coordinator' => $this->is_coordinator,
+            'is_director' => $this->is_director,
             'unit_id' => $this->unit,
             'department_id' => $this->department,
             'education' => $this->education,
             'disability' => $this->disability,
             'is_active' => 'active',
-            'is_manager' => $this->is_manager,
-            'is_director' => $this->is_director,
-            'is_coordinator' => $this->is_coordinator,
             'user_id' => $this->userId,
         ];
 
-        // Handle file uploads
+        // dd($this->is_manager);
         $employeeData = $this->handleFileUploads($employeeData);
 
         if ($this->employeeId) {
             $employeeData['last_updated_by'] = auth()->id();
-            $employee = Employee::where('user_id', $this->employeeId)->first();
+            $employee = Employee::where('id', $this->employeeId)->first();
             $employee->update($employeeData);
         } else {
             $employeeData['created_by'] = auth()->id();
@@ -400,42 +543,101 @@ class EmployeeCreate extends Component
 
     protected function setRoleFlags()
     {
-        // Reset all flags
+        $this->is_officer = false;
         $this->is_manager = false;
         $this->is_director = false;
+        $this->is_director_general = false;
         $this->is_coordinator = false;
-
-        // Set flag based on selected role
+        // Set the selected role
+        // dd($this->selectedRole);
         switch ($this->selectedRole) {
+            case 'officer':
+                $this->is_officer = true;
+                break;
+
             case 'manager':
                 $this->is_manager = true;
                 break;
+
             case 'director':
-            case 'director_general':
                 $this->is_director = true;
                 break;
+
+            case 'director_general':
+                $this->is_director_general = true;
+                break;
+
             case 'coordinator':
                 $this->is_coordinator = true;
                 break;
         }
     }
 
+    protected function initializeRoleFlags()
+    {
+        // Determine selected role from flags
+        if ($this->is_director_general) {
+            $this->selectedRole = 'director_general';
+        } elseif ($this->is_director) {
+            $this->selectedRole = 'director';
+        } elseif ($this->is_manager) {
+            $this->selectedRole = 'manager';
+        } elseif ($this->is_coordinator) {
+            $this->selectedRole = 'coordinator';
+        } elseif ($this->is_officer) {
+            $this->selectedRole = 'officer';
+        }
+    }
+
+
     protected function handleFileUploads(array $employeeData): array
     {
         // Handle NIDA file
         if ($this->nida_file instanceof \Illuminate\Http\UploadedFile) {
-            if ($this->employeeId && $this->employee?->nida_file) {
-                Storage::disk('public')->delete($this->employee->nida_file);
+            if ($this->existing_nida_file) {
+                Storage::disk('public')->delete($this->existing_nida_file);
             }
             $employeeData['nida_file'] = $this->nida_file->store('nida', 'public');
+        } elseif (!$this->existing_nida_file && $this->isEditMode) {
+            $employeeData['nida_file'] = null;
         }
 
         // Handle Zanzibar ID file
         if ($this->zan_id_file instanceof \Illuminate\Http\UploadedFile) {
-            if ($this->employeeId && $this->employee?->zan_id_file) {
-                Storage::disk('public')->delete($this->employee->zan_id_file);
+            if ($this->existing_zan_id_file) {
+                Storage::disk('public')->delete($this->existing_zan_id_file);
             }
             $employeeData['zan_id_file'] = $this->zan_id_file->store('zan_id', 'public');
+        } elseif (!$this->existing_zan_id_file && $this->isEditMode) {
+            $employeeData['zan_id_file'] = null;
+        }
+
+        // Handle Photo file
+        if ($this->photo_file instanceof \Illuminate\Http\UploadedFile) {
+            if ($this->existing_photo_file) {
+                Storage::disk('public')->delete($this->existing_photo_file);
+            }
+            $employeeData['photo_file'] = $this->photo_file->store('photo', 'public');
+        } elseif (!$this->existing_photo_file && $this->isEditMode) {
+            $employeeData['photo_file'] = null;
+        }
+        // Handle Birth Certificate file
+        if ($this->birth_certificate_file instanceof \Illuminate\Http\UploadedFile) {
+            if ($this->existing_birth_certificate_file) {
+                Storage::disk('public')->delete($this->existing_birth_certificate_file);
+            }
+            $employeeData['birth_certificate_file'] = $this->birth_certificate_file->store('birth_certificate', 'public');
+        } elseif (!$this->existing_birth_certificate_file && $this->isEditMode) {
+            $employeeData['birth_certificate_file'] = null;
+        }
+        // Handle Employee Contract file
+        if ($this->employment_contract_file instanceof \Illuminate\Http\UploadedFile) {
+            if ($this->existing_employment_contract_file) {
+                Storage::disk('public')->delete($this->existing_employment_contract_file);
+            }
+            $employeeData['employment_contract_file'] = $this->photo_file->store('photo', 'public');
+        } elseif (!$this->existing_photo_file && $this->isEditMode) {
+            $employeeData['employment_contract_file'] = null;
         }
 
         return $employeeData;
@@ -444,7 +646,9 @@ class EmployeeCreate extends Component
     protected function saveEducationLevels($employee)
     {
         // Delete existing education levels if updating
-        $employee->education_levels()->delete();
+        if ($this->isEditMode) {
+            $employee->education_levels()->delete();
+        }
 
         foreach ($this->education_levels as $index => $edu) {
             $data = [
@@ -453,14 +657,18 @@ class EmployeeCreate extends Component
                 'holder_certificate_no' => $edu['holder_certificate_no'] ?? null,
             ];
 
-            // Handle certificate file upload
-            if (!empty($this->certificate_files[$index])) {
+            // Handle new certificate file upload
+            if (!empty($this->certificate_files[$index]) && $this->certificate_files[$index] instanceof \Illuminate\Http\UploadedFile) {
                 $data['certificate_file'] = $this->certificate_files[$index]->store('certificates', 'public');
+            } elseif (!empty($edu['existing_file'])) {
+                // Keep existing file if no new file uploaded
+                $data['certificate_file'] = $edu['existing_file'];
             }
 
             $employee->education_levels()->create($data);
         }
     }
+
 
     public function resetFormFields()
     {
@@ -484,21 +692,31 @@ class EmployeeCreate extends Component
             'social_security_no',
             'zan_id_no',
             'zan_id_file',
+            'birth_certificate_file',
+            'employment_contract_file',
+            'existing_zan_id_file',
             'nida_no',
             'nida_file',
+            'existing_nida_file',
+            'photo_file',
+            'existing_photo_file',
             'unit',
             'department',
             'selectedRole',
             'userId',
             'certificate_files',
+            'existing_certificate_files',
             'location',
             'disability',
+            'is_officer',
             'is_manager',
             'is_director',
-            'is_coordinator'
+            'is_director_general',
+            'is_coordinator',
         ]);
 
         $this->currentStep = 1;
+        $this->isEditMode = false;
         $this->initializeEducationLevels();
     }
 
@@ -508,13 +726,19 @@ class EmployeeCreate extends Component
             "course_name" => "",
             "certificate_name" => "",
             "holder_certificate_no" => "",
-            "certificate_file" => ""
+            "certificate_file" => "",
+            "existing_file" => null
         ];
     }
 
     public function removeEducationLevel($index)
     {
         if (count($this->education_levels) > 1) {
+            // Delete file if exists
+            if (!empty($this->education_levels[$index]['existing_file'])) {
+                Storage::disk('public')->delete($this->education_levels[$index]['existing_file']);
+            }
+
             unset($this->education_levels[$index]);
             $this->education_levels = array_values($this->education_levels);
         }
@@ -531,6 +755,7 @@ class EmployeeCreate extends Component
             'units' => Unit::pluck('name', 'id'),
             'emails' => $emails,
             'educationLevels' => $this->educationLevels,
+            'isEditMode' => $this->isEditMode,
         ]);
     }
 

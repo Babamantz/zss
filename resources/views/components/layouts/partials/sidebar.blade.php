@@ -92,7 +92,7 @@
                                 <li><a href="{{ route('hrm.employees.index') }}"
                                         class="{{ routeActive('hrm.employees.index') }}">Employees</a>
                                 </li>
-                                <li><a href="" class="">Leave</a>
+                                <li><a href="{{ route('hrm.employee.report') }}" class="">Report</a>
                                 </li>
 
                             </ul>

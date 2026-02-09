@@ -16,6 +16,10 @@ use Throwable;
 class UserCreate extends Component
 {
     public string $first_name = '';
+
+    public string $user_disabilty_check = '';
+
+    public string $user_title = ''; 
     public string $middle_name = '';
     public string $last_name = '';
     public string $email = '';
@@ -145,7 +149,15 @@ class UserCreate extends Component
     protected function assignPermissions(User $user): void
     {
         if (!empty($this->direct_permissions)) {
-            $user->givePermissionTo($this->direct_permissions);
+            // Get permission names from IDs
+            $permissionNames = Permission::whereIn('id', $this->direct_permissions)
+                ->where('guard_name', 'web')
+                ->pluck('name')
+                ->toArray();
+
+            if (!empty($permissionNames)) {
+                $user->givePermissionTo($permissionNames);
+            }
         }
     }
 

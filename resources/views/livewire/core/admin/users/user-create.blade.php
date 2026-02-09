@@ -22,21 +22,24 @@
                             </div>
                             <div class="form-group">
                                 <label for="Mname">Middle Name</label>
-                                <input class="form-control" id="Mname" type="text" wire:model.defer="middle_name">
+                                <input class="form-control" id="Mname" type="text"
+                                    wire:model.defer="middle_name">
                                 @error('middle_name')
                                     <span class="text-danger">{{ $message }}</span>
                                 @enderror
                             </div>
                             <div class="form-group">
                                 <label for="lname">Last Name</label>
-                                <input class="form-control digits" id="lname" type="text" wire:model.defer="last_name">
+                                <input class="form-control digits" id="lname" type="text"
+                                    wire:model.defer="last_name">
                                 @error('last_name')
                                     <span class="text-danger">{{ $message }}</span>
                                 @enderror
                             </div>
                             <div class="form-group">
                                 <label for="email">Email</label>
-                                <input class="form-control digits" id="email" type="email" wire:model.defer="email">
+                                <input class="form-control digits" id="email" type="email"
+                                    wire:model.defer="email">
                                 @error('email')
                                     <span class="text-danger">{{ $message }}</span>
                                 @enderror
@@ -73,12 +76,14 @@
                                     <span class="text-danger">{{ $message }}</span>
                                 @enderror
                             </div>
+                            
                             <div class="form-group" wire:ignore>
                                 <label class="col-form-label">Direct Permissions</label>
                                 <select class="js-example-placeholder-multiple col-sm-12" multiple="multiple"
                                     id="permissions-select" wire:model="direct_permissions">
                                     @forelse ($this->permissionNames as $permission)
-                                        <option value="{{ $permission->name }}">{{ $permission->name }}</option>
+                                        <option value="{{ $permission->name }}">{{ $permission->name }}
+                                        </option>
                                     @empty
                                         <option disabled>No permissions found</option>
                                     @endforelse
