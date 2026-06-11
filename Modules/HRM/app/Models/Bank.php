@@ -15,6 +15,11 @@ class Bank extends Model
      */
     protected $guarded = false;
 
+    public function employee_bank()
+    {
+        return $this->hasOne(Employee::class);
+    }
+
     // protected static function newFactory(): BankFactory
     // {
     //     // return BankFactory::new();

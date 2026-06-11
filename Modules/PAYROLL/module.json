@@ -1,0 +1,11 @@
+{
+    "name": "PAYROLL",
+    "alias": "payroll",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\PAYROLL\\Providers\\PAYROLLServiceProvider"
+    ],
+    "files": []
+}

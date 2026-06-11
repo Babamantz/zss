@@ -25,7 +25,8 @@ return new class extends Migration
             $table->foreignId('tenant_id')->nullable();
             $table->rememberToken();
             $table->timestamps();
-            $table->unique(['email', 'tenant_id']);
+            $table->unique(['email']
+            );
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

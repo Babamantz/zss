@@ -38,8 +38,25 @@
                             </div>
                         </li>
                         <li class="dropdown">
-                            <a class="nav-link menu-title {{ prefixActive('/index') }}" href="{{ route('index') }}"><i
+                            <a class="nav-link {{ prefixActive('/index') }}" href="{{ route('index') }}"><i
                                     data-feather="home"></i><span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="dropdown">
+                            <a class="nav-link {{ prefixActive('/index') }}" href="{{ route('profile') }}"><i
+                                    data-feather="user"></i><span>Profile</span>
+                            </a>
+                        </li>
+
+
+                        <li class="dropdown">
+                            <a class="nav-link  {{ prefixActive('/index') }}" href="{{ route('documents.index') }}"><i
+                                    data-feather="file"></i><span>Documents</span>
+                            </a>
+                        </li>
+                        <li class="dropdown">
+                            <a class="nav-link  {{ prefixActive('/index') }}" href="{{ route('attendance.index') }}"><i
+                                    data-feather="users"></i><span>Attendace</span>
                             </a>
                         </li>
                         <li class="dropdown">
@@ -54,6 +71,17 @@
                                 </li>
                                 <li><a href="{{ route('roles.index') }}"
                                         class="{{ routeActive('roles.index') }}">Roles</a>
+                                </li>
+                            </ul>
+                        </li>
+
+
+                        <li class="dropdown">
+                            <a class="nav-link menu-title {{ prefixActive('/index') }}" href="javascript:void(0)"><i
+                                    data-feather="file"></i><span>Reports</span></a>
+                            <ul class="nav-submenu menu-content" style="display: {{ prefixBlock('/index') }};">
+                                <li><a href="{{ route('user.report.index') }}"
+                                        class="{{ routeActive('user.report.index') }}">Users</a>
                                 </li>
                             </ul>
                         </li>
@@ -79,7 +107,7 @@
                             </div>
                         </li>
                         <li class="dropdown">
-                            <a class="nav-link menu-title {{ prefixActive('/module/hrm/dashboard') }}"
+                            <a class="nav-link {{ prefixActive('/module/hrm/dashboard') }}"
                                 href="{{ route('hrm.employees.dashboard') }}"><i
                                     data-feather="home"></i><span>Dashboard</span>
                             </a>

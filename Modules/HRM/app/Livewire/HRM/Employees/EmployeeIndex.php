@@ -46,7 +46,7 @@ class EmployeeIndex extends Component
     {
         $employees = Employee::query()
             ->with(['user', 'user.roles', 'user.permissions', 'user.tenant'])
-            ->where('hr_registered', true)
+            ->where('is_hr_registered', true)
             ->when($this->search, function ($query) {
                 $query->whereHas('user', function ($q) {
                     $q->where('name', 'like', '%' . $this->search . '%')

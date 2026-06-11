@@ -18,7 +18,7 @@
     </div>
 
     <!-- Missing Documents - Red/Danger -->
-    <div class="col-md-3">
+    {{-- <div class="col-md-3">
         <div class="card card-body mx-1 shadow-sm border-0" style="border-left: 5px solid #e74a3b;">
             <div class="d-flex align-items-center">
                 <i class="icofont icofont-file-document fa-3x text-danger"></i>
@@ -28,7 +28,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> --}}
 
     <!-- Retirements - Warning/Orange -->
     <div class="col-md-3">

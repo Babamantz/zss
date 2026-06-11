@@ -2,6 +2,8 @@
 
 namespace Modules\HRM\Models;
 
+use App\Models\EmployeeCertificate;
+use App\Models\EmployeeIdentification;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -18,11 +20,24 @@ class Employee extends Model
      * The attributes that are mass assignable.
      */
 
+    protected $casts = [
+        'contacts' => 'array'
+    ];
+
     protected $guarded = false;
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function certificates()
+    {
+        return $this->hasMany(EmployeeCertificate::class);
+    }
+    public function identifications()
+    {
+        return $this->hasMany(EmployeeIdentification::class);
     }
 
     public function department()
@@ -43,6 +58,11 @@ class Employee extends Model
     public function unit()
     {
         return $this->belongsTo(Unit::class, 'unit_id');
+    }
+
+    public function bank()
+    {
+        return $this->belongsTo(Bank::class);
     }
 
     // protected static function newFactory(): EmployeeFactory

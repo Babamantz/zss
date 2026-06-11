@@ -17,10 +17,10 @@ class EmployeeDashboard extends Component
     {
         $stats = [
             'total_staff' => Employee::where('is_active', 'active')->count(),
-            'missing_docs' => Employee::where(function ($query) {
-                $query->whereNull('employment_contract_file')
-                    ->orWhereNull('nida_file');
-            })->count(),
+            // 'missing_docs' => Employee::where(function ($query) {
+            //     $query->whereNull('employment_contract_file')
+            //         ->orWhereNull('nida_file');
+            // })->count(),
             'upcoming_retirements' => Employee::where('retiring_date', '<=', now()->addYear())
                 ->where('is_active', 'active')
                 ->count(),

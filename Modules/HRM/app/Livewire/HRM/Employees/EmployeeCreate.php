@@ -2,19 +2,21 @@
 
 namespace Modules\HRM\Livewire\HRM\Employees;
 
-use Exception;
-use App\Models\User;
+use App\Models\Certificate;
+use App\Models\Identification;
 use App\Models\Tenant;
-use Livewire\Component;
-use Livewire\WithFileUploads;
-use Livewire\Attributes\On;
-use Modules\HRM\Models\Bank;
-use Modules\HRM\Models\Unit;
-use Modules\HRM\Models\Employee;
+use App\Models\User;
+use Exception;
 use Illuminate\Support\Facades\DB;
-use Modules\HRM\Models\Department;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Attributes\On;
+use Livewire\Component;
+use Livewire\WithFileUploads;
+use Modules\HRM\Models\Bank;
+use Modules\HRM\Models\Department;
+use Modules\HRM\Models\Employee;
+use Modules\HRM\Models\Unit;
 
 class EmployeeCreate extends Component
 {
@@ -34,10 +36,14 @@ class EmployeeCreate extends Component
     public $education;
     public $hired_date;
     public $retiring_date;
-    public $phone_number;
+    public $contacts = [
+        ['type' => 'personal',    'phone_number' => ''],
+        ['type' => 'next_of_kin', 'phone_number' => ''],
+    ];
     public $email;
     public $marital_status;
     public $gender;
+
     public $disability = 'no';
     // Bank Information (Step 1)
     public $bank_name;
@@ -47,15 +53,12 @@ class EmployeeCreate extends Component
     public $designation;
     public $opf_number;
     public $social_security_no;
-    public $zan_id_no;
-    public $zan_id_file;
+  
     public $existing_zan_id_file; // For preview
     public $birth_certificate_file;
     public $existing_birth_certificate_file;
     public $employment_contract_file;
     public $existing_employment_contract_file;  //For preview
-    public $nida_no;
-    public $nida_file;
     public $existing_nida_file; // For preview
     public $photo_file;
     public $existing_photo_file; // For preview
@@ -64,12 +67,11 @@ class EmployeeCreate extends Component
     public $location;
     public $selectedRole = '';
     public $is_officer = false;
-    public $is_manager = false;
-    public $is_director = false;
-    public $is_director_general = false;
-    public $is_coordinator = false;
+  
     // Education Levels (Step 3)
     public $education_levels = [];
+    public $identification_files = [];
+
     public $certificate_files = [];
     public $existing_certificate_files = []; // For preview
     // Edit mode flag
@@ -77,9 +79,15 @@ class EmployeeCreate extends Component
     public $isViewMode = false;
     // Constants
     public $roles = ['officer', 'manager', 'director', 'director_general', 'coordinator'];
-    public $educationLevels = ['certificate', 'diploma', 'advance_diploma', 'bachelor', 'master', 'phd'];
+    public $educationLevels = ['certificate', 'form-iv', 'diploma', 'advance_diploma', 'bachelor', 'master', 'phd'];
 
     protected $listeners = ['user-selected' => 'selectUser'];
+    public $identification_items = [];       // rows bound to Alpine
+    public $identification_upload_files = []; // actual UploadedFile objects
+
+    // Certificates (Step 5  — replaces old flat fields)
+    public $certificate_items = [];
+    public $certificate_upload_files = [];
 
     public function mount($employeeId = null, $mode = null)
     {
@@ -87,10 +95,36 @@ class EmployeeCreate extends Component
         $this->isEditMode = !is_null($employeeId);
         $this->isViewMode = $mode == 'view';
         $this->initializeEducationLevels();
-        $this->initializeRoleFlags();
+        $this->initializeIdentificationItems();
+        $this->initializeCertificateItems();
+        $this->contacts = [
+            ['type' => 'personal',    'phone_number' => ''],
+            ['type' => 'next_of_kin', 'phone_number' => ''],
+        ];
+        // $this->initializeRoleFlags();
 
         if ($employeeId) {
             $this->loadEmployee();
+        }
+    }
+
+    // ── MOUNT: initialise the new collections ────────────────────────────────
+
+    protected function initializeIdentificationItems(): void
+    {
+        if (empty($this->identification_items)) {
+            $this->identification_items = [
+                ['identification_id' => '', 'identification_no' => '', 'existing_file' => null],
+            ];
+        }
+    }
+
+    protected function initializeCertificateItems(): void
+    {
+        if (empty($this->certificate_items)) {
+            $this->certificate_items = [
+                ['certificate_id' => '', 'certificate_no' => '', 'existing_file' => null],
+            ];
         }
     }
 
@@ -103,9 +137,16 @@ class EmployeeCreate extends Component
         }
     }
 
+
     protected function loadEmployee()
     {
-        $this->employee = Employee::with(['user', 'user.tenant', 'education_levels'])->where('id', $this->employeeId)->first();
+        $this->employee = Employee::with([
+            'user',
+            'user.tenant',
+            'identifications',
+            'certificates',
+            'education_levels'
+        ])->where('id', $this->employeeId)->first();
         //  dd($this->employee);
         if (!$this->employee) {
             session()->flash('error', 'Employee not found.');
@@ -119,30 +160,23 @@ class EmployeeCreate extends Component
     {
         // Basic employee data
         $this->fill([
-            'nida_no' => $this->employee->nida_no,
             'dob' => $this->employee->dob,
             'hired_date' => $this->employee->hired_date,
             'retiring_date' => $this->employee->retiring_date,
             'bank_account_no' => $this->employee->bank_account_no,
-            'phone_number' => $this->employee->phone_number,
             'marital_status' => $this->employee->marital_status,
             'gender' => $this->employee->gender,
             'health_insurance_no' => $this->employee->health_insurance_no,
             'designation' => $this->employee->designation,
             'opf_number' => $this->employee->opf_number,
             'social_security_no' => $this->employee->social_security_no,
-            'zan_id_no' => $this->employee->zan_id_no,
             'education' => $this->employee->education,
             'disability' => $this->employee->disability ?? 'no',
-            'is_manager' => $this->employee->is_manager ?? false,
-            'is_director' => $this->employee->is_director ?? false,
-            'is_director_general' => $this->employee->is_director_general ?? false,
+
             'is_officer' => $this->employee->is_officer ?? false,
-            'is_coordinator' => $this->employee->is_coordinator ?? false,
         ]);
         // Store existing file paths for preview
-        $this->existing_nida_file = $this->employee->nida_file;
-        $this->existing_zan_id_file = $this->employee->zan_id_file;
+   
         $this->existing_photo_file = $this->employee->photo_file;
         $this->existing_birth_certificate_file = $this->employee->birth_certificate_file;
         $this->existing_employment_contract_file = $this->employee->employment_contract_file;
@@ -170,6 +204,26 @@ class EmployeeCreate extends Component
                 'existing_file' => $edu->certificate_file, // For preview
             ];
         })->toArray();
+        $this->identification_items = $this->employee->identifications
+            ->map(fn($i) => [
+                'identification_id' => $i->identification_id,
+                'identification_no'  => $i->identification_no,
+                'existing_file'      => $i->identification_path,
+            ])->toArray() ?: $this->identification_items;
+
+        // Certificates
+        $this->certificate_items = $this->employee->certificates
+            ->map(fn($c) => [
+                'certificate_id' => $c->certificate_id,
+                'certificate_no'  => $c->certificate_no,
+                'existing_file'   => $c->certificate_path,
+            ])->toArray() ?: $this->certificate_items;
+
+        // Contacts
+        $saved = json_decode($this->employee->contacts, true);
+        if (!empty($saved)) {
+            $this->contacts = $saved;
+        }
 
         $this->education_levels = !empty($educationLevels) ? $educationLevels : $this->education_levels;
 
@@ -240,13 +294,13 @@ class EmployeeCreate extends Component
                     $this->existing_photo_file = null;
                     break;
                 case 'birth':
-                    if ($this->existing_photo_file && Storage::disk('public')->exists($this->existing_birth_certificate_file)) {
+                    if ($this->existing_birth_certificate_file && Storage::disk('public')->exists($this->existing_birth_certificate_file)) {
                         Storage::disk('public')->delete($this->existing_birth_certificate_file);
                     }
                     $this->existing_birth_certificate_file = null;
                     break;
                 case 'contract':
-                    if ($this->existing_photo_file && Storage::disk('public')->exists($this->existing_employment_contract_file)) {
+                    if ($this->existing_employment_contract_file && Storage::disk('public')->exists($this->existing_employment_contract_file)) {
                         Storage::disk('public')->delete($this->existing_employment_contract_file);
                     }
                     $this->existing_employment_contract_file = null;
@@ -340,8 +394,19 @@ class EmployeeCreate extends Component
             'education' => 'required|string|in:certificate,diploma,advance diploma,bachelor,master,phd',
             'hired_date' => 'required|date',
             'retiring_date' => 'nullable|date|after:hired_date',
-            'phone_number' => 'required|string|max:15',
             'email' => 'required|exists:users,id',
+            // Identifications
+            'identification_items.*.identification_id' => 'required|exists:identifications,id',
+            'identification_items.*.identification_no'  => 'nullable|string|max:60',
+
+            // Certificates
+            'certificate_items.*.certificate_id' => 'required|exists:certificates,id',
+            'certificate_items.*.certificate_no' => 'nullable|string|max:60',
+
+            // Contacts
+            'contacts.0.phone_number' => 'required|string|max:15',  // personal — required
+            'contacts.1.phone_number' => 'nullable|string|max:15',
+
             'marital_status' => 'required|in:single,married,divorced',
             'gender' => 'required|in:male,female',
             'disability' => 'required|in:yes,no',
@@ -357,12 +422,6 @@ class EmployeeCreate extends Component
             'designation' => 'nullable|string|max:50',
             'opf_number' => 'nullable|string|max:50',
             'social_security_no' => 'nullable|string|max:50',
-            'zan_id_no' => 'nullable|string|max:50',
-            'zan_id_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-            'birth_certificate_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-            'employment_contract_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-            'nida_no' => 'nullable|string|max:50',
-            'nida_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'photo_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'unit' => 'nullable|exists:units,id',
             'department' => 'nullable|exists:departments,id',
@@ -420,32 +479,35 @@ class EmployeeCreate extends Component
                 'retiring_date',
                 'bank_name',
                 'bank_account_no',
-                'phone_number',
                 'email',
                 'marital_status',
                 'gender',
-                'disability'
+                'disability',
+                'contacts.0.phone_number',
+                'contacts.1.phone_number'
             ],
             2 => [
                 'health_insurance_no',
                 'designation',
                 'opf_number',
                 'social_security_no',
-                'zan_id_no',
-                'zan_id_file',
-                'birth_certificate_file',
-                'employment_contract_file',
-                'nida_no',
-                'nida_file',
-                'photo_file',
                 'unit',
                 'department',
                 'selectedRole',
             ],
             3 => [
+                'identification_items.*.identification_id',
+                'identification_items.*.identification_no',
+            ],
+            4 => [
+                'certificate_items.*.certificate_id',
+                'certificate_items.*.certificate_no',
+            ],
+
+            5 => [
                 'education_levels.*.course_name',
                 'education_levels.*.certificate_name',
-                'education_levels.*.holder_certificate_no'
+                'education_levels.*.holder_certificate_no',
             ],
         ];
 
@@ -468,6 +530,8 @@ class EmployeeCreate extends Component
         try {
             $employee = $this->saveEmployee();
             $this->saveEducationLevels($employee);
+            $this->saveIdentifications($employee);
+            $this->saveCertificates($employee);
 
             DB::commit();
 
@@ -495,35 +559,32 @@ class EmployeeCreate extends Component
 
     protected function saveEmployee()
     {
-        $this->setRoleFlags();
+        // $this->setRoleFlags();
 
         $employeeData = [
-            'nida_no' => $this->nida_no,
             'dob' => $this->dob,
             'hired_date' => $this->hired_date,
             'retiring_date' => $this->retiring_date,
             'bank_name_id' => $this->bank_name,
             'bank_account_no' => $this->bank_account_no,
-            'phone_number' => $this->phone_number,
             'marital_status' => $this->marital_status,
             'gender' => $this->gender,
             'health_insurance_no' => $this->health_insurance_no,
             'designation' => $this->designation,
             'opf_number' => $this->opf_number,
             'social_security_no' => $this->social_security_no,
-            'zan_id_no' => $this->zan_id_no,
             'hr_registered' => true,
-            'is_director_general' => $this->is_director_general,
-            'is_manager' => $this->is_manager,
+          
             'is_officer' => $this->is_officer,
-            'is_coordinator' => $this->is_coordinator,
             'is_director' => $this->is_director,
             'unit_id' => $this->unit,
             'department_id' => $this->department,
             'education' => $this->education,
             'disability' => $this->disability,
             'is_active' => 'active',
-            'user_id' => $this->userId,
+            'user_id' => $this->userId, // ── IN saveEmployee(): store contacts as JSON ─────────────────────────────
+            // Add this to $employeeData array:
+            'contacts' => json_encode(array_filter($this->contacts, fn($c) => filled($c['phone_number']))),
         ];
 
         // dd($this->is_manager);
@@ -541,53 +602,50 @@ class EmployeeCreate extends Component
         return $employee;
     }
 
-    protected function setRoleFlags()
-    {
-        $this->is_officer = false;
-        $this->is_manager = false;
-        $this->is_director = false;
-        $this->is_director_general = false;
-        $this->is_coordinator = false;
-        // Set the selected role
-        // dd($this->selectedRole);
-        switch ($this->selectedRole) {
-            case 'officer':
-                $this->is_officer = true;
-                break;
+    // protected function setRoleFlags()
+    // {
+    //     $this->is_officer = false;
 
-            case 'manager':
-                $this->is_manager = true;
-                break;
+    //     // Set the selected role
+    //     // dd($this->selectedRole);
+    //     switch ($this->selectedRole) {
+    //         case 'officer':
+    //             $this->is_officer = true;
+    //             break;
 
-            case 'director':
-                $this->is_director = true;
-                break;
+    //         case 'manager':
+    //             $this->is_manager = true;
+    //             break;
 
-            case 'director_general':
-                $this->is_director_general = true;
-                break;
+    //         case 'director':
+    //             $this->is_director = true;
+    //             break;
 
-            case 'coordinator':
-                $this->is_coordinator = true;
-                break;
-        }
-    }
+    //         case 'director_general':
+    //             $this->is_director_general = true;
+    //             break;
 
-    protected function initializeRoleFlags()
-    {
-        // Determine selected role from flags
-        if ($this->is_director_general) {
-            $this->selectedRole = 'director_general';
-        } elseif ($this->is_director) {
-            $this->selectedRole = 'director';
-        } elseif ($this->is_manager) {
-            $this->selectedRole = 'manager';
-        } elseif ($this->is_coordinator) {
-            $this->selectedRole = 'coordinator';
-        } elseif ($this->is_officer) {
-            $this->selectedRole = 'officer';
-        }
-    }
+    //         case 'coordinator':
+    //             $this->is_coordinator = true;
+    //             break;
+    //     }
+    // }
+
+    // protected function initializeRoleFlags()
+    // {
+    //     // Determine selected role from flags
+    //     if ($this->is_director_general) {
+    //         $this->selectedRole = 'director_general';
+    //     } elseif ($this->is_director) {
+    //         $this->selectedRole = 'director';
+    //     } elseif ($this->is_manager) {
+    //         $this->selectedRole = 'manager';
+    //     } elseif ($this->is_coordinator) {
+    //         $this->selectedRole = 'coordinator';
+    //     } elseif ($this->is_officer) {
+    //         $this->selectedRole = 'officer';
+    //     }
+    // }
 
 
     protected function handleFileUploads(array $employeeData): array
@@ -635,8 +693,8 @@ class EmployeeCreate extends Component
             if ($this->existing_employment_contract_file) {
                 Storage::disk('public')->delete($this->existing_employment_contract_file);
             }
-            $employeeData['employment_contract_file'] = $this->photo_file->store('photo', 'public');
-        } elseif (!$this->existing_photo_file && $this->isEditMode) {
+            $employeeData['employment_contract_file'] = $this->employment_contract_file->store('employment_contracts', 'public');
+        } elseif (!$this->existing_employment_contract_file && $this->isEditMode) {
             $employeeData['employment_contract_file'] = null;
         }
 
@@ -669,6 +727,60 @@ class EmployeeCreate extends Component
         }
     }
 
+    // ── SAVE METHODS (call from submitForm() inside the DB transaction) ───────
+
+    protected function saveIdentifications(Employee $employee): void
+    {
+        if ($this->isEditMode) {
+            $employee->identifications()->delete();
+        }
+
+        foreach ($this->identification_items as $index => $item) {
+            $data = [
+                'identification_id' => $item['identification_id'],
+                'identification_no' => $item['identification_no'] ?? null,
+            ];
+
+            if (
+                !empty($this->identification_upload_files[$index]) &&
+                $this->identification_upload_files[$index] instanceof \Illuminate\Http\UploadedFile
+            ) {
+                $data['identification_path'] = $this->identification_upload_files[$index]
+                    ->store('identifications', 'public');
+            } elseif (!empty($item['existing_file'])) {
+                $data['identification_path'] = $item['existing_file'];
+            }
+
+            $employee->identifications()->create($data);
+        }
+    }
+
+    protected function saveCertificates(Employee $employee): void
+    {
+        if ($this->isEditMode) {
+            $employee->certificates()->delete();
+        }
+
+        foreach ($this->certificate_items as $index => $item) {
+            $data = [
+                'certificate_id' => $item['certificate_id'],
+                'certificate_no' => $item['certificate_no'] ?? null,
+            ];
+
+            if (
+                !empty($this->certificate_upload_files[$index]) &&
+                $this->certificate_upload_files[$index] instanceof \Illuminate\Http\UploadedFile
+            ) {
+                $data['certificate_path'] = $this->certificate_upload_files[$index]
+                    ->store('certificates', 'public');
+            } elseif (!empty($item['existing_file'])) {
+                $data['certificate_path'] = $item['existing_file'];
+            }
+
+            $employee->certificates()->create($data);
+        }
+    }
+
 
     public function resetFormFields()
     {
@@ -682,7 +794,6 @@ class EmployeeCreate extends Component
             'retiring_date',
             'bank_name',
             'bank_account_no',
-            'phone_number',
             'email',
             'marital_status',
             'gender',
@@ -690,34 +801,68 @@ class EmployeeCreate extends Component
             'designation',
             'opf_number',
             'social_security_no',
-            'zan_id_no',
-            'zan_id_file',
-            'birth_certificate_file',
-            'employment_contract_file',
-            'existing_zan_id_file',
-            'nida_no',
-            'nida_file',
-            'existing_nida_file',
             'photo_file',
-            'existing_photo_file',
             'unit',
             'department',
             'selectedRole',
             'userId',
-            'certificate_files',
-            'existing_certificate_files',
             'location',
             'disability',
             'is_officer',
-            'is_manager',
-            'is_director',
-            'is_director_general',
-            'is_coordinator',
+            'identification_items',
+            'identification_upload_files',
+            'certificate_items',
+            'certificate_upload_files',
+            'contacts',
         ]);
 
         $this->currentStep = 1;
         $this->isEditMode = false;
         $this->initializeEducationLevels();
+    }
+
+    // ── ADD / REMOVE for identifications ─────────────────────────────────────
+
+    public function addIdentificationItem(): void
+    {
+        $this->identification_items[] = [
+            'identification_id' => '',
+            'identification_no'  => '',
+            'existing_file'      => null,
+        ];
+    }
+
+    public function removeIdentificationItem(int $index): void
+    {
+        if (count($this->identification_items) > 1) {
+            if (!empty($this->identification_items[$index]['existing_file'])) {
+                Storage::disk('public')->delete($this->identification_items[$index]['existing_file']);
+            }
+            unset($this->identification_items[$index]);
+            $this->identification_items = array_values($this->identification_items);
+        }
+    }
+
+    // ── ADD / REMOVE for certificates ────────────────────────────────────────
+
+    public function addCertificateItem(): void
+    {
+        $this->certificate_items[] = [
+            'certificate_id' => '',
+            'certificate_no' => '',
+            'existing_file'  => null,
+        ];
+    }
+
+    public function removeCertificateItem(int $index): void
+    {
+        if (count($this->certificate_items) > 1) {
+            if (!empty($this->certificate_items[$index]['existing_file'])) {
+                Storage::disk('public')->delete($this->certificate_items[$index]['existing_file']);
+            }
+            unset($this->certificate_items[$index]);
+            $this->certificate_items = array_values($this->certificate_items);
+        }
     }
 
     public function addEducationLevel()
@@ -755,6 +900,8 @@ class EmployeeCreate extends Component
             'units' => Unit::pluck('name', 'id'),
             'emails' => $emails,
             'educationLevels' => $this->educationLevels,
+            'identificationTypes' => Identification::pluck('identification_name', 'id'),
+            'certificateTypes'    => Certificate::pluck('certificate_name', 'id'),
             'isEditMode' => $this->isEditMode,
         ]);
     }

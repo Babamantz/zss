@@ -47,8 +47,23 @@
                                     <span
                                         class="badge {{ $currentStep >= 3 ? 'bg-primary' : 'bg-secondary' }} rounded-circle p-3">3</span>
                                 </div>
+                                <small>IDs</small>
+                            </div>
+                            <div class="text-center {{ $currentStep >= 4 ? 'text-primary' : 'text-muted' }}">
+                                <div class="mb-2">
+                                    <span
+                                        class="badge {{ $currentStep >= 4 ? 'bg-primary' : 'bg-secondary' }} rounded-circle p-3">4</span>
+                                </div>
+                                <small>File Type/Certificates</small>
+                            </div>
+                            <div class="text-center {{ $currentStep >= 5 ? 'text-primary' : 'text-muted' }}">
+                                <div class="mb-2">
+                                    <span
+                                        class="badge {{ $currentStep >= 5 ? 'bg-primary' : 'bg-secondary' }} rounded-circle p-3">5</span>
+                                </div>
                                 <small>Education</small>
                             </div>
+                           
                         </div>
                     </div>
 
@@ -172,7 +187,7 @@
                             </div>
 
                             <div class="row mb-3">
-                                <div class="col-md-6">
+                                <div class="col-md-12">
                                     <div class="form-group">
                                         <label for="bankAccountNumber">Bank Account Number: <span
                                                 class="text-danger">*</span></label>
@@ -184,13 +199,26 @@
                                     </div>
                                 </div>
 
+                               
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+
+                                    <div class="form-group">
+                                        <label>Personal Phone: <span class="text-danger">*</span></label>
+                                        <input type="tel" class="form-control"
+                                            wire:model.defer="contacts.0.phone_number" placeholder="+255 7XX XXX XXX">
+                                        @error('contacts.0.phone_number')
+                                            <small class="text-danger">{{ $message }}</small>
+                                        @enderror
+                                    </div>
+                                </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="phoneNumber">Phone Number: <span
-                                                class="text-danger">*</span></label>
-                                        <input class="form-control" id="phoneNumber" type="tel"
-                                            wire:model.defer="phone_number">
-                                        @error('phone_number')
+                                        <label>Next of Keen: <span class="text-danger">*</span></label>
+                                        <input type="tel" class="form-control"
+                                            wire:model.defer="contacts.1.phone_number" placeholder="+255 7XX XXX XXX">
+                                        @error('contacts.1.phone_number')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
                                     </div>
@@ -241,6 +269,7 @@
                                 </div>
                             </div>
 
+
                             <div class="mt-4">
                                 <button type="button" class="btn btn-primary" wire:click="nextStep">Next</button>
                             </div>
@@ -249,31 +278,6 @@
                         {{-- Step 2: Employment Details --}}
                         <div @if ($currentStep != 2) style="display: none;" @endif>
                             <h5 class="mb-3">Employment Details</h5>
-
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="healthInsuranceNumber">Health Insurance Number: <span
-                                                class="text-danger">*</span></label>
-                                        <input class="form-control" id="healthInsuranceNumber" type="text"
-                                            wire:model.defer="health_insurance_no">
-                                        @error('health_insurance_no')
-                                            <small class="text-danger">{{ $message }}</small>
-                                        @enderror
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="designation">Designation:</label>
-                                        <input class="form-control" id="designation" type="text"
-                                            wire:model.defer="designation">
-                                        @error('designation')
-                                            <small class="text-danger">{{ $message }}</small>
-                                        @enderror
-                                    </div>
-                                </div>
-                            </div>
 
                             <div class="row mb-3">
                                 <div class="col-md-6">
@@ -299,129 +303,11 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="zanId">Zanzibar ID Number: <span
-                                                class="text-danger">*</span></label>
-                                        <input class="form-control" id="zanId" type="text"
-                                            wire:model.defer="zan_id_no">
-                                        @error('zan_id_no')
-                                            <small class="text-danger">{{ $message }}</small>
-                                        @enderror
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6" x-data="{ pdfUrl: '{{ Storage::disk('public')->url($existing_zan_id_file) }}' }">
-                                    <div class="form-group">
-                                        <label for="zan_id_file">Zanzibar ID File:</label>
-                                        <input class="form-control" type="file" id="zan_id_file"
-                                            wire:model="zan_id_file">
-
-                                        @if ($existing_zan_id_file)
-                                            <button type="button" class="btn btn-sm btn-primary mt-2"
-                                                @click="window.open(pdfUrl, '_blank')">
-                                                Preview PDF
-                                            </button>
-                                        @endif
-
-                                        @error('zan_id_file')
-                                            <small class="text-danger">{{ $message }}</small>
-                                        @enderror
-                                        <div wire:loading wire:target="zan_id_file" class="text-primary mt-1">
-                                            <small>Uploading...</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="nidaNo">NIDA Number:</label>
-                                        <input class="form-control" id="nidaNo" type="text"
-                                            wire:model.defer="nida_no">
-                                        @error('nida_no')
-                                            <small class="text-danger">{{ $message }}</small>
-                                        @enderror
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6" x-data="{ nidapdfUrl: '{{ Storage::disk('public')->url($existing_nida_file) }}' }">
-                                    <div class="form-group">
-                                        <label for="nida_file">NIDA File:</label>
-                                        <input class="form-control" type="file" id="nida_file"
-                                            wire:model="nida_file">
-                                        @if ($existing_nida_file)
-                                            <button type="button" class="btn btn-sm btn-primary mt-2"
-                                                @click="window.open(nidapdfUrl, '_blank')">
-                                                Preview PDF
-                                            </button>
-                                        @endif
-
-
-                                        @error('nida_file')
-                                            <small class="text-danger">{{ $message }}</small>
-                                        @enderror
-                                        <div wire:loading wire:target="nida_file" class="text-primary mt-1">
-                                            <small>Uploading...</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md-6" x-data="{ birthPdfUrl: '{{ Storage::disk('public')->url($existing_birth_certificate_file) }}' }">
-                                    <div class="form-group">
-                                        <label for="birth_certificate_file">Birth Certificate File:</label>
-                                        <input class="form-control" type="file" id="birth_certificate_file"
-                                            wire:model="birth_certificate_file" accept="application/pdf">
-                                        @if ($existing_birth_certificate_file)
-                                            <button type="button" class="btn btn-sm btn-primary mt-2"
-                                                @click="window.open(birthPdfUrl, '_blank')">
-                                                Preview PDF
-                                            </button>
-                                        @endif
-
-
-                                        @error('nida_file')
-                                            <small class="text-danger">{{ $message }}</small>
-                                        @enderror
-                                        <div wire:loading wire:target="nida_file" class="text-primary mt-1">
-                                            <small>Uploading...</small>
-                                        </div>
-                                    </div>
-                                </div>
-
-
-                                <div class="col-md-6" x-data="{ contractPdfUrl: '{{ Storage::disk('public')->url($existing_employment_contract_file) }}' }">
-                                    <div class="form-group">
-                                        <label for="">Employment Contract File:</label>
-                                        <input class="form-control" type="file" id="employment_contract_file"
-                                            wire:model="employment_contract_file" accept="application/pdf">
-                                        @if ($existing_employment_contract_file)
-                                            <button type="button" class="btn btn-sm btn-primary mt-2"
-                                                @click="window.open(contractPdfUrl, '_blank')">
-                                                Preview PDF
-                                            </button>
-                                        @endif
-
-
-                                        @error('employment_contract_file')
-                                            <small class="text-danger">{{ $message }}</small>
-                                        @enderror
-                                        <div wire:loading wire:target="nida_file" class="text-primary mt-1">
-                                            <small>Uploading...</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-
                             <div class="row mb-3">
                                 <div class="col-md-6">
                                     <div wire:ignore class="form-group">
-                                        <label for="select-role">Role: <span class="text-danger">*</span></label>
+                                        <label for="select-role">Designation: <span
+                                                class="text-danger">*</span></label>
                                         <select wire:model="selectedRole" id="selected-role"
                                             class="js-example-basic-single form-control">
                                             <option value="">--Select Role--</option>
@@ -502,78 +388,6 @@
                                 </div>
                             </div>
 
-
-
-                            {{-- <div class="row mb-3">
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label class="col-form-label">User Title</label>
-                                        <div class="col">
-                                            <div class="form-group m-t-15 m-checkbox-inline mb-0 custom-radio-ml">
-                                                <div class="radio radio-primary" wire:model="user_title">
-                                                    <input id="radioinline1" type="radio" name="radio1"
-                                                        value="officer">
-                                                    <label class="mb-0" for="radioinline1">Officer</label>
-                                                </div>
-                                                <div class="radio radio-primary" wire:model="user_title">
-                                                    <input id="radioinline2" type="radio" name="radio1"
-                                                        value="manager">
-                                                    <label class="mb-0" for="radioinline2">Manager</label>
-                                                </div>
-                                                <div class="radio radio-primary" wire:model="user_title">
-                                                    <input id="radioinline3" type="radio" name="radio1"
-                                                        value="director">
-                                                    <label class="mb-0" for="radioinline3">Director</label>
-                                                </div>
-                                                <div class="radio radio-primary" wire:model="user_title">
-                                                    <input id="radioinline4" type="radio" name="radio1"
-                                                        value="director_general">
-                                                    <label class="mb-0" for="radioinline4">Director General</label>
-                                                </div>
-                                                <div class="radio radio-primary" wire:model="user_title">
-                                                    <input id="radioinline5" type="radio" name="radio1"
-                                                        value="co-ordinator">
-                                                    <label class="mb-0" for="radioinline5">Coordinator</label>
-                                                </div>
-
-                                            </div>
-                                            @error('user_title')
-                                                <span class="text-danger">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                </div>
-                            </div> --}}
-                            {{-- <div class="row mb-3">
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label class="col-form-label">Is Disable</label>
-                                        <div class="col">
-                                            <div class="form-group m-t-15 m-checkbox-inline mb-0 custom-radio-ml">
-                                                <div class="radio radio-primary">
-                                                    <!-- wire:model moved to input -->
-                                                    <input type="radio" name="radio2" id="radioinline7"
-                                                        value="disable" wire:model="user_disability_check">
-                                                    <label class="mb-0" for="radioinline7">Yes</label>
-                                                </div>
-                                                <div class="radio radio-primary">
-                                                    <!-- wire:model moved to input -->
-                                                    <input type="radio" name="radio2" id="radioinline8"
-                                                        value="notDisable" wire:model="user_disability_check">
-                                                    <label class="mb-0" for="radioinline8">No</label>
-                                                </div>
-                                            </div>
-                                            <!-- Ensure this matches your property name if the error is for user_title -->
-                                            @error('user_disability_check')
-                                                <span class="text-danger">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                </div>
-                            </div> --}}
-
-
-
                             <div class="mt-4">
                                 <button type="button" class="btn btn-secondary"
                                     wire:click="previousStep">Back</button>
@@ -581,8 +395,172 @@
                             </div>
                         </div>
 
+                        {{-- Step 4: Identifications --}}
+                        <div @if ($currentStep != 3) style="display:none;" @endif>
+                            <div x-data="{ identificationItems: @entangle('identification_items') }">
+
+                                <div class="pb-3 d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Identification Documents</h5>
+                                    <button type="button" class="btn btn-success btn-sm"
+                                        wire:click="addIdentificationItem">
+                                        <i class="fa fa-plus"></i> Add Identification
+                                    </button>
+                                </div>
+
+                                <template x-for="(item, index) in identificationItems" :key="index">
+                                    <div class="card mb-3">
+                                        <div class="card-body">
+
+                                            <div class="row mb-2">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>Identification Type: <span
+                                                                class="text-danger">*</span></label>
+                                                        <select class="form-control" x-model="item.identification_id">
+                                                            <option value="">-- Select Type --</option>
+                                                            @foreach ($identificationTypes as $id => $name)
+                                                                <option value="{{ $id }}">
+                                                                    {{ $name }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>Identification Number:</label>
+                                                        <input type="text" class="form-control"
+                                                            x-model="item.identification_no">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row mb-2">
+                                                <div class="col-md-6" x-data="{ getPdfUrl() { return item.existing_file ? '{{ Storage::disk('public')->url('') }}' + item.existing_file : null } }">
+                                                    <div class="form-group">
+                                                        <label>Identification File:</label>
+                                                        <input type="file" class="form-control"
+                                                            @change="$wire.upload(`identification_upload_files.${index}`, $event.target.files[0])">
+
+                                                        <template x-if="item.existing_file">
+                                                            <button type="button" class="btn btn-sm btn-primary mt-2"
+                                                                @click="window.open(getPdfUrl(), '_blank')">
+                                                                Preview PDF
+                                                            </button>
+                                                        </template>
+
+                                                        <div wire:loading wire:target="identification_upload_files"
+                                                            class="text-primary mt-1">
+                                                            <small>Uploading...</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="text-end" x-show="identificationItems.length > 1">
+                                                <button type="button" class="btn btn-danger btn-sm"
+                                                    wire:click="removeIdentificationItem(index)">
+                                                    <i class="fa fa-trash"></i> Remove
+                                                </button>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </template>
+
+                                <div class="mt-4">
+                                    <button type="button" class="btn btn-secondary"
+                                        wire:click="previousStep">Back</button>
+                                    <button type="button" class="btn btn-primary"
+                                        wire:click="nextStep">Next</button>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        {{-- Step 5: Certificates --}}
+                        <div @if ($currentStep != 4) style="display:none;" @endif>
+                            <div x-data="{ certificateItems: @entangle('certificate_items') }">
+
+                                <div class="pb-3 d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Certificate Documents</h5>
+                                    <button type="button" class="btn btn-success btn-sm"
+                                        wire:click="addCertificateItem">
+                                        <i class="fa fa-plus"></i> Add Certificate
+                                    </button>
+                                </div>
+
+                                <template x-for="(item, index) in certificateItems" :key="index">
+                                    <div class="card mb-3">
+                                        <div class="card-body">
+
+                                            <div class="row mb-2">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>Certificate Type: <span
+                                                                class="text-danger">*</span></label>
+                                                        <select class="form-control" x-model="item.certificate_id">
+                                                            <option value="">-- Select Type --</option>
+                                                            @foreach ($certificateTypes as $id => $name)
+                                                                <option value="{{ $id }}">
+                                                                    {{ $name }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>Certificate Number:</label>
+                                                        <input type="text" class="form-control"
+                                                            x-model="item.certificate_no">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row mb-2">
+                                                <div class="col-md-6" x-data="{ getPdfUrl() { return item.existing_file ? '{{ Storage::disk('public')->url('') }}' + item.existing_file : null } }">
+                                                    <div class="form-group">
+                                                        <label>Certificate File:</label>
+                                                        <input type="file" class="form-control"
+                                                            @change="$wire.upload(`certificate_upload_files.${index}`, $event.target.files[0])">
+
+                                                        <template x-if="item.existing_file">
+                                                            <button type="button" class="btn btn-sm btn-primary mt-2"
+                                                                @click="window.open(getPdfUrl(), '_blank')">
+                                                                Preview PDF
+                                                            </button>
+                                                        </template>
+
+                                                        <div wire:loading wire:target="certificate_upload_files"
+                                                            class="text-primary mt-1">
+                                                            <small>Uploading...</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="text-end" x-show="certificateItems.length > 1">
+                                                <button type="button" class="btn btn-danger btn-sm"
+                                                    wire:click="removeCertificateItem(index)">
+                                                    <i class="fa fa-trash"></i> Remove
+                                                </button>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </template>
+
+                                <div class="mt-4">
+                                    <button type="button" class="btn btn-secondary"
+                                        wire:click="previousStep">Back</button>
+                                    <button type="button" class="btn btn-primary"
+                                        wire:click="nextStep">Next</button>
+                                </div>
+
+                            </div>
+                        </div>
+
                         {{-- Step 3: Education Levels --}}
-                        <div @if ($currentStep != 3) style="display: none;" @endif>
+                        <div @if ($currentStep != 5) style="display: none;" @endif>
                             <div x-data="{ educationLevels: @entangle('education_levels') }">
                                 <div class="pb-3 d-flex justify-content-between align-items-center">
                                     <h5 class="mb-0">Education Details</h5>
