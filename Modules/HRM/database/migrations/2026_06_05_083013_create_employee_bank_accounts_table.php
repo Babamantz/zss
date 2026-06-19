@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('acount_no');
             $table->foreignId('employee_id')->nullable()->constrained('employees')->onDelete('set null');
             $table->foreignId('bank_id')->nullable()->constrained('banks')->onDelete('set null');
+
+            $table->timestamps();
         });
     }
 

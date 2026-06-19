@@ -15,8 +15,10 @@ return new class extends Migration
         Schema::create('salary_components', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->decimal('percentage',4,2)->nullable();
+            $table->decimal('amount',15,2)->nullable();
             $table->string('type'); //, ['Earning', 'Deduction']);
-            $table->boolean('is_global')->default(false);
+            $table->boolean('is_global')->default(false); //statutory 
 
             // Audit Trails
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
@@ -35,8 +37,8 @@ return new class extends Migration
     public function down(): void
     {
 
-            DB::statement('SET FOREIGN_KEY_CHECKS = 0;');
-            Schema::dropIfExists('salary_components');
-            DB::statement('SET FOREIGN_KEY_CHECKS = 1;');
+        DB::statement('SET FOREIGN_KEY_CHECKS = 0;');
+        Schema::dropIfExists('salary_components');
+        DB::statement('SET FOREIGN_KEY_CHECKS = 1;');
     }
 };

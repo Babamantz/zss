@@ -34,8 +34,9 @@ return new class extends Migration
             $table->foreignId('updated_by')->nullable()->constrained('users')->cascadeOnDelete();
             $table->foreignId('designation_id')->nullable()->constrained('designations')->cascadeOnDelete();
             $table->foreignId('user_id')->nullable()->constrained('users')->cascadeOnDelete();
-
+            $table->softDeletes();
             $table->timestamps();
+           
         });
     }
 

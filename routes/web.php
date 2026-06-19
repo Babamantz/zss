@@ -18,6 +18,13 @@ use App\Livewire\Core\UserProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Modules\PAYROLL\Livewire\Dashboard;
+use Modules\PAYROLL\Livewire\Payroll\Employee\EmployeeComponentIndex;
+use Modules\PAYROLL\Livewire\Payroll\PayPeriod\PayPeriodIndex;
+use Modules\PAYROLL\Livewire\Payroll\PayrollEntries\PayrollEntryIndex;
+use Modules\PAYROLL\Livewire\Payroll\PayrollEntries\PayrollEntryShow;
+use Modules\PAYROLL\Livewire\Payroll\RunPayroll;
+use Modules\PAYROLL\Livewire\Payroll\Setups\SalaryComponentIndex;
 
 Route::get('/', Login::class)->name('login');
 
@@ -37,6 +44,29 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/index', AttendanceIndex::class)->name('index');
         Route::get('/create', AttendanceCreateEdit::class)->name('create');
         Route::get('/edit/{attendanceId}/{mode?}', AttendanceCreateEdit::class)->name('edit');
+    });
+
+    Route::prefix('module/payroll')->name('payroll.')->group(function () {
+
+        Route::get('dashboard',        Dashboard::class)
+            ->name('dashboard');
+        Route::get('components',        SalaryComponentIndex::class)
+            ->name('components');
+
+        Route::get('pay-periods',       PayPeriodIndex::class)
+            ->name('pay-periods');
+
+        Route::get('employee-components', EmployeeComponentIndex::class)
+            ->name('employee-components');
+
+        Route::get('run/{period?}',     RunPayroll::class)
+            ->name('run');
+
+        Route::get('entries',          PayrollEntryIndex::class)
+            ->name('entries');
+
+        Route::get('entries/{entry}', PayrollEntryShow::class)
+            ->name('entry.show');
     });
 
     Route::get('/users', UserIndex::class)->name('users.index');

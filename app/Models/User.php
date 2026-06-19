@@ -25,6 +25,7 @@ class User extends Authenticatable
         'last_name',
         'email',
         'is_active',
+        'is_officer',
         'created_by',
         'updated_by',
         'tenant_id',

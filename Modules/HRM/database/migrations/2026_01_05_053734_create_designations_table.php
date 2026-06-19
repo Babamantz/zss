@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('designation_name');
             $table->string('slug');
+            
+            $table->timestamps();
         });
     }
 

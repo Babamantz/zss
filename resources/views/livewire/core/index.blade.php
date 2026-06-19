@@ -99,8 +99,8 @@
           </div>
 
           <div class="card card-body mx-3 col-md-3 link d-flex justify-content-start" style="z-index: 1;">
-              <li class="{{ session('active_module') === 'sales' ? 'active' : '' }}">
-                  <a href="">
+              <li class="{{ session('active_module') === 'PAYROLL' ? 'active' : '' }}">
+                  <a href="{{ route('payroll.dashboard') }}">
                       <i class="icofont icofont-bill fa-3x"></i>
                       <p class="mx-1 fw-bold txt-dark">Payroll</p>
                   </a>

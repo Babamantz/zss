@@ -16,7 +16,8 @@ return new class extends Migration
             $table->id();
             $table->date('start_date');
             $table->date('end_date');
-            $table->enum('status', ['Draft', 'Processing', 'Locked_Completed'])->default('Draft');
+            $table->status('status',)->default('Draft'); //['Draft', 'Processing', 'Locked_Completed'])->default('Draft');
+            // $table->enum('status', ['Draft', 'Processing', 'Locked_Completed'])->default('Draft');
 
             // Audit Trails
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();

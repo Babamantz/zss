@@ -2,60 +2,212 @@
 
 namespace Modules\HRM\Livewire\HRM\Employees;
 
-use App\Models\User;
-use App\Models\Tenant;
 use Livewire\Component;
+use Livewire\WithPagination;
 use Livewire\Attributes\Computed;
 use Modules\HRM\Models\Employee;
+use Modules\HRM\Models\Department;
+use Modules\HRM\Models\Unit;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use App\Models\Tenant;
 
 class EmployeeIndex extends Component
 {
-    public $search = '';
-    public bool $open = false;
+    use WithPagination;
+
+    // ── Filters ───────────────────────────────────────────────────────────────
+    public string $search          = '';
+    public string $filterDepartment = '';
+    public string $filterUnit       = '';
+    public string $filterStatus     = '';  // 'active' | 'in-active' | ''
+    public string $filterGender     = '';  // 'male' | 'female' | ''
+
+    // ── Sorting ───────────────────────────────────────────────────────────────
+    public string $sortField = 'created_at';
+    public string $sortDir   = 'desc';
+
+    // ── Per page ──────────────────────────────────────────────────────────────
+    public int $perPage = 15;
+
+    // ── Reset pagination when any filter changes ──────────────────────────────
+    public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+    public function updatingFilterDepartment(): void
+    {
+        $this->resetPage();
+    }
+    public function updatingFilterUnit(): void
+    {
+        $this->resetPage();
+    }
+    public function updatingFilterStatus(): void
+    {
+        $this->resetPage();
+    }
+    public function updatingFilterGender(): void
+    {
+        $this->resetPage();
+    }
+    public function updatingPerPage(): void
+    {
+        $this->resetPage();
+    }
+
+    // ── Sorting toggle ────────────────────────────────────────────────────────
+    public function sortBy(string $field): void
+    {
+        if ($this->sortField === $field) {
+            $this->sortDir = $this->sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortField = $field;
+            $this->sortDir   = 'asc';
+        }
+        $this->resetPage();
+    }
+
+    // ── Clear all filters ─────────────────────────────────────────────────────
+    public function clearFilters(): void
+    {
+        $this->reset([
+            'search',
+            'filterDepartment',
+            'filterUnit',
+            'filterStatus',
+            'filterGender',
+            'sortField',
+            'sortDir',
+        ]);
+        $this->sortField = 'created_at';
+        $this->sortDir   = 'desc';
+        $this->resetPage();
+    }
+
+    // ── Delete ────────────────────────────────────────────────────────────────
+    public function deleteEmployee(int $id): void
+    {
+        Employee::findOrFail($id)->delete();
+        session()->flash('success', 'Employee removed.');
+    }
+
+    // ── Computed: filter options ───────────────────────────────────────────────
+    #[Computed]
+    public function departments()
+    {
+        return Department::orderBy('name')->get();
+    }
+
+    #[Computed]
+    public function units()
+    {
+        return Unit::when(
+            $this->filterDepartment,
+            fn($q) => $q->where('department_id', $this->filterDepartment)
+        )->orderBy('name')->get();
+    }
 
     #[Computed]
     public function roleNames()
     {
-        return Role::select(['id', 'name'])
-            ->orderBy('name')
-            ->get();
+        return Role::select(['id', 'name'])->orderBy('name')->get();
     }
 
     #[Computed]
     public function permissionNames()
     {
-        return Permission::select(['id', 'name'])
-            ->orderBy('name')
-            ->get();
+        return Permission::select(['id', 'name'])->orderBy('name')->get();
     }
 
     #[Computed]
     public function locations()
     {
-        return Tenant::select(['id', 'name'])
-            ->orderBy('name')
-            ->get();
+        return Tenant::select(['id', 'name'])->orderBy('name')->get();
     }
 
-    public function deleteUser(?int $id) {}
-
-
+    // ── Render ────────────────────────────────────────────────────────────────
     public function render()
     {
         $employees = Employee::query()
-            ->with(['user', 'user.roles', 'user.permissions', 'user.tenant'])
+            ->with([
+                'user',
+                'user.roles',
+                'user.permissions',
+                'user.tenant',
+                'department',
+                'unit',
+            ])
             ->where('is_hr_registered', true)
-            ->when($this->search, function ($query) {
-                $query->whereHas('user', function ($q) {
-                    $q->where('name', 'like', '%' . $this->search . '%')
-                        ->orWhere('email', 'like', '%' . $this->search . '%');
-                });
-            })
-            ->get();
+
+            // Search across name + email
+            ->when(
+                $this->search,
+                fn($q) =>
+                $q->whereHas(
+                    'user',
+                    fn($u) =>
+                    $u->where('first_name', 'like', "%{$this->search}%")
+                        ->orWhere('last_name',  'like', "%{$this->search}%")
+                        ->orWhere('email',      'like', "%{$this->search}%")
+                )
+            )
+
+            // Department filter
+            ->when(
+                $this->filterDepartment,
+                fn($q) =>
+                $q->where('department_id', $this->filterDepartment)
+            )
+
+            // Unit filter
+            ->when(
+                $this->filterUnit,
+                fn($q) =>
+                $q->where('unit_id', $this->filterUnit)
+            )
+
+            // Status filter
+            ->when(
+                $this->filterStatus,
+                fn($q) =>
+                $q->where('is_active', $this->filterStatus)
+            )
+
+            // Gender filter
+            ->when(
+                $this->filterGender,
+                fn($q) =>
+                $q->where('gender', $this->filterGender)
+            )
+
+            // Sorting
+            ->when(
+                in_array($this->sortField, ['created_at', 'opf_number', 'gender', 'is_active']),
+                fn($q) => $q->orderBy($this->sortField, $this->sortDir),
+                // Sort by related user name
+                fn($q) => $q->orderBy(
+                    \App\Models\User::select('first_name')
+                        ->whereColumn('id', 'employees.user_id')
+                        ->limit(1),
+                    $this->sortDir
+                )
+            )
+
+            ->paginate($this->perPage);
+
+        // Summary counts (unfiltered for stat cards)
+        $counts = [
+            'total'    => Employee::where('is_hr_registered', true)->count(),
+            'active'   => Employee::where('is_hr_registered', true)->where('is_active', 'active')->count(),
+            'inactive' => Employee::where('is_hr_registered', true)->where('is_active', 'in-active')->count(),
+            'male'     => Employee::where('is_hr_registered', true)->where('gender', 'male')->count(),
+            'female'   => Employee::where('is_hr_registered', true)->where('gender', 'female')->count(),
+        ];
+
         return view('hrm::livewire.h-r-m.employees.employee-index', [
-            'employees' => $employees
+            'employees' => $employees,
+            'counts'    => $counts,
         ]);
     }
 }

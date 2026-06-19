@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('identification_no')->nullable();
             $table->string('identification_path')->nullable();
             $table->foreignId('identification_id')->constrained('identifications')->onDelete('cascade');
+            $table->timestamps();
         });
     }
 

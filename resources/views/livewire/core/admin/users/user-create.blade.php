@@ -37,6 +37,26 @@
                                 @enderror
                             </div>
                             <div class="form-group">
+                                <label>Is Officer?</label>
+                                <div class="mt-2">
+
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" wire:model.defer="is_officer"
+                                            value="1" id="officer_yes">
+                                        <label class="form-check-label" for="officer_yes">Yes</label>
+                                    </div>
+
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" wire:model.defer="is_officer"
+                                            value="0" id="officer_no">
+                                        <label class="form-check-label" for="officer_no">No</label>
+                                    </div>
+                                </div>
+                                @error('is_officer')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
+                            <div class="form-group">
                                 <label for="email">Email</label>
                                 <input class="form-control digits" id="email" type="email"
                                     wire:model.defer="email">
@@ -63,8 +83,7 @@
                             </div>
                             <div class="form-group" wire:ignore>
                                 <label class="col-form-label">Role</label>
-                                <select class="js-example-basic-single col-sm-12" id="role-select"
-                                    wire:model.defer="role">
+                                <select class="js-example-basic-single col-sm-12" id="role-select">
                                     <option value="">--select role--</option>
                                     @forelse ($this->roleNames as $roleItem)
                                         <option value="{{ $roleItem->name }}">{{ $roleItem->name }}</option>
@@ -76,11 +95,11 @@
                                     <span class="text-danger">{{ $message }}</span>
                                 @enderror
                             </div>
-                            
+
                             <div class="form-group" wire:ignore>
                                 <label class="col-form-label">Direct Permissions</label>
                                 <select class="js-example-placeholder-multiple col-sm-12" multiple="multiple"
-                                    id="permissions-select" wire:model="direct_permissions">
+                                    id="permissions-select">
                                     @forelse ($this->permissionNames as $permission)
                                         <option value="{{ $permission->name }}">{{ $permission->name }}
                                         </option>

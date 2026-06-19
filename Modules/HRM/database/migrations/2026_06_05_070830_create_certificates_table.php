@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('certificate_name');
             $table->string('slug');
+             $table->timestamps();
         });
     }
 

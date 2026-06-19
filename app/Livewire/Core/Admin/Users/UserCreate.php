@@ -19,7 +19,9 @@ class UserCreate extends Component
 
     public string $user_disabilty_check = '';
 
-    public string $user_title = ''; 
+    public bool $is_officer = true;
+
+    public string $user_title = '';
     public string $middle_name = '';
     public string $last_name = '';
     public string $email = '';
@@ -37,7 +39,7 @@ class UserCreate extends Component
             'last_name' => 'required|string|min:2|max:50',
             'email' => 'required|email|unique:users,email',
             'location' => 'required|numeric|exists:tenants,id',
-            'role' => 'required|numeric|exists:roles,id',
+            'role' => 'required|numeric|exists:roles,name',
             'direct_permissions' => 'nullable|array',
             'direct_permissions.*' => 'numeric|exists:permissions,id',
         ];
@@ -90,8 +92,7 @@ class UserCreate extends Component
 
     public function save()
     {
-        // dd($this->direct_permissions);
-        // $this->validate();
+      
         try {
             DB::transaction(function () {
 
@@ -100,6 +101,7 @@ class UserCreate extends Component
                     'first_name' => $this->first_name,
                     'middle_name' => $this->middle_name,
                     'last_name' => $this->last_name,
+                    'is_officer' => (bool) filter_var($this->is_officer, FILTER_VALIDATE_BOOLEAN),
                     'email' => $this->email,
                     'tenant_id' => $this->location,
                     'password' => Hash::make($this->last_name),
@@ -121,7 +123,8 @@ class UserCreate extends Component
 
                 $this->dispatch('user-created', userId: $user->id);
 
-                $this->reset(['first_name', 'middle_name', 'last_name', 'email', 'location', 'role']);
+                $this->reset(['first_name', 'middle_name', 'last_name', 'email', 'location', 'role', 'direct_permissions', 'is_officer']);
+
 
                 // dd($this->direct_permissions);
             });
@@ -149,17 +152,24 @@ class UserCreate extends Component
     protected function assignPermissions(User $user): void
     {
         if (!empty($this->direct_permissions)) {
-            // Get permission names from IDs
-            $permissionNames = Permission::whereIn('id', $this->direct_permissions)
-                ->where('guard_name', 'web')
-                ->pluck('name')
-                ->toArray();
-
-            if (!empty($permissionNames)) {
-                $user->givePermissionTo($permissionNames);
-            }
+            $user->givePermissionTo($this->direct_permissions); // already names
         }
     }
+
+    // protected function assignPermissions(User $user): void
+    // {
+    //     if (!empty($this->direct_permissions)) {
+    //         // Get permission names from IDs
+    //         $permissionNames = Permission::whereIn('id', $this->direct_permissions)
+    //             ->where('guard_name', 'web')
+    //             ->pluck('name')
+    //             ->toArray();
+
+    //         if (!empty($permissionNames)) {
+    //             $user->givePermissionTo($permissionNames);
+    //         }
+    //     }
+    // }
 
     public function render()
     {

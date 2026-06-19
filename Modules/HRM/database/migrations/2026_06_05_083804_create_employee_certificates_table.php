@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('certificate_no')->nullable();
             $table->string('certificate_path')->nullable();
             $table->foreignId('certificate_id')->constrained('certificates')->onDelete('cascade');
+            $table->timestamps();
         });
     }
 
