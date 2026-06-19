@@ -28,6 +28,7 @@ return new class extends Migration
             $table->date('retiring_date')->nullable();
             $table->boolean('is_hr_registered')->default(false);
             $table->boolean('is_officer')->default(true);
+            $table->boolean('is_permanent')->default(true);
             $table->foreignId('department_id')->nullable()->constrained('departments')->cascadeOnDelete();
             $table->foreignId('unit_id')->nullable()->constrained('units')->cascadeOnDelete();
             $table->foreignId('created_by')->nullable()->constrained('users')->cascadeOnDelete();
