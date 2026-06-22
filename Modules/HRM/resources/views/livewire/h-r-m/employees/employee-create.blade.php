@@ -221,6 +221,24 @@
                                         @error('is_disable') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
                                 </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Is Permanent?</label>
+                                        <div class="mt-2">
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio"
+                                                    wire:model.defer="is_permanent" value="0" id="permanent_no">
+                                                <label class="form-check-label" for="disable_no">No</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio"
+                                                    wire:model.defer="is_permanent" value="1" id="permanent_yes">
+                                                <label class="form-check-label" for="disable_yes">Yes</label>
+                                            </div>
+                                        </div>
+                                        @error('is_disable') <small class="text-danger">{{ $message }}</small> @enderror
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="mt-4">
@@ -236,11 +254,18 @@
 
                             {{-- OPF Number + Designation --}}
                             <div class="row mb-3">
-                                <div class="col-md-6">
+                                <div class="col-md-3">
                                     <div class="form-group">
                                         <label>Payroll (OPF) Number:</label>
                                         <input class="form-control" type="text" wire:model.defer="opf_number">
                                         @error('opf_number') <small class="text-danger">{{ $message }}</small> @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>File Number:</label>
+                                        <input class="form-control" type="text" wire:model.defer="file_number">
+                                        @error('file_number') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -292,6 +317,35 @@
                             </div>
 
                             {{-- Is Officer --}}
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    
+                                    <div class="form-group">
+                                        <label>Bank:</label>
+                                        <input class="form-control" type="text" wire:model.defer="file_number">
+                                        @error('opf_number') <small class="text-danger">{{ $message }}</small> @enderror
+                                    </div>
+                                </div>
+                                    
+
+                                {{-- Photo --}}
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Bank Account No:</label>
+                                         <input class="form-control" type="text" wire:model.defer="file_number">
+                                        @error('opf_number') <small class="text-danger">{{ $message }}</small> @enderror
+                                       
+                                    </div>
+                                    @if ($existing_photo_file)
+                                        <div class="mt-2">
+                                            <small class="text-muted">Current photo:</small><br>
+                                            <img src="{{ Storage::disk('public')->url($existing_photo_file) }}"
+                                                class="mt-1 rounded"
+                                                style="width:60px;height:60px;object-fit:cover;">
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
                             <div class="row mb-3">
                                 <div class="col-md-6">
                                     

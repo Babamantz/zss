@@ -1,5 +1,5 @@
 <header class="main-nav">
-    <div class="sidebar-user text-center">
+    {{-- <div class="sidebar-user text-center">
         <a class="setting-primary" href="javascript:void(0)"><i data-feather="settings"></i></a><img
             class="img-90 rounded-circle" src="{{ asset('assets/images/dashboard/1.png') }}" alt="" />
         <div class="badge-bottom"><span class="badge badge-primary">New</span></div>
@@ -21,6 +21,106 @@
                 <p>Follower</p>
             </li>
         </ul>
+    </div> --}}
+
+    @php
+        $authUser = auth()->user();
+        $employee = $authUser?->employee;
+        $hiredDate = $employee?->hired_date
+            ? \Carbon\Carbon::parse($employee->hired_date)
+            : null;
+        $yearsExp = $hiredDate ? $hiredDate->diffInYears(now()) : null;
+        $monthsExp = $hiredDate ? $hiredDate->diffInMonths(now()) : null;
+        $expLabel = match (true) {
+            $yearsExp >= 1 => $yearsExp . ' ' . Str::plural('yr', $yearsExp),
+            $monthsExp >= 1 => $monthsExp . ' ' . Str::plural('mo', $monthsExp),
+            default => 'New hire',
+        };
+        $initials = strtoupper(substr($authUser?->first_name ?? '?', 0, 1))
+            . strtoupper(substr($authUser?->last_name ?? '', 0, 1));
+
+        $isNewHire = $hiredDate && $hiredDate->diffInDays(now()) <= 90;
+        $designation = $employee?->designation?->designation_name ?? null;
+        $department = $employee?->department?->name ?? null;
+        $unit = $employee?->unit?->name ?? null;
+
+        // Colleagues in same department
+        // $colleagues = $employee?->department_id
+        //     ? \Modules\HRM\Models\Employee::where('department_id', $employee->department_id)
+        //         ->where('id', '!=', $employee?->id)
+        //         ->where('is_active', 'active')
+        //         ->count()
+        //     : 0;
+
+        // Total active employees in organisation
+        $orgTotal = \Modules\HRM\Models\Employee::where('is_active', 'active')->count();
+    @endphp
+
+    <div class="sidebar-user text-center">
+
+        {{-- Settings icon --}}
+        <a class="setting-primary" href="javascript:void(0)">
+            <i data-feather="settings"></i>
+        </a>
+
+        {{-- Avatar — photo if exists, initials fallback --}}
+        @if ($employee?->photo_file && \Illuminate\Support\Facades\Storage::disk('public')->exists($employee->photo_file))
+            <img class="img-90 rounded-circle" style="object-fit:cover;width:90px;height:90px;"
+                src="{{ Storage::disk('public')->url($employee->photo_file) }}" alt="{{ $authUser?->first_name }}">
+        @else
+            <div class="img-90 rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width:90px;height:90px;background:#E8EAF6;
+                       font-size:28px;font-weight:700;color:#1a237e;">
+                {{ $initials }}
+            </div>
+        @endif
+
+        {{-- Badge --}}
+        <div class="badge-bottom">
+            @if ($isNewHire)
+                <span class="badge badge-success">New</span>
+            @elseif ($employee?->is_officer)
+                <span class="badge badge-primary">Officer</span>
+            @else
+                <span class="badge badge-secondary">Staff</span>
+            @endif
+        </div>
+
+        {{-- Name --}}
+        <a href="{{ route('profile', $employee?->id ?? '#') }}">
+            <h6 class="mt-3 f-14 f-w-600">
+                {{ $authUser?->first_name }}
+                {{ $authUser?->last_name }}
+            </h6>
+        </a>
+
+        {{-- Designation --}}
+        @if ($designation)
+            <p class="mb-0 font-roboto text-primary" style="font-size:12px;font-weight:600;">
+                {{ $designation }}
+            </p>
+        @endif
+
+        {{-- Department / Unit --}}
+        <p class="mb-0 font-roboto" style="font-size:12px;">
+            @if ($department)
+                {{ $department }}
+                @if ($unit)
+                    <span class="text-muted">· {{ $unit }}</span>
+                @endif
+            @else
+                <span class="text-muted">No department assigned</span>
+            @endif
+        </p>
+
+        {{-- OPF number --}}
+        @if ($employee?->opf_number)
+            <p class="mb-1 text-muted" style="font-size:11px;">
+                OPF: {{ $employee->opf_number }}
+            </p>
+        @endif
+
+        
+
     </div>
     <nav>
         @if (session('module') === 'general')
@@ -192,13 +292,13 @@
                         </li>
 
                         {{-- Finance Profiles --}}
-                        {{-- <li class="dropdown">
+                        <li class="dropdown">
                             <a class="nav-link {{ prefixActive('/module/payroll/finance-profiles') }}"
                                 href="{{ route('payroll.finance-profiles') }}">
                                 <i data-feather="credit-card"></i>
                                 <span>Finance Profiles</span>
                             </a>
-                        </li> --}}
+                        </li>
 
                         {{-- ── Payroll Processing ───────────────────────────────────── --}}
                         <li class="sidebar-main-title">
@@ -222,7 +322,7 @@
                                 <i data-feather="list"></i>
                                 <span>Payroll Entries</span>
                             </a>
-                           
+
 
                             <ul class="nav-submenu menu-content"
                                 style="display: {{ prefixBlock('/module/payroll/entries') }};">

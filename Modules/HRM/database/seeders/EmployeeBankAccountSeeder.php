@@ -16,11 +16,11 @@ class EmployeeBankAccountSeeder extends Seeder
 
         // employee_id 1-5, bank_id 1-7 (from BankSeeder)
         $accounts = [
-            ['acount_no' => '1000-2024-0001', 'employee_id' => 1, 'bank_id' => 1],
-            ['acount_no' => '1000-2024-0002', 'employee_id' => 2, 'bank_id' => 2],
-            ['acount_no' => '1000-2024-0003', 'employee_id' => 3, 'bank_id' => 3],
-            ['acount_no' => '1000-2024-0004', 'employee_id' => 4, 'bank_id' => 1],
-            ['acount_no' => '1000-2024-0005', 'employee_id' => 5, 'bank_id' => 4],
+            ['account_no' => '1000-2024-0001', 'employee_id' => 1, 'bank_id' => 1],
+            ['account_no' => '1000-2024-0002', 'employee_id' => 2, 'bank_id' => 2],
+            ['account_no' => '1000-2024-0003', 'employee_id' => 3, 'bank_id' => 3],
+            ['account_no' => '1000-2024-0004', 'employee_id' => 4, 'bank_id' => 1],
+            ['account_no' => '1000-2024-0005', 'employee_id' => 5, 'bank_id' => 4],
         ];
 
         DB::table('employee_bank_accounts')->insert($accounts);

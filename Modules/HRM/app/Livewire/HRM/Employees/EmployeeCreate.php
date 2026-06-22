@@ -42,6 +42,7 @@ class EmployeeCreate extends Component
     public $marital_status;
     public $gender;
     public bool $is_disable = false;
+    public bool $is_permanent = true;
 
     // Contacts JSON (personal + next of kin)
     public array $contacts = [
@@ -186,8 +187,10 @@ class EmployeeCreate extends Component
             'marital_status' => $emp->marital_status,
             'gender'         => $emp->gender,
             'opf_number'     => $emp->opf_number,
+            'file_number'     => $emp->file_number,
             'education'      => $emp->education,
             'is_disable'     => (bool) $emp->is_disable,
+            'is_permanent'     => (bool) $emp->is_permanent,
             // 'is_officer'     => (bool) $emp->is_officer,
             'designation_id' => $emp->designation_id,
             'unit'           => $emp->unit_id,
@@ -292,6 +295,7 @@ class EmployeeCreate extends Component
             'marital_status'          => 'required|in:single,married,divorced',
             'gender'                  => 'required|in:male,female',
             'is_disable'              => 'required|boolean',
+            'is_permanent'              => 'required|boolean',
             'email'                   => 'required|exists:users,id',
             'contacts.0.phone_number' => 'required|string|max:15',
             'contacts.1.phone_number' => 'nullable|string|max:15',
@@ -356,6 +360,7 @@ class EmployeeCreate extends Component
                 'marital_status',
                 'gender',
                 'is_disable',
+                'is_permanent',
                 'email',
                 'contacts.0.phone_number',
                 'contacts.1.phone_number',
@@ -461,6 +466,7 @@ class EmployeeCreate extends Component
             'opf_number'     => $this->opf_number,
             'education'      => $this->education,
             'is_disable'     => $this->is_disable,
+            'is_permanent'     => $this->is_permanent,
             'is_active'      => 'active',
             'is_hr_registered' => true,
             // 'is_officer'     => $this->is_officer,
@@ -673,6 +679,7 @@ class EmployeeCreate extends Component
             'marital_status',
             'gender',
             'is_disable',
+            'is_permanent',
             'opf_number',
             'designation_id',
             'unit',

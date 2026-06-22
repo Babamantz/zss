@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Modules\HRM\Models\EmployeeBankAccount;
 use Modules\PAYROLL\Models\EmployeeComponent;
 use Modules\PAYROLL\Models\EmployeeFinanceProfile;
 use Modules\PAYROLL\Models\PayrollEntry;
@@ -96,9 +97,9 @@ class Employee extends Model
         return $this->belongsTo(Unit::class, 'unit_id');
     }
 
-    public function bank()
+    public function bankAccount()
     {
-        return $this->belongsTo(Bank::class);
+        return $this->hasOne(EmployeeBankAccount::class, 'employee_id');
     }
 
     // protected static function newFactory(): EmployeeFactory

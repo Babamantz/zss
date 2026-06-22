@@ -1,4 +1,6 @@
 {
     "HRM": true,
-    "PAYROLL": true
+    "PAYROLL": true,
+    "PayrollEmployeeFinanceProfileFinanceProfileIndex": true,
+    "PayrollFinanceProfileFinanceProfileIndex": true
 }

@@ -18,7 +18,6 @@ return new class extends Migration
             // cascadeOnDelete ensures if hard-purged, profiles drop, but softDeletes on Employee shields this
             $table->foreignId('employee_id')->unique()->constrained('employees')->cascadeOnDelete();
             $table->decimal('base_salary', 15, 2);
-            $table->string('bank_account_number');
             $table->string('tax_id')->nullable();
             $table->timestamps();
             $table->softDeletes();

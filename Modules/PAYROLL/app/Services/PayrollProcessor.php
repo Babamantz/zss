@@ -82,10 +82,6 @@ class PayrollProcessor
                     'net_pay'       => $netPay,
                 ];
 
-                // $results[] = [
-                //     'employee_id' => $employee->id,
-                //     'net_pay'     => $netPay,
-                // ];
             }
         });
 

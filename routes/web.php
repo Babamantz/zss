@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\Attendance\AttendanceController;
 use App\Livewire\Auth\Login;
 use App\Livewire\Core\Admin\Reports\UserReportIndex;
 use App\Livewire\Core\Admin\Role\RoleCreate;
@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Modules\PAYROLL\Livewire\Dashboard;
 use Modules\PAYROLL\Livewire\Payroll\Employee\EmployeeComponentIndex;
+use Modules\PAYROLL\Livewire\Payroll\FinanceProfile\FinanceProfileIndex;
 use Modules\PAYROLL\Livewire\Payroll\PayPeriod\PayPeriodIndex;
 use Modules\PAYROLL\Livewire\Payroll\PayrollEntries\PayrollEntryIndex;
 use Modules\PAYROLL\Livewire\Payroll\PayrollEntries\PayrollEntryShow;
@@ -58,6 +59,8 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('employee-components', EmployeeComponentIndex::class)
             ->name('employee-components');
+         Route::get('finance-profiles',FinanceProfileIndex::class)
+            ->name('finance-profiles');
 
         Route::get('run/{period?}',     RunPayroll::class)
             ->name('run');

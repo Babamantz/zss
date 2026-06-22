@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('photo_file', 100)->nullable();
             $table->string('birth_certificate_file', 100)->nullable();
             $table->string('opf_number', 50)->nullable();
+            $table->string('file_number', 50)->nullable();
             $table->boolean('is_disable')->default(false); //['no', 'yes'])->default('no');
             $table->string('is_active', 10); //['active', 'in-active'])->default('active');
             $table->string('education', 30); //length: ['certificate', 'Advance Diploma', 'diploma', 'Bachelor', 'Master', 'Phd'])->default('Bachelor');

@@ -1,0 +1,11 @@
+{
+    "name": "PayrollFinanceProfileFinanceProfileIndex",
+    "alias": "payrollfinanceprofilefinanceprofileindex",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\PayrollFinanceProfileFinanceProfileIndex\\Providers\\PayrollFinanceProfileFinanceProfileIndexServiceProvider"
+    ],
+    "files": []
+}
