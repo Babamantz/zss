@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Tenant;
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -15,9 +14,10 @@ use Modules\HRM\Database\Seeders\DesignationSeeder;
 use Modules\HRM\Database\Seeders\EducationLevelSeeder;
 use Modules\HRM\Database\Seeders\EmployeeBankAccountSeeder;
 use Modules\HRM\Database\Seeders\EmployeeCertificateSeeder;
-use Modules\HRM\Database\Seeders\EmployeeDesignationSeeder;
+use Modules\HRM\Database\Seeders\EmployeeEducationLevelSeeder;
 use Modules\HRM\Database\Seeders\EmployeeIdentificationSeeder;
 use Modules\HRM\Database\Seeders\EmployeeSeeder;
+use Modules\HRM\Database\Seeders\EmploymentTypeSeeder;
 use Modules\HRM\Database\Seeders\IdentificationSeeder;
 use Modules\HRM\Database\Seeders\UnitSeeder;
 use Modules\PAYROLL\Database\Seeders\EmployeeComponentSeeder;
@@ -73,12 +73,13 @@ class DatabaseSeeder extends Seeder
             DesignationSeeder::class,
             CertificateSeeder::class,
             IdentificationSeeder::class,
+            EducationLevelSeeder::class,
+            EmploymentTypeSeeder::class,
             EmployeeSeeder::class,
+            EmployeeEducationLevelSeeder::class,
             EmployeeBankAccountSeeder::class,
             EmployeeCertificateSeeder::class,
             EmployeeIdentificationSeeder::class,
-            // EmployeeDesignationSeeder::class,
-            EducationLevelSeeder::class,
             SalaryComponentSeeder::class,
             EmployeeComponentSeeder::class,
             EmployeeFinanceProfileSeeder::class,

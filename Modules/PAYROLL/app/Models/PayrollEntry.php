@@ -32,6 +32,27 @@ class PayrollEntry extends Model
         return $this->hasMany(PayrollEntryItem::class);
     }
 
+    public function isDraft(): bool
+    {
+        return $this->payPeriod?->status === 'Draft';
+    }
+
+
+    // public static function getBaseSalaryForEntry(self $entry): float
+    // {
+    //     return (float) $entry->items()
+    //         ->whereNull('component_id')
+    //         ->value('finalized_amount') ?? 0;
+    // }
+
+    public static function getBaseSalaryForEntry(self $entry): float
+    {
+        return (float) $entry->items()
+            ->whereNull('component_id')
+            ->value('finalized_amount');
+    }
+
+
     // protected static function newFactory(): PayrollEntryFactory
     // {
     //     // return PayrollEntryFactory::new();

@@ -313,7 +313,7 @@
                                 </label>
                                 <input type="text" class="form-control font-monospace"
                                     wire:model.live="bank_account_number"
-                                    placeholder="e.g. 1000-2024-0001" readonly>
+                                     readonly>
                                 @error('bank_account_number')
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror

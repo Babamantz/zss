@@ -26,11 +26,11 @@ class PayrollEntryShow extends Component
     public function render()
     {
         $earnings = $this->entry->items
-            ->filter(fn($i) => $i->component->type === 'Earning')
+            ->filter(fn($i) => $i->component?->type === 'Earning')
             ->sortByDesc('finalized_amount');
 
         $deductions = $this->entry->items
-            ->filter(fn($i) => $i->component->type === 'Deduction')
+            ->filter(fn($i) => $i->component?->type === 'Deduction')
             ->sortByDesc('finalized_amount');
 
 

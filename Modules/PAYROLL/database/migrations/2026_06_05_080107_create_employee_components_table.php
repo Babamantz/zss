@@ -17,8 +17,11 @@ return new class extends Migration
             $table->foreignId('employee_id')->constrained('employees')->cascadeOnDelete();
             $table->foreignId('component_id')->constrained('salary_components')->cascadeOnDelete();
             $table->decimal('custom_amount', 15, 2);
+            $table->string('calculation_type',100)->default('fixed');// ['fixed', 'percentage'])->default('fixed');
+            $table->decimal('percentage_value', 8, 4)->nullable();
             $table->boolean('is_recurring')->default(false);
             $table->date('ends_at')->nullable();
+
 
             // Audit Trails
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
@@ -37,8 +40,8 @@ return new class extends Migration
     public function down(): void
     {
 
-            DB::statement('SET FOREIGN_KEY_CHECKS = 0;');
-            Schema::dropIfExists('employee_components');
-            DB::statement('SET FOREIGN_KEY_CHECKS = 1;');
+        DB::statement('SET FOREIGN_KEY_CHECKS = 0;');
+        Schema::dropIfExists('employee_components');
+        DB::statement('SET FOREIGN_KEY_CHECKS = 1;');
     }
 };

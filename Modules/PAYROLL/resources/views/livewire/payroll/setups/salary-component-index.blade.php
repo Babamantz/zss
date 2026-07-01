@@ -1,106 +1,315 @@
-{{-- Modules/PAYROLL/resources/views/livewire/payroll/setups/salary-component-index.blade.php --}}
+{{-- resources/views/payroll/livewire/payroll/salary-components/index.blade.php --}}
 
 <div class="container-fluid">
 
-    {{-- Header --}}
+    {{-- ── Header ──────────────────────────────────────────────────────────── --}}
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h4 class="mb-1">Salary Components</h4>
-            <small class="text-muted">Manage earnings and deductions applied to payroll</small>
+            <small class="text-muted">
+                Manage earnings and deductions applied during payroll processing
+            </small>
         </div>
         <button class="btn btn-primary btn-sm" wire:click="openCreate">
             <i class="fa fa-plus me-1"></i> New Component
         </button>
     </div>
 
-    {{-- Flash Notifications --}}
+    {{-- ── Flash ───────────────────────────────────────────────────────────── --}}
     @if (session()->has('success'))
         <div class="alert alert-success alert-dismissible fade show">
             {{ session('success') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
+    @if (session()->has('error'))
+        <div class="alert alert-danger alert-dismissible fade show">
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
 
-    {{-- Filters Bar --}}
-    <div class="card mb-3">
+    {{-- ── Stat Cards ───────────────────────────────────────────────────────── --}}
+    <div class="row g-3 mb-4">
+        @php
+            use Modules\PAYROLL\Enums\ComponentType;
+            $statCards = [
+                [
+                    'label' => 'Total Components',
+                    'value' => $components->total(),
+                    'icon'  => 'fa-sliders',
+                    'color' => 'primary',
+                    'sub'   => 'all configured',
+                ],
+                [
+                    'label' => 'Earnings',
+                    'value' => \Modules\PAYROLL\Models\SalaryComponent::where('type', ComponentType::EARNING)->count(),
+                    'icon'  => 'fa-arrow-up-circle',
+                    'color' => 'success',
+                    'sub'   => 'earning components',
+                ],
+                [
+                    'label' => 'Deductions',
+                    'value' => \Modules\PAYROLL\Models\SalaryComponent::where('type', ComponentType::DEDUCTION)->count(),
+                    'icon'  => 'fa-arrow-down-circle',
+                    'color' => 'danger',
+                    'sub'   => 'deduction components',
+                ],
+                // [
+                //     'label' => 'Global Components',
+                //     'value' => \Modules\PAYROLL\Models\SalaryComponent::where('is_global_component', true)->count(),
+                //     'icon'  => 'fa-globe',
+                //     'color' => 'info',
+                //     'sub'   => 'applied to gross salary',
+                // ],
+            ];
+        @endphp
+
+        @foreach ($statCards as $card)
+            <div class="col-md-3 col-sm-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-{{ $card['color'] }}-subtle p-3 flex-shrink-0">
+                            <i class="fa {{ $card['icon'] }} text-{{ $card['color'] }} fa-lg"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-0">{{ $card['label'] }}</p>
+                            <h5 class="mb-0">{{ $card['value'] }}</h5>
+                            <small class="text-muted">{{ $card['sub'] }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endforeach
+    </div>
+
+    {{-- ── Filters ──────────────────────────────────────────────────────────── --}}
+    <div class="card border-0 shadow-sm mb-3">
         <div class="card-body py-2">
             <div class="row g-2 align-items-center">
-                <div class="col-md-5">
-                    <!-- Note: For Livewire v3 use wire:model.live.debounce.400ms -->
-                    <input type="text" class="form-control form-control-sm" placeholder="Search components..."
-                        wire:model.live.debounce.400ms="search">
+
+                {{-- Search --}}
+                <div class="col-md-4">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-transparent border-end-0">
+                            <i class="fa fa-search text-muted" style="font-size:12px;"></i>
+                        </span>
+                        <input type="text"
+                            class="form-control form-control-sm border-start-0 ps-0"
+                            placeholder="Search components..."
+                            wire:model.live.debounce.400ms="search">
+                    </div>
                 </div>
-                <div class="col-md-3">
+
+                {{-- Type filter --}}
+                <div class="col-md-2">
                     <select class="form-select form-select-sm" wire:model.live="filterType">
                         <option value="">All Types</option>
-                        <option value="Earning">Earnings</option>
-                        <option value="Deduction">Deductions</option>
+                        <option value="{{ \Modules\PAYROLL\Enums\ComponentType::EARNING }}">
+                            Earnings
+                        </option>
+                        <option value="{{ \Modules\PAYROLL\Enums\ComponentType::DEDUCTION }}">
+                            Deductions
+                        </option>
                     </select>
                 </div>
-                <div class="col-md-4">
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="checkbox" wire:model.live="filterGlobal" id="globalOnly">
-                        <label class="form-check-label small" for="globalOnly">
-                            Global only
-                        </label>
-                    </div>
+
+                {{-- Calculation type filter --}}
+                <div class="col-md-2">
+                    <select class="form-select form-select-sm"
+                        wire:model.live="filterCalculationType">
+                        <option value="">All Calculations</option>
+                        <option value="{{ \Modules\PAYROLL\Enums\CalculationType::FIXED }}">
+                            Fixed Amount
+                        </option>
+                        <option value="{{ \Modules\PAYROLL\Enums\CalculationType::PERCENTAGE }}">
+                            Percentage
+                        </option>
+                    </select>
+                </div>
+
+                {{-- Global filter --}}
+                <div class="col-md-2">
+                    <select class="form-select form-select-sm"
+                        wire:model.live="filterGlobal">
+                        <option value="">All Scopes</option>
+                        <option value="global">Global Components</option>
+                        <option value="normal">Normal Components</option>
+                    </select>
+                </div>
+
+                {{-- Clear --}}
+                <div class="col-md-2 text-end">
+                    @if ($search || $filterType || $filterCalculationType || $filterGlobal)
+                        <button class="btn btn-sm btn-outline-secondary"
+                            wire:click="clearFilters">
+                            <i class="fa fa-times me-1"></i> Clear
+                        </button>
+                    @endif
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- Data Table Card --}}
-    <div class="card">
+    {{-- ── Table ────────────────────────────────────────────────────────────── --}}
+    <div class="card border-0 shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>#</th>
-                            <th>Name</th>
-                            <th>Type</th>
-                            <th>Global</th>
-                            <th>Created by</th>
-                            <th class="text-end">Actions</th>
+                            <th style="font-size:11px;padding:11px 16px;">#</th>
+                            <th style="font-size:11px;padding:11px 16px;">Name</th>
+                            <th style="font-size:11px;padding:11px 16px;">Type</th>
+                            <th style="font-size:11px;padding:11px 16px;">Calculation</th>
+                            <th style="font-size:11px;padding:11px 16px;">Value</th>
+                            <th style="font-size:11px;padding:11px 16px;">Scope</th>
+                            <th style="font-size:11px;padding:11px 16px;">Applies To</th>
+                            <th style="font-size:11px;padding:11px 16px;">Global Flag</th>
+                            <th style="font-size:11px;padding:11px 16px;" class="text-end">
+                                Actions
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($components as $comp)
-                            <tr>
-                                <td class="text-muted small">{{ $loop->iteration }}</td>
-                                <td>{{ $comp->name }}</td>
-                                <td>
-                                    @if ($comp->type === 'Earning')
-                                        <span class="badge bg-success-subtle text-success">Earning</span>
-                                    @else
-                                        <span class="badge bg-danger-subtle text-danger">Deduction</span>
+                            <tr wire:key="comp-{{ $comp->id }}">
+
+                                {{-- # --}}
+                                <td style="padding:11px 16px;"
+                                    class="text-muted small">
+                                    {{ ($components->currentPage() - 1) * $components->perPage() + $loop->iteration }}
+                                </td>
+
+                                {{-- Name --}}
+                                <td style="padding:11px 16px;">
+                                    <div class="fw-medium small">{{ $comp->name }}</div>
+                                    @if ($comp->is_global_component)
+                                        <small class="text-info" style="font-size:10px;">
+                                            <i class="fa fa-globe me-1"></i>
+                                            Calculated from Total Gross
+                                        </small>
                                     @endif
                                 </td>
-                                <td>
+
+                                {{-- Type --}}
+                                <td style="padding:11px 16px;">
+                                    @if ($comp->isEarning())
+                                        <span class="badge bg-success-subtle text-success">
+                                            <i class="fa fa-arrow-up fa-xs me-1"></i>
+                                            Earning
+                                        </span>
+                                    @else
+                                        <span class="badge bg-danger-subtle text-danger">
+                                            <i class="fa fa-arrow-down fa-xs me-1"></i>
+                                            Deduction
+                                        </span>
+                                    @endif
+                                </td>
+
+                                {{-- Calculation type --}}
+                                <td style="padding:11px 16px;">
+                                    @if ($comp->isFixed())
+                                        <span class="badge bg-primary-subtle text-primary">
+                                            <i class="fa fa-lock fa-xs me-1"></i>
+                                            Fixed
+                                        </span>
+                                    @else
+                                        <span class="badge bg-warning-subtle text-warning">
+                                            <i class="fa fa-percent fa-xs me-1"></i>
+                                            Percentage
+                                        </span>
+                                    @endif
+                                </td>
+
+                                {{-- Value --}}
+                                <td style="padding:11px 16px;" class="small fw-medium">
+                                    @if ($comp->isFixed())
+                                        TZS {{ number_format($comp->amount ?? 0, 2) }}
+                                        <small class="text-muted d-block"
+                                            style="font-size:10px;">
+                                            Fixed — overrides %
+                                        </small>
+                                    @else
+                                        {{ number_format($comp->percentage_value, 2) }}%
+                                        <small class="text-muted d-block"
+                                            style="font-size:10px;">
+                                            of gross salary
+                                        </small>
+                                    @endif
+                                </td>
+
+                                {{-- Scope (global component vs normal) --}}
+                                <td style="padding:11px 16px;">
+                                    @if ($comp->is_global_component)
+                                        <span class="badge bg-info-subtle text-info">
+                                            <i class="fa fa-globe fa-xs me-1"></i>
+                                            Global
+                                        </span>
+                                    @else
+                                        <span class="badge bg-secondary-subtle text-secondary">
+                                            <i class="fa fa-user fa-xs me-1"></i>
+                                            Per Employee
+                                        </span>
+                                    @endif
+                                </td>
+
+                                {{-- Applies to employment type --}}
+                                <td style="padding:11px 16px;">
+                                    @php
+                                        $atColor = match($comp->applies_to) {
+                                            \Modules\PAYROLL\Enums\AppliesTo::ALL           => ['secondary', 'All Staff'],
+                                            \Modules\PAYROLL\Enums\AppliesTo::PERMANENT     => ['primary',   'Permanent'],
+                                            \Modules\PAYROLL\Enums\AppliesTo::NON_PERMANENT => ['warning',   'Non-Permanent'],
+                                            default => ['secondary', ucfirst($comp->applies_to)],
+                                        };
+                                    @endphp
+                                    <span class="badge bg-{{ $atColor[0] }}-subtle
+                                        text-{{ $atColor[0] }}" style="font-size:10px;">
+                                        {{ $atColor[1] }}
+                                    </span>
+                                </td>
+
+                                {{-- is_global (old flag — auto-applied) --}}
+                                <td style="padding:11px 16px;">
                                     @if ($comp->is_global)
-                                        <span class="badge bg-primary-subtle text-primary">Global</span>
+                                        <span class="badge bg-success-subtle text-success"
+                                            style="font-size:10px;">
+                                            <i class="fa fa-check me-1"></i> Auto-apply
+                                        </span>
                                     @else
-                                        <span class="text-muted small">Per employee</span>
+                                        <span class="text-muted small">Manual</span>
                                     @endif
                                 </td>
-                                <td class="small text-muted">
-                                    {{ $comp->creator?->name ?? '—' }}
+
+                                {{-- Actions --}}
+                                <td style="padding:11px 16px;" class="text-end">
+                                    <div class="d-flex gap-1 justify-content-end">
+                                        <button class="btn btn-sm btn-outline-secondary"
+                                            wire:click="openEdit({{ $comp->id }})"
+                                            title="Edit">
+                                            <i class="fa fa-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger"
+                                            wire:click="delete({{ $comp->id }})"
+                                            wire:confirm="Remove this component? It will be soft-deleted."
+                                            title="Delete">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </div>
                                 </td>
-                                <td class="text-end text-nowrap">
-                                    <button class="btn btn-sm btn-outline-secondary me-1"
-                                        wire:click="openEdit({{ $comp->id }})">
-                                        <i class="fa fa-pencil"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-danger" wire:click="delete({{ $comp->id }})"
-                                        wire:confirm="Remove this component?">
-                                        <i class="fa fa-trash"></i>
-                                    </button>
-                                </td>
+
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center text-muted py-4">
+                                <td colspan="9" class="text-center text-muted py-5">
+                                    <i class="fa fa-sliders fa-2x d-block mb-2 opacity-25"></i>
                                     No salary components found.
+                                    <a href="javascript:void(0)"
+                                        wire:click="openCreate"
+                                        class="d-block mt-1 small text-primary">
+                                        Create the first component
+                                    </a>
                                 </td>
                             </tr>
                         @endforelse
@@ -109,75 +318,232 @@
             </div>
         </div>
         @if ($components->hasPages())
-            <div class="card-footer d-flex justify-content-end">
+            <div class="card-footer d-flex justify-content-between align-items-center py-2">
+                <small class="text-muted">
+                    Showing {{ $components->firstItem() }}–{{ $components->lastItem() }}
+                    of {{ $components->total() }} components
+                </small>
                 {{ $components->links() }}
             </div>
         @endif
     </div>
 
-    {{-- Create / Edit Modal Wrapper --}}
+    {{-- ══════════════════════════════════════════════════════════════════════
+         CREATE / EDIT MODAL
+    ══════════════════════════════════════════════════════════════════════ --}}
     @if ($showModal)
-        <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0, 0, 0, 0.5);" role="dialog">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content shadow-lg">
+        <div class="modal fade show d-block" tabindex="-1"
+            style="background:rgba(0,0,0,.45);">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+
                     <div class="modal-header">
                         <h5 class="modal-title">
+                            <i class="fa fa-sliders me-2 text-primary"></i>
                             {{ $editId ? 'Edit Component' : 'New Salary Component' }}
                         </h5>
-                        <button type="button" class="btn-close" wire:click="resetModal" aria-label="Close"></button>
+                        <button type="button" class="btn-close"
+                            wire:click="resetModal"></button>
                     </div>
-                    <form wire:submit.prevent="save">
-                        <div class="modal-body">
-                            <!-- Name Field -->
-                            <div class="mb-3">
-                                <label class="form-label font-weight-bold">Name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" wire:model="name"
+
+                    <div class="modal-body">
+                        <div class="row g-3">
+
+                            {{-- Name --}}
+                            <div class="col-md-8">
+                                <label class="form-label">
+                                    Name <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control"
+                                    wire:model.defer="name"
                                     placeholder="e.g. Housing Allowance">
-                                @error('name') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
+                                @error('name')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
                             </div>
 
-                            <!-- Classification Radio Options -->
-                            <div class="mb-3">
-                                <label class="form-label d-block font-weight-bold">Type <span
-                                        class="text-danger">*</span></label>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" wire:model="type" value="Earning"
-                                        id="type_earning">
-                                    <label class="form-check-label" for="type_earning">Earning</label>
+                            {{-- Type --}}
+                            <div class="col-md-4">
+                                <label class="form-label">
+                                    Type <span class="text-danger">*</span>
+                                </label>
+                                <div class="d-flex gap-3 mt-2">
+                                    @foreach (\Modules\PAYROLL\Enums\ComponentType::ALL as $t)
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio"
+                                                wire:model.live="type"
+                                                value="{{ $t }}"
+                                                id="type_{{ $t }}">
+                                            <label class="form-check-label"
+                                                for="type_{{ $t }}">
+                                                {{ $t }}
+                                            </label>
+                                        </div>
+                                    @endforeach
                                 </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" wire:model="type" value="Deduction"
-                                        id="type_deduction">
-                                    <label class="form-check-label" for="type_deduction">Deduction</label>
-                                </div>
-                                @error('type') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
+                                @error('type')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
                             </div>
 
-                            <!-- Scope Flag Checkbox -->
-                            <div class="mb-1">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" wire:model="is_global" id="is_global">
-                                    <label class="form-check-label font-weight-bold" for="is_global">
-                                        Apply globally to all employees
+                            {{-- Calculation type --}}
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Calculation Method <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-select"
+                                    wire:model.live="calculation_type">
+                                    <option value="">-- Select --</option>
+                                    @foreach (\Modules\PAYROLL\Enums\CalculationType::ALL as $ct)
+                                        <option value="{{ $ct }}">
+                                            {{ ucfirst($ct) }}
+                                            @if ($ct === \Modules\PAYROLL\Enums\CalculationType::FIXED)
+                                                (Superior — overrides %)
+                                            @else
+                                                (% of gross salary)
+                                            @endif
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('calculation_type')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
+
+                            {{-- Value input — changes based on calculation type --}}
+                            <div class="col-md-6">
+                                @if ($calculation_type === \Modules\PAYROLL\Enums\CalculationType::FIXED)
+                                    <label class="form-label">
+                                        Fixed Amount (TZS)
+                                        <span class="text-danger">*</span>
+                                        <span class="badge bg-primary-subtle text-primary ms-1"
+                                            style="font-size:10px;">
+                                            Superior
+                                        </span>
                                     </label>
-                                </div>
-                                <small class="text-muted d-block ms-4">
-                                    Global components auto-apply to every employee during payroll run.
-                                </small>
-                                @error('is_global') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
+                                    <div class="input-group">
+                                        <span class="input-group-text small">TZS</span>
+                                        <input type="number" step="0.01" min="0"
+                                            class="form-control"
+                                            wire:model.defer="custom_amount"
+                                            placeholder="0.00">
+                                    </div>
+                                    @error('custom_amount')
+                                        <small class="text-danger">{{ $message }}</small>
+                                    @enderror
+                                @elseif ($calculation_type === \Modules\PAYROLL\Enums\CalculationType::PERCENTAGE)
+                                    <label class="form-label">
+                                        Percentage Value <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.0001" min="0" max="100"
+                                            class="form-control"
+                                            wire:model.defer="percentage_value"
+                                            placeholder="e.g. 7.5">
+                                        <span class="input-group-text small">%</span>
+                                    </div>
+                                    <small class="text-muted">
+                                        of Total Gross Salary
+                                        {{-- @if ($is_global_component)
+                                            (global: applied to all employees)
+                                        @endif --}}
+                                    </small>
+                                    @error('percentage_value')
+                                        <small class="text-danger">{{ $message }}</small>
+                                    @enderror
+                                @else
+                                    <label class="form-label">Value</label>
+                                    <input type="text" class="form-control" disabled
+                                        placeholder="Select calculation method first">
+                                @endif
                             </div>
-                        </div>
 
-                        <!-- Actions Row -->
-                        <div class="modal-footer bg-light">
-                            <button type="button" class="btn btn-secondary btn-sm" wire:click="resetModal">Cancel</button>
-                            <button type="submit" class="btn btn-primary btn-sm">
-                                <i class="fa fa-save me-1"></i> Save Component
-                            </button>
+                            {{-- Applies To --}}
+                            <div class="col-md-6">
+                                <label class="form-label">Applies To</label>
+                                <select class="form-select"
+                                    wire:model.live="applies_to">
+                                    @foreach ([
+                                        \Modules\PAYROLL\Enums\AppliesTo::ALL           => 'All Staff',
+                                        \Modules\PAYROLL\Enums\AppliesTo::PERMANENT     => 'Permanent Employees Only',
+                                        \Modules\PAYROLL\Enums\AppliesTo::NON_PERMANENT => 'Non-Permanent Only',
+                                    ] as $val => $label)
+                                        <option value="{{ $val }}">{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                                @error('applies_to')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
+
+                            {{-- Flags --}}
+                            <div class="col-md-6">
+                                <label class="form-label d-block">Component Flags</label>
+                                <div class="d-flex flex-column gap-2">
+                                    {{-- <div class="form-check">
+                                        <input class="form-check-input" type="checkbox"
+                                            wire:model.live="is_global_component"
+                                            id="is_global_component">
+                                        <label class="form-check-label small"
+                                            for="is_global_component">
+                                            <strong>Global Component</strong>
+                                            — calculated from Total Gross Salary,
+                                            applied to all eligible employees
+                                        </label>
+                                    </div> --}}
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox"
+                                            wire:model="is_global"
+                                            id="is_global">
+                                        <label class="form-check-label small"
+                                            for="is_global">
+                                            <strong>Auto-apply</strong>
+                                            — automatically assigned to employees
+                                            on payroll run
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Info banner for global component --}}
+                            {{-- @if ($is_global_component)
+                                <div class="col-12">
+                                    <div class="alert alert-info py-2 mb-0 small">
+                                        <i class="fa fa-info-circle me-1"></i>
+                                        <strong>Global Component:</strong>
+                                        This component's value will be calculated using the
+                                        employee's <strong>Total Gross Salary</strong> as the
+                                        base during payroll processing.
+                                        @if ($calculation_type === \Modules\PAYROLL\Enums\CalculationType::FIXED)
+                                            The fixed amount will override any percentage.
+                                        @endif
+                                    </div>
+                                </div>
+                            @endif --}}
+
                         </div>
-                    </form>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary btn-sm"
+                            wire:click="resetModal">Cancel</button>
+                        <button class="btn btn-primary btn-sm"
+                            wire:click="save"
+                            wire:loading.attr="disabled">
+                            <span wire:loading.remove wire:target="save">
+                                <i class="fa fa-save me-1"></i>
+                                {{ $editId ? 'Update' : 'Save Component' }}
+                            </span>
+                            <span wire:loading wire:target="save">
+                                <span class="spinner-border spinner-border-sm"></span>
+                                Saving...
+                            </span>
+                        </button>
+                    </div>
+
                 </div>
             </div>
         </div>
     @endif
+
 </div>

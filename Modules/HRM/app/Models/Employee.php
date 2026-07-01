@@ -8,8 +8,13 @@ use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\HRM\Enums\EmploymentStatus;
+use Modules\HRM\Enums\EmploymentType;
+use Modules\HRM\Enums\Gender;
+use Modules\HRM\Enums\MaritalStatus;
 use Modules\HRM\Models\EmployeeBankAccount;
+use Modules\HRM\Models\EmployeeEducationLevel;
 use Modules\PAYROLL\Models\EmployeeComponent;
 use Modules\PAYROLL\Models\EmployeeFinanceProfile;
 use Modules\PAYROLL\Models\PayrollEntry;
@@ -18,7 +23,9 @@ use Modules\PAYROLL\Models\PayrollEntry;
 
 class Employee extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
+
+
 
     /**
      * The attributes that are mass assignable.
@@ -29,6 +36,47 @@ class Employee extends Model
     ];
 
     protected $guarded = false;
+    public static function validEmploymentTypes(): array
+    {
+        return EmploymentType::ALL;
+    }
+
+    public static function validStatuses(): array
+    {
+        return EmploymentStatus::ALL;
+    }
+
+    public static function validGenders(): array
+    {
+        return Gender::ALL;
+    }
+
+    public static function validMaritalStatuses(): array
+    {
+        return MaritalStatus::ALL;
+    }
+
+
+
+    public function isPermanent(): bool
+    {
+        return $this->employment_type === EmploymentType::PERMANENT;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->is_active === EmploymentStatus::ACTIVE;
+    }
+
+    public function employmentTypeLabel(): string
+    {
+        return EmploymentType::labelOf($this->employment_type ?? EmploymentType::PERMANENT);
+    }
+
+    public function educationLabel(): string
+    {
+        return EducationLevel::labelOf($this->education ?? '');
+    }
 
     public function components()
     {
@@ -39,24 +87,16 @@ class Employee extends Model
         return $this->hasOne(EmployeeFinanceProfile::class);
     }
 
-    // Modules/HRM/Models/Employee.php
 
-    // Add inside the Employee model alongside existing relationships:
-
-    // public function financeProfile(): HasOne
-    // {
-    //     return $this->hasOne(EmployeeFinanceProfile::class);
-    // }
-
-    // Convenience: get base salary directly from profile
     public function getBaseSalaryAttribute(): ?string
     {
         return $this->financeProfile?->base_salary;
     }
 
-    public function getBankAccountAttribute(): ?string
+    public function getFinanceBankAccountNumberAttribute(): ?string
+
     {
-        return $this->financeProfile?->bank_account_number;
+        return $this->financeProfile?->account_no;
     }
     public function payrollEntries()
     {
@@ -84,7 +124,7 @@ class Employee extends Model
 
     public function education_levels()
     {
-        return $this->hasMany(EducationLevel::class);
+        return $this->hasMany(EmployeeEducationLevel::class);
     }
 
     public function location()

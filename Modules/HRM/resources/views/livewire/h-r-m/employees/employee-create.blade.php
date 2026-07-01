@@ -128,10 +128,9 @@
                                         <label>Education Level: <span class="text-danger">*</span></label>
                                         <select id="select-education" class="js-example-basic-single form-control">
                                             <option value="">-- Select Education Level --</option>
-                                            @foreach ($educationLevels as $level)
-                                                <option value="{{ $level }}" {{ $education === $level ? 'selected' : '' }}>
-                                                    {{ ucfirst(str_replace('_', ' ', $level)) }}
-                                                </option>
+                                            @foreach ($educationLevels as $id=>$level)
+                                               
+<option value="{{ $id }}" {{ (string)$education === (string)$id ? 'selected' : '' }}>{{ ucwords(str_replace(['-', '_'], ' ', $level)) }}</option>
                                             @endforeach
                                         </select>
                                         @error('education') <small class="text-danger">{{ $message }}</small> @enderror
@@ -221,22 +220,18 @@
                                         @error('is_disable') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Is Permanent?</label>
-                                        <div class="mt-2">
-                                            <div class="form-check form-check-inline">
-                                                <input class="form-check-input" type="radio"
-                                                    wire:model.defer="is_permanent" value="0" id="permanent_no">
-                                                <label class="form-check-label" for="disable_no">No</label>
-                                            </div>
-                                            <div class="form-check form-check-inline">
-                                                <input class="form-check-input" type="radio"
-                                                    wire:model.defer="is_permanent" value="1" id="permanent_yes">
-                                                <label class="form-check-label" for="disable_yes">Yes</label>
-                                            </div>
-                                        </div>
-                                        @error('is_disable') <small class="text-danger">{{ $message }}</small> @enderror
+                                <div wire:ignore  class="col-md-6">
+                                    <div  class="form-group">
+                                         <label>Employment Type: <span class="text-danger">*</span></label>
+                                        <select id="select-employment-type" class="js-example-basic-single form-control">
+                                            <option value="">-- Employment Type --</option>
+                                             @foreach ( $employmentTypes  as $id =>$type)
+                                               
+<option value="{{ $id }}" {{ (string)$employment_type === (string)$id ? 'selected' : '' }}> {{ ucwords(str_replace(['-', '_'], ' ', $type)) }}</option>
+                                            @endforeach
+                                        
+                                        </select>
+                                        @error('employment_type') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
                                 </div>
                             </div>
@@ -254,20 +249,14 @@
 
                             {{-- OPF Number + Designation --}}
                             <div class="row mb-3">
-                                <div class="col-md-3">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Payroll (OPF) Number:</label>
                                         <input class="form-control" type="text" wire:model.defer="opf_number">
                                         @error('opf_number') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label>File Number:</label>
-                                        <input class="form-control" type="text" wire:model.defer="file_number">
-                                        @error('file_number') <small class="text-danger">{{ $message }}</small> @enderror
-                                    </div>
-                                </div>
+                        
                                 <div class="col-md-6">
                                     <div wire:ignore class="form-group">
                                         <label>Designation: <span class="text-danger">*</span></label>
@@ -309,7 +298,7 @@
                                                 <option value="{{ $id }}" {{ (string)$department === (string)$id ? 'selected' : '' }}>
                                                     {{ $deptName }}
                                                 </option>
-                                            @endforeach
+                                             @endforeach
                                         </select>
                                         @error('department') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
@@ -322,7 +311,15 @@
                                     
                                     <div class="form-group">
                                         <label>Bank:</label>
-                                        <input class="form-control" type="text" wire:model.defer="file_number">
+                                        <select id="select-bank-name" class="js-example-basic-single form-control">
+                                            <option value="">-- Select Bank --</option>
+                                            @foreach ($banks as $id => $name)
+                                                <option value="{{ $id }}" {{ (string)$employee_bank_id === (string)$id ? 'selected' : '' }}>
+                                                    {{ $name}}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        
                                         @error('opf_number') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
                                 </div>
@@ -332,8 +329,8 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Bank Account No:</label>
-                                         <input class="form-control" type="text" wire:model.defer="file_number">
-                                        @error('opf_number') <small class="text-danger">{{ $message }}</small> @enderror
+                                         <input class="form-control" type="text" wire:model.defer="employee_bank_account_no">
+                                        @error('bank_account_no') <small class="text-danger">{{ $message }}</small> @enderror
                                        
                                     </div>
                                     @if ($existing_photo_file)
@@ -694,6 +691,8 @@
                     { id: '#select-designation', field: 'designation_id' },
                     { id: '#select-unit',        field: 'unit' },
                     { id: '#select-department',  field: 'department' },
+                    { id: '#select-employment-type',  field: 'employment_type' },
+                    { id: '#select-bank-name',  field: 'employee_bank_id' },
                 ];
 
                 selects.forEach(({ id, field, event }) => {
@@ -715,9 +714,14 @@
             // Sync Select2 visuals when edit data is dispatched
             Livewire.on('eventEmail', (data) => {
                 const row = Array.isArray(data) ? data[0] : data;
+                console.log(row);
+                
                 $('#select-user').val(row.employee_id).trigger('change');
                 $('#select-unit').val(row.unit_id).trigger('change');
                 $('#select-department').val(row.department_id).trigger('change');
+                console.log(row.employment_type);
+                
+                $('#select-employment-type').val(row.employment_type).trigger('change');
             });
 
             // Clear file inputs after successful create

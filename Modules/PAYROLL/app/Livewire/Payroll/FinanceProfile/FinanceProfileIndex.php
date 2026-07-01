@@ -105,13 +105,10 @@ class FinanceProfileIndex extends Component
 
         $employee = Employee::with('bankAccount')->find($value);
 
-        dd($employee->bankAccount);
-
-
         if ($employee && $employee->bankAccount) {
             $this->bank_account_number = $employee->bankAccount->account_no;
         } else {
-            $this->bank_account_number = '';
+            $this->bank_account_number = $employee->bankAccount?->account_no ?? null;
         }
     }
 
@@ -150,7 +147,6 @@ class FinanceProfileIndex extends Component
             $data = [
                 'employee_id'         => $this->employee_id,
                 'base_salary'         => $this->base_salary,
-                'bank_account_number' => $this->bank_account_number,
                 'tax_id'              => $this->tax_id ?: null,
             ];
 
@@ -196,7 +192,6 @@ class FinanceProfileIndex extends Component
             'editId',
             'employee_id',
             'base_salary',
-            'bank_account_number',
             'tax_id',
         ]);
         $this->resetErrorBag();
@@ -217,15 +212,37 @@ class FinanceProfileIndex extends Component
             ->get();
 
         // Profiles list
-        $profiles = EmployeeFinanceProfile::with(['employee.user', 'employee.department'])
-            ->when($this->search, function ($q) {
-                $q->whereHas(
-                    'employee.user',
-                    fn($u) =>
-                    $u->where('first_name', 'like', "%{$this->search}%")
-                        ->orWhere('last_name',  'like', "%{$this->search}%")
-                )->orWhere('bank_account_number', 'like', "%{$this->search}%")
-                    ->orWhere('tax_id', 'like', "%{$this->search}%");
+        $profiles = EmployeeFinanceProfile::with(['employee.user', 'employee.department', 'employee.bankAccount'])
+            // ->when($this->search, function ($q) {
+            //     $q->whereHas(
+            //         'employee.user',
+            //         fn($u) =>
+            //         $u->where('first_name', 'like', "%{$this->search}%")
+            //             ->orWhere('last_name',  'like', "%{$this->search}%")
+            //     );
+            //     $q->whereHas('bankAccount', function ($q) {
+            //         $q->orWhere('account_no', "%{$this->search}%");
+            //     })
+            //         ->orWhere('bankAccount', 'like', "%{$this->search}%")
+            //         ->orWhere('tax_id', 'like', "%{$this->search}%");
+            // })
+            // ->orderBy($this->sortField, $this->sortDir)
+            // ->paginate(15);
+
+            ->when($this->search, function ($query) {
+                $query->where(function ($q) {
+
+                    $q->whereHas('employee.user', function ($u) {
+                        $u->where('first_name', 'like', "%{$this->search}%")
+                            ->orWhere('last_name', 'like', "%{$this->search}%");
+                    })
+
+                        ->orWhereHas('employee.bankAccount', function ($b) {
+                            $b->where('account_no', 'like', "%{$this->search}%");
+                        })
+
+                        ->orWhere('tax_id', 'like', "%{$this->search}%");
+                });
             })
             ->orderBy($this->sortField, $this->sortDir)
             ->paginate(15);

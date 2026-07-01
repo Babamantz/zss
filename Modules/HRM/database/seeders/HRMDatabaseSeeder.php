@@ -14,6 +14,7 @@ class HRMDatabaseSeeder extends Seeder
         $this->call([
             BankSeeder::class,
             DepartmentSeeder::class,
+            // DesignationSeeder::class,
             UnitSeeder::class
         ]);
     }

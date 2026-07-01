@@ -1,9 +1,36 @@
 {{-- resources/views/hrm/livewire/payroll/payroll-entries/show.blade.php --}}
 
 <div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <a href="{{ route('payroll.entries') }}"
+            class="btn btn-sm btn-outline-secondary me-2">
+            <i class="fa fa-arrow-left me-1"></i> Back
+        </a>
+        <span class="text-muted small">Payslip Detail</span>
+    </div>
+    <div class="d-flex gap-2">
+        {{-- PDF — opens in browser tab --}}
+        <a href="{{ route('payroll.entry.payslip-pdf', $entry->id) }}"
+            target="_blank"
+            class="btn btn-sm btn-outline-info">
+            <i class="fa fa-file-pdf me-1"></i> View PDF
+        </a>
+        {{-- Print from browser --}}
+        <button class="btn btn-sm btn-outline-primary" onclick="window.print()">
+            <i class="fa fa-print me-1"></i> Print
+        </button>
+    </div>
+</div>
+
+    
+
+
+
+    
 
     {{-- ── Toolbar ──────────────────────────────────────────────────────────── --}}
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    {{-- <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <a href="{{ route('payroll.entries') }}"
                 class="btn btn-sm btn-outline-secondary me-2">
@@ -14,7 +41,7 @@
         <button class="btn btn-sm btn-outline-primary" onclick="window.print()">
             <i class="fa fa-print me-1"></i> Print Payslip
         </button>
-    </div>
+    </div> --}}
 
     {{-- ── Payslip Card ─────────────────────────────────────────────────────── --}}
     <div class="card border-0 shadow-sm" id="payslip">

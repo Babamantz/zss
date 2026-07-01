@@ -19,11 +19,14 @@ return new class extends Migration
             $table->foreignId('pay_period_id')->constrained('pay_periods');
             $table->decimal('total_gross', 15, 2);
             $table->decimal('total_deductions', 15, 2);
+            $table->decimal('total_allowances', 15, 2);
             $table->decimal('net_pay', 15, 2);
             $table->timestamp('processed_at')->nullable();
+            $table->string('payroll_file_path')->nullable();
 
             // Audit Trails (Who approved/processed this specific employee's final payroll run)
             $table->foreignId('processed_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated _by')->nullable()->constrained('users')->nullOnDelete();
 
             $table->timestamps();
 
@@ -37,8 +40,8 @@ return new class extends Migration
     public function down(): void
     {
 
-            DB::statement('SET FOREIGN_KEY_CHECKS = 0;');
-            Schema::dropIfExists('payroll_entries');
-            DB::statement('SET FOREIGN_KEY_CHECKS = 1;');
+        DB::statement('SET FOREIGN_KEY_CHECKS = 0;');
+        Schema::dropIfExists('payroll_entries');
+        DB::statement('SET FOREIGN_KEY_CHECKS = 1;');
     }
 };

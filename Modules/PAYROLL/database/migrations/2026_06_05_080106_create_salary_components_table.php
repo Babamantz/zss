@@ -15,10 +15,15 @@ return new class extends Migration
         Schema::create('salary_components', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->decimal('percentage',4,2)->nullable();
-            $table->decimal('amount',15,2)->nullable();
-            $table->string('type'); //, ['Earning', 'Deduction']);
+            $table->decimal('percentage', 4, 2)->nullable();
+            $table->decimal('amount', 15, 2)->nullable();
+            $table->string('type')->default('Earning'); //, ['Earning', 'Deduction']);
             $table->boolean('is_global')->default(false); //statutory 
+            $table->string('calculation_type',50)->default('fixed');// ['fixed', 'percentage'])->default('fixed')->after('type');
+            $table->decimal('percentage_value', 8, 4)->nullable(); // e.g. 7.5000
+            // Employment type restriction
+            $table->string('applies_to',100)->default('all'); //['all', 'permanent', 'non_permanent'])->default('all');
+
 
             // Audit Trails
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();

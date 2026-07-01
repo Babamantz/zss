@@ -69,7 +69,7 @@
                 src="{{ Storage::disk('public')->url($employee->photo_file) }}" alt="{{ $authUser?->first_name }}">
         @else
             <div class="img-90 rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width:90px;height:90px;background:#E8EAF6;
-                       font-size:28px;font-weight:700;color:#1a237e;">
+                                   font-size:28px;font-weight:700;color:#1a237e;">
                 {{ $initials }}
             </div>
         @endif
@@ -119,7 +119,7 @@
             </p>
         @endif
 
-        
+
 
     </div>
     <nav>
@@ -183,6 +183,32 @@
                                 </li>
                             </ul>
                         </li>
+                        <li class="dropdown">
+                            <a class="nav-link menu-title {{ prefixActive('/transaction/create') }}"
+                                href="javascript:void(0)"><i data-feather="file"></i><span>Transaction</span></a>
+                            <ul class="nav-submenu menu-content" style="display: {{ prefixBlock('/index') }};">
+                                <li><a href="{{ route('chain.transaction.create') }}"
+                                        class="{{ routeActive('chain.transaction.create') }}">Transaction</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <a class="nav-link menu-title {{ prefixActive('/queue') }}" href="javascript:void(0)"><i
+                                    data-feather="file"></i><span>Queue</span></a>
+                            <ul class="nav-submenu menu-content" style="display: {{ prefixBlock('/index') }};">
+                                <li><a href="{{ route('chain.queue') }}" class="{{ routeActive('chain.queue') }}">Queues</a>
+                                </li>
+                            </ul>
+                        </li>
+                        {{-- <li class="dropdown">
+                            <a class="nav-link menu-title {{ prefixActive('transaction/{transactionId}/timeline') }}"
+                                href="javascript:void(0)"><i data-feather="file"></i><span>Transaction Timeline</span></a>
+                            <ul class="nav-submenu menu-content" style="display: {{ prefixBlock('/index') }};">
+                                <li><a href="{{ route('chain.transaction.timeline') }}"
+                                        class="{{ routeActive('chain.transaction.timeline') }}">Users</a>
+                                </li>
+                            </ul>
+                        </li> --}}
                     </ul>
                 </div>
                 <div class="right-arrow" id="right-arrow"><i data-feather="arrow-right"></i></div>

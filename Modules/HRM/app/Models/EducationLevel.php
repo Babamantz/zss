@@ -15,10 +15,6 @@ class EducationLevel extends Model
      */
     protected $guarded = false;
 
-    public function employee_education_levels()
-    {
-        return $this->belongsTo(Employee::class);
-    }
 
 
     // protected static function newFactory(): EducationLevelFactory

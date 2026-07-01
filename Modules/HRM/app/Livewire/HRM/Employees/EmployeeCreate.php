@@ -4,8 +4,9 @@ namespace Modules\HRM\Livewire\HRM\Employees;
 
 use App\Models\Certificate;
 use App\Models\Designation;
+use App\Models\EducationLevel;
+use App\Models\EmploymentType;
 use App\Models\Identification;
-use App\Models\Tenant;
 use App\Models\User;
 use Exception;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,8 @@ use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Modules\HRM\Enums\Gender;
+use Modules\HRM\Enums\MaritalStatus;
 use Modules\HRM\Models\Bank;
 use Modules\HRM\Models\Department;
 use Modules\HRM\Models\Employee;
@@ -28,6 +31,9 @@ class EmployeeCreate extends Component
     public $employeeId;
     public $mode;
     public $employee;
+    public $employee_bank_id;
+
+
     public int $currentStep = 1;
 
     // ── Step 1: Basic Information ─────────────────────────────────────────────
@@ -42,7 +48,7 @@ class EmployeeCreate extends Component
     public $marital_status;
     public $gender;
     public bool $is_disable = false;
-    public bool $is_permanent = true;
+    public  $employment_type;
 
     // Contacts JSON (personal + next of kin)
     public array $contacts = [
@@ -54,6 +60,7 @@ class EmployeeCreate extends Component
     public $opf_number;
     public $designation_id;          // FK → designations.id
     public $unit;
+    public $employee_bank_account_no;
     public $department;
     public $location;
     // public bool $is_officer = true;
@@ -84,15 +91,9 @@ class EmployeeCreate extends Component
     public bool $isViewMode = false;
 
     // ── Constants ─────────────────────────────────────────────────────────────
-    public array $educationLevels = [
-        'certificate',
-        'form-iv',
-        'diploma',
-        'advance_diploma',
-        'bachelor',
-        'master',
-        'phd',
-    ];
+    
+
+    
 
     protected $listeners = ['user-selected' => 'selectUser'];
 
@@ -178,6 +179,7 @@ class EmployeeCreate extends Component
     protected function populateEmployeeData(): void
     {
         $emp = $this->employee;
+        // dd($emp->employment_type);
 
         // Scalars
         $this->fill([
@@ -190,7 +192,7 @@ class EmployeeCreate extends Component
             'file_number'     => $emp->file_number,
             'education'      => $emp->education,
             'is_disable'     => (bool) $emp->is_disable,
-            'is_permanent'     => (bool) $emp->is_permanent,
+            'employment_type'     => $emp->employment_type,
             // 'is_officer'     => (bool) $emp->is_officer,
             'designation_id' => $emp->designation_id,
             'unit'           => $emp->unit_id,
@@ -291,11 +293,11 @@ class EmployeeCreate extends Component
             'dob'                     => 'required|date|before:today',
             'hired_date'              => 'required|date',
             'retiring_date'           => 'nullable|date|after:hired_date',
-            'education'               => 'required|string|in:certificate,form-iv,diploma,advance_diploma,bachelor,master,phd',
-            'marital_status'          => 'required|in:single,married,divorced',
-            'gender'                  => 'required|in:male,female',
+            'education'               => 'required|string',
+            'marital_status'          => 'required|string|in:' . implode(',', MaritalStatus::ALL),
             'is_disable'              => 'required|boolean',
-            'is_permanent'              => 'required|boolean',
+            'employment_type' => 'required|integer',
+            'gender'          => 'required|string|in:' . implode(',', Gender::ALL),
             'email'                   => 'required|exists:users,id',
             'contacts.0.phone_number' => 'required|string|max:15',
             'contacts.1.phone_number' => 'nullable|string|max:15',
@@ -360,7 +362,7 @@ class EmployeeCreate extends Component
                 'marital_status',
                 'gender',
                 'is_disable',
-                'is_permanent',
+                'employment_type',
                 'email',
                 'contacts.0.phone_number',
                 'contacts.1.phone_number',
@@ -416,11 +418,13 @@ class EmployeeCreate extends Component
 
     public function submitForm(): void
     {
+        // dd($this->employment_type); // in your save() method, before validation
         $this->validate();
         DB::beginTransaction();
 
         try {
             $employee = $this->saveEmployee();
+            $this->saveEmployeeBankDetails($employee);
             $this->saveEducationLevels($employee);
             $this->saveIdentifications($employee);
             $this->saveCertificates($employee);
@@ -466,7 +470,7 @@ class EmployeeCreate extends Component
             'opf_number'     => $this->opf_number,
             'education'      => $this->education,
             'is_disable'     => $this->is_disable,
-            'is_permanent'     => $this->is_permanent,
+            'employment_type'     => $this->employment_type,
             'is_active'      => 'active',
             'is_hr_registered' => true,
             // 'is_officer'     => $this->is_officer,
@@ -494,6 +498,15 @@ class EmployeeCreate extends Component
         }
 
         return $employee;
+    }
+
+    protected function saveEmployeeBankDetails(Employee $employee)
+    {
+        // dd($this->employee_bank_account_no);
+        $employee->bankAccount()->create([
+            'account_no' => $this->employee_bank_account_no,
+            'bank_id' => $this->employee_bank_id,
+        ]);
     }
 
     protected function handleFileUploads(array $data): array
@@ -679,7 +692,7 @@ class EmployeeCreate extends Component
             'marital_status',
             'gender',
             'is_disable',
-            'is_permanent',
+            'employment_type',
             'opf_number',
             'designation_id',
             'unit',
@@ -699,6 +712,8 @@ class EmployeeCreate extends Component
             'certificate_upload_files',
             'education_levels',
             'certificate_files',
+            'employee_bank_account_no',
+            'employee_bank_id'
         ]);
 
         $this->contacts = [
@@ -723,8 +738,10 @@ class EmployeeCreate extends Component
         return view('hrm::livewire.h-r-m.employees.employee-create', [
             'departments'         => Department::pluck('name', 'id'),
             'units'               => Unit::pluck('name', 'id'),
+            'banks'               => Bank::pluck('name', 'id'),
             'emails'              => $this->getAvailableEmails(),
-            'educationLevels'     => $this->educationLevels,
+            'educationLevels'     => EducationLevel::pluck('name','id'),
+            'employmentTypes'     => EmploymentType::pluck('name','id'),
             'designations'        => Designation::pluck('designation_name', 'id'),
             'identificationTypes' => Identification::pluck('identification_name', 'id'),
             'certificateTypes'    => Certificate::pluck('certificate_name', 'id'),

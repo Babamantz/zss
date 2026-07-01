@@ -37,6 +37,7 @@ class PayrollEntrySeeder extends Seeder
                 $gross      = $basic + $housing + $transport + $extras[$empId]['earning'];
                 $deductions = $paye + $zssf + $health + $extras[$empId]['deduction'];
                 $net        = $gross - $deductions;
+                $total_allowances = $housing + $transport + $extras[$empId]['earning'];
 
                 DB::table('payroll_entries')->insert([
                     'employee_id'   => $empId,
@@ -44,6 +45,7 @@ class PayrollEntrySeeder extends Seeder
                     'total_gross'   => $gross,
                     'total_deductions' => $deductions,
                     'net_pay'       => $net,
+                    'total_allowances' => $total_allowances,
                     'processed_at'  => now()->subMonths(6 - $payPeriodId),
                     'processed_by'  => 3, // Finance Officer
                     'created_at'    => now(),
