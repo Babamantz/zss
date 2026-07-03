@@ -2,8 +2,9 @@
 
 namespace Modules\PAYROLL\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Modules\PAYROLL\Models\Component;
 // use Modules\PAYROLL\Database\Factories\PayrollEntryItemFactory;
 
 class PayrollEntryItem extends Model
@@ -21,7 +22,7 @@ class PayrollEntryItem extends Model
     }
     public function component()
     {
-        return $this->belongsTo(SalaryComponent::class, 'component_id');
+        return $this->belongsTo(Component::class);
     }
 
     // protected static function newFactory(): PayrollEntryItemFactory

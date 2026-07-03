@@ -78,10 +78,11 @@ class Employee extends Model
         return EducationLevel::labelOf($this->education ?? '');
     }
 
-    public function components()
+    public function employeeComponents()
     {
         return $this->hasMany(EmployeeComponent::class);
     }
+   
     public function financeProfile()
     {
         return $this->hasOne(EmployeeFinanceProfile::class);

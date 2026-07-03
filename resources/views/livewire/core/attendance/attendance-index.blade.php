@@ -1,4 +1,3 @@
-{{-- resources/views/livewire/attendance/attendance-index.blade.php --}}
 <div>
     <div class="container-fluid">
         <div class="row">
@@ -30,16 +29,9 @@
 
                         {{-- Filters --}}
                         <div class="row mb-3">
-                            <div class="col-md-8">
+                            <div class="col-md-12">
                                 <input type="text" class="form-control" placeholder="Search forms..."
                                     wire:model.live.debounce.300ms="search">
-                            </div>
-                            <div class="col-md-4">
-                                <select class="form-select" wire:model.live="langFilter">
-                                    <option value="all">All Languages</option>
-                                    <option value="en">English</option>
-                                    <option value="sw">Swahili</option>
-                                </select>
                             </div>
                         </div>
 
@@ -50,7 +42,6 @@
                                     <tr>
                                         <th>#</th>
                                         <th>Title</th>
-                                        <th>Languages</th>
                                         <th>Rows</th>
                                         <th>Created</th>
                                         <th>Actions</th>
@@ -60,28 +51,9 @@
                                     @forelse ($attendances as $attendance)
                                         <tr>
                                             <td>{{ $loop->iteration }}</td>
-                                            <td>
-                                                @if (in_array('en', $attendance->languages))
-                                                    <strong>EN:</strong> {{ $attendance->title['en'] ?? 'N/A' }}<br>
-                                                @endif
-                                                @if (in_array('sw', $attendance->languages))
-                                                    <strong>SW:</strong> {{ $attendance->title['sw'] ?? 'N/A' }}
-                                                @endif
-                                            </td>
-                                            <td>
-                                                @foreach ($attendance->languages as $lang)
-                                                    <span
-                                                        class="badge badge-{{ $lang === 'en' ? 'primary' : 'success' }}">
-                                                        {{ strtoupper($lang) }}
-                                                    </span>
-                                                @endforeach
-                                                <br>
-                                                <small class="text-muted">Default:
-                                                    {{ strtoupper($attendance->default_lang) }}</small>
-                                            </td>
+                                            <td>{{ $attendance->title }}</td>
                                             <td>{{ $attendance->number_of_rows }}</td>
                                             <td>{{ $attendance->created_at->format('M d, Y') }}</td>
-                                            <td>
                                             <td>
                                                 <div class="btn-group btn-group-sm">
                                                     <a class="btn btn-info btn-sm"
@@ -97,11 +69,10 @@
                                                         wire:click="confirmDelete({{ $attendance->id }})">Delete</button>
                                                 </div>
                                             </td>
-                                            </td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="6" class="text-center">No attendance forms found.</td>
+                                            <td colspan="5" class="text-center">No attendance forms found.</td>
                                         </tr>
                                     @endforelse
                                 </tbody>
@@ -125,8 +96,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title">Confirm Deletion</h5>
-                        <button type="button" class="btn-close"
-                            wire:click="$set('confirmingDeletion', false)"></button>
+                        <button type="button" class="btn-close" wire:click="$set('confirmingDeletion', false)"></button>
                     </div>
                     <div class="modal-body">
                         Are you sure you want to delete this attendance form? This action cannot be undone.

@@ -17,10 +17,8 @@ return new class extends Migration
         Schema::create('attendances', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade'); // Creator
-            $table->json('languages'); // ['en', 'sw'] or ['en'] or ['sw']
-            $table->string('default_lang', 10); // 'en' or 'sw'
-            $table->json('title'); // {"en": "...", "sw": "..."}
-            $table->json('heading'); // {"en": "...", "sw": "..."}
+            $table->string('title');
+            $table->string('heading');
             $table->integer('number_of_rows')->default(10); // Number of attendee rows
             $table->string('attendance_path', 255)->nullable();
             $table->timestamps();

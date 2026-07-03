@@ -17,7 +17,7 @@ return new class extends Migration
             $table->date('start_date');
             $table->date('end_date');
             $table->string('status', 30)->default('draft');
-            $table->boolean('is_confirmed')->default('false');
+            $table->boolean('is_confirmed')->default(false);
             $table->decimal('total_gross',       15, 2)->default(0);
             $table->decimal('total_net',         15, 2)->default(0);
             $table->decimal('total_allowances',  15, 2)->default(0);

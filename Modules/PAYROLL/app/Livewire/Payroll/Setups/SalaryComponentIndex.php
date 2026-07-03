@@ -7,7 +7,10 @@ use Livewire\WithPagination;
 use Modules\PAYROLL\Enums\AppliesTo;
 use Modules\PAYROLL\Enums\CalculationType;
 use Modules\PAYROLL\Enums\ComponentType;
+use Modules\PAYROLL\Models\Component as PayComponent;
 use Modules\PAYROLL\Models\SalaryComponent;
+
+
 
 class SalaryComponentIndex extends Component
 {
@@ -28,6 +31,7 @@ class SalaryComponentIndex extends Component
     // Create / Edit modal state
     public bool   $showModal  = false;
     public ?int   $editId     = null;
+    public ?int   $componentNameId     = null;
     public string $name       = '';
     public string $type       = 'Earning';
     public bool   $is_global  = false;
@@ -49,7 +53,7 @@ class SalaryComponentIndex extends Component
     protected function rules(): array
     {
         return [
-            'name'      => 'required|string|max:100|unique:salary_components,name,' . ($this->editId ?? 'NULL'),
+            // 'name'      => 'required|string|max:100|unique:salary_components,name,' . ($this->editId ?? 'NULL'),
             'type'             => 'required|string|in:' . implode(',', ComponentType::ALL),
             'calculation_type' => 'required|string|in:' . implode(',', CalculationType::ALL),
             'applies_to'       => 'required|string|in:' . implode(',', AppliesTo::OPTIONS),
@@ -69,7 +73,7 @@ class SalaryComponentIndex extends Component
         $component = SalaryComponent::findOrFail($id);
 
         $this->editId             = $component->id;
-        $this->name               = $component->name;
+        $this->componentNameId    = $component->component_id;
         $this->type               = $component->type;
         $this->calculation_type   = $component->calculation_type;
         $this->is_global          = (bool) $component->is_global;
@@ -83,8 +87,11 @@ class SalaryComponentIndex extends Component
     {
         $this->validate();
 
+        // dd($this->componentNameId);
+
         $data = [
-            'name'                => $this->name,
+            // 'name'                => $this->name,
+            'component_id'    => $this->componentNameId,
             'type'                => $this->type,
             'calculation_type'    => $this->calculation_type,
             'is_global'           => $this->is_global,
@@ -119,7 +126,7 @@ class SalaryComponentIndex extends Component
     {
         $this->reset([
             'editId',
-            'name',
+            'componentNameId',
             'type',
             'applies_to',
             'calculation_type',
@@ -142,7 +149,8 @@ class SalaryComponentIndex extends Component
     public function render()
     {
         // 4. Eager-loaded 'creator' relationship used by your template loop
-        $components = SalaryComponent::query()
+        $components = PayComponent::pluck('name', 'id');
+        $salary_components = SalaryComponent::query()
             // ->with('creator')
             ->when($this->search,       fn($q) => $q->where('name', 'like', "%{$this->search}%"))
             ->when($this->filterType,   fn($q) => $q->where('type', $this->filterType))
@@ -156,6 +164,6 @@ class SalaryComponentIndex extends Component
             ->latest()
             ->paginate(15);
 
-        return view('payroll::livewire.payroll.setups.salary-component-index', compact('components'));
+        return view('payroll::livewire.payroll.setups.salary-component-index', compact('salary_components', 'components'));
     }
 }

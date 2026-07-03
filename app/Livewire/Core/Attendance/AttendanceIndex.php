@@ -12,18 +12,12 @@ class AttendanceIndex extends Component
     use WithPagination;
 
     public $search = '';
-    public $langFilter = 'all';
     public $confirmingDeletion = false;
     public $attendanceToDelete = null;
 
-    protected $queryString = ['search', 'langFilter'];
+    protected $queryString = ['search'];
 
     public function updatingSearch()
-    {
-        $this->resetPage();
-    }
-
-    public function updatingLangFilter()
     {
         $this->resetPage();
     }
@@ -64,13 +58,7 @@ class AttendanceIndex extends Component
         $attendances = Attendance::query()
             ->where('user_id', auth()->id()) // Only show user's own forms
             ->when($this->search, function ($query) {
-                $query->where(function ($q) {
-                    $q->where('title->en', 'like', '%' . $this->search . '%')
-                        ->orWhere('title->sw', 'like', '%' . $this->search . '%');
-                });
-            })
-            ->when($this->langFilter !== 'all', function ($query) {
-                $query->whereJsonContains('languages', $this->langFilter);
+                $query->where('title', 'like', '%' . $this->search . '%');
             })
             ->latest()
             ->paginate(10);

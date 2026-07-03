@@ -15,16 +15,26 @@ class PayrollListPdfController extends Controller
     {
         $period = PayPeriod::findOrFail($periodId);
 
-        $entries = PayrollEntry::with(['employee.user', 'employee.financeProfile'])
+        $entries = PayrollEntry::with([
+            'employee.user',
+            'employee.financeProfile',
+            'employee.bankAccount.bank'
+        ])
             ->where('pay_period_id', $period->id)
             ->get()
-            ->map(function ($entry) {
-                return [
-                    'name'          => $entry->employee->user->first_name . ' ' . $entry->employee->user->last_name,
-                    'opf_number'    => $entry->employee->opf_number ?? '—',
-                    'account_no'    => $entry->employee->financeProfile->bank_account_number ?? '—',
-                    'net_pay'       => $entry->net_pay,
-                ];
+            ->groupBy(function ($entry) {
+                return $entry->employee?->bankAccount?->bank?->slug ?? '—';
+            })
+            ->map(function ($group) {
+                return $group->map(function ($entry) {
+                    return [
+                        'name' => $entry->employee->user->first_name . ' ' . $entry->employee->user->last_name,
+                        'opf_number' => $entry->employee->opf_number ?? '—',
+                        'account_no' => $entry->employee->bankAccount->account_no ?? '—',
+                        'bank' => $entry->employee?->bankAccount?->bank?->slug ?? '—',
+                        'net_pay' => $entry->net_pay,
+                    ];
+                });
             });
 
         $totalNet = $entries->sum('net_pay');

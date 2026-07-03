@@ -5,7 +5,6 @@ namespace Modules\HRM\Livewire\HRM\Employees;
 use App\Models\Certificate;
 use App\Models\Designation;
 use App\Models\EducationLevel;
-use App\Models\EmploymentType;
 use App\Models\Identification;
 use App\Models\User;
 use Exception;
@@ -20,6 +19,7 @@ use Modules\HRM\Enums\MaritalStatus;
 use Modules\HRM\Models\Bank;
 use Modules\HRM\Models\Department;
 use Modules\HRM\Models\Employee;
+use Modules\HRM\Models\EmploymentType;
 use Modules\HRM\Models\Unit;
 
 class EmployeeCreate extends Component
@@ -32,7 +32,6 @@ class EmployeeCreate extends Component
     public $mode;
     public $employee;
     public $employee_bank_id;
-
 
     public int $currentStep = 1;
 
@@ -48,9 +47,9 @@ class EmployeeCreate extends Component
     public $marital_status;
     public $gender;
     public bool $is_disable = false;
-    public  $employment_type;
+    public $employment_type;
 
-    // Contacts JSON (personal + next of kin)
+    // Contacts JSON (personal + next of kin) — always two fixed slots, keyed by type
     public array $contacts = [
         ['type' => 'personal',    'phone_number' => ''],
         ['type' => 'next_of_kin', 'phone_number' => ''],
@@ -63,7 +62,6 @@ class EmployeeCreate extends Component
     public $employee_bank_account_no;
     public $department;
     public $location;
-    // public bool $is_officer = true;
 
     // Files that stay on employees table
     public $photo_file;
@@ -89,11 +87,6 @@ class EmployeeCreate extends Component
     // ── Meta ──────────────────────────────────────────────────────────────────
     public bool $isEditMode = false;
     public bool $isViewMode = false;
-
-    // ── Constants ─────────────────────────────────────────────────────────────
-    
-
-    
 
     protected $listeners = ['user-selected' => 'selectUser'];
 
@@ -165,11 +158,12 @@ class EmployeeCreate extends Component
             'identifications',
             'certificates',
             'education_levels',
+            'bankAccount',
         ])->find($this->employeeId);
 
         if (!$this->employee) {
             session()->flash('error', 'Employee not found.');
-            redirect()->route('hrm.employees.index');
+            $this->redirectRoute('hrm.employees.index');
             return;
         }
 
@@ -179,24 +173,22 @@ class EmployeeCreate extends Component
     protected function populateEmployeeData(): void
     {
         $emp = $this->employee;
-        // dd($emp->employment_type);
 
         // Scalars
         $this->fill([
-            'dob'            => $emp->dob,
-            'hired_date'     => $emp->hired_date,
-            'retiring_date'  => $emp->retiring_date,
-            'marital_status' => $emp->marital_status,
-            'gender'         => $emp->gender,
-            'opf_number'     => $emp->opf_number,
+            'dob'             => $emp->dob,
+            'hired_date'      => $emp->hired_date,
+            'retiring_date'   => $emp->retiring_date,
+            'marital_status'  => $emp->marital_status,
+            'gender'          => $emp->gender,
+            'opf_number'      => $emp->opf_number,
             'file_number'     => $emp->file_number,
-            'education'      => $emp->education,
-            'is_disable'     => (bool) $emp->is_disable,
-            'employment_type'     => $emp->employment_type,
-            // 'is_officer'     => (bool) $emp->is_officer,
-            'designation_id' => $emp->designation_id,
-            'unit'           => $emp->unit_id,
-            'department'     => $emp->department_id,
+            'education'       => $emp->education,
+            'is_disable'      => (bool) $emp->is_disable,
+            'employment_type' => $emp->employment_type,
+            'designation_id'  => $emp->designation_id,
+            'unit'            => $emp->unit_id,
+            'department'      => $emp->department_id,
         ]);
 
         // Existing files
@@ -212,9 +204,30 @@ class EmployeeCreate extends Component
         $this->last_name  = $emp->user->last_name;
         $this->location   = $emp->user->tenant?->name;
 
-        // Contacts JSON
-        $saved = json_decode($emp->contacts, true);
-        $this->contacts = !empty($saved) ? $saved : $this->contacts;
+        // Bank details
+        $this->employee_bank_id         = $emp->bankAccount?->bank_id;
+        $this->employee_bank_account_no = $emp->bankAccount?->account_no;
+
+        // ── Contacts JSON ────────────────────────────────────────────────────
+        // FIX: don't blindly overwrite $this->contacts with whatever came back
+        // from the DB — a saved record with only one contact (or a stray null
+        // entry) used to collapse the array to a single index, which broke
+        // both the "next of kin" field binding on edit and threw
+        // "Trying to access array offset on null" in saveEmployee() on submit.
+        // We now always normalize to two fixed, type-keyed slots.
+        $saved = $emp->contacts;
+        if (is_string($saved)) {
+            $saved = json_decode($saved, true) ?? [];
+        }
+        $saved = is_array($saved) ? $saved : [];
+
+        $personal  = collect($saved)->first(fn($c) => is_array($c) && ($c['type'] ?? null) === 'personal');
+        $nextOfKin = collect($saved)->first(fn($c) => is_array($c) && ($c['type'] ?? null) === 'next_of_kin');
+
+        $this->contacts = [
+            ['type' => 'personal',    'phone_number' => $personal['phone_number']  ?? ''],
+            ['type' => 'next_of_kin', 'phone_number' => $nextOfKin['phone_number'] ?? ''],
+        ];
 
         // Identifications
         $loaded = $emp->identifications->map(fn($i) => [
@@ -272,9 +285,10 @@ class EmployeeCreate extends Component
     {
         if ($this->employee?->user) {
             $this->dispatch('eventEmail', [
-                'employee_id'   => $this->employee->user->id,
-                'unit_id'       => $this->employee->unit_id,
-                'department_id' => $this->employee->department_id,
+                'employee_id'     => $this->employee->user->id,
+                'unit_id'         => $this->employee->unit_id,
+                'department_id'   => $this->employee->department_id,
+                'employment_type' => $this->employee->employment_type,
             ]);
         }
     }
@@ -296,21 +310,23 @@ class EmployeeCreate extends Component
             'education'               => 'required|string',
             'marital_status'          => 'required|string|in:' . implode(',', MaritalStatus::ALL),
             'is_disable'              => 'required|boolean',
-            'employment_type' => 'required|integer',
-            'gender'          => 'required|string|in:' . implode(',', Gender::ALL),
+            'employment_type'         => 'required|integer',
+            'gender'                  => 'required|string|in:' . implode(',', Gender::ALL),
             'email'                   => 'required|exists:users,id',
             'contacts.0.phone_number' => 'required|string|max:15',
             'contacts.1.phone_number' => 'nullable|string|max:15',
 
             // Step 2
-            'opf_number'     => 'nullable|string|max:50',
-            'designation_id' => 'required|exists:designations,id',
-            'unit'           => 'nullable|exists:units,id',
-            'department'     => 'nullable|exists:departments,id',
-            'file_number'     => 'nullable|string|max:50',
-            'photo_file'     => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
-            'birth_certificate_file'   => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-            'employment_contract_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'opf_number'                => 'nullable|string|max:50',
+            'designation_id'            => 'required|exists:designations,id',
+            'unit'                      => 'nullable|exists:units,id',
+            'department'                => 'nullable|exists:departments,id',
+            'file_number'               => 'nullable|string|max:50',
+            'employee_bank_id'          => 'nullable|exists:banks,id',
+            'employee_bank_account_no'  => 'nullable|string|max:50',
+            'photo_file'                => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
+            'birth_certificate_file'    => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'employment_contract_file'  => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
 
             // Step 3
             'identification_items.*.identification_id' => 'required|exists:identifications,id',
@@ -331,14 +347,14 @@ class EmployeeCreate extends Component
     {
         return [
             'email.required'                           => 'Please select a user email.',
-            'email.exists'                             => 'The selected user does not exist.',
-            'dob.before'                               => 'Date of birth must be before today.',
-            'designation_id.required'                  => 'Please select a designation.',
-            'designation_id.exists'                    => 'Selected designation is invalid.',
-            'education.in'                             => 'Please select a valid education level.',
-            'marital_status.in'                        => 'Please select a valid marital status.',
-            'retiring_date.after'                      => 'Retiring date must be after hired date.',
-            'contacts.0.phone_number.required'         => 'Personal phone number is required.',
+            'email.exists'                              => 'The selected user does not exist.',
+            'dob.before'                                => 'Date of birth must be before today.',
+            'designation_id.required'                   => 'Please select a designation.',
+            'designation_id.exists'                      => 'Selected designation is invalid.',
+            'education.in'                              => 'Please select a valid education level.',
+            'marital_status.in'                          => 'Please select a valid marital status.',
+            'retiring_date.after'                        => 'Retiring date must be after hired date.',
+            'contacts.0.phone_number.required'           => 'Personal phone number is required.',
             'identification_items.*.identification_id.required' => 'Please select an identification type.',
             'certificate_items.*.certificate_id.required'       => 'Please select a certificate type.',
             'education_levels.*.course_name.required'           => 'Course name is required.',
@@ -373,6 +389,8 @@ class EmployeeCreate extends Component
                 'unit',
                 'department',
                 'file_number',
+                'employee_bank_id',
+                'employee_bank_account_no',
                 'photo_file',
                 'birth_certificate_file',
                 'employment_contract_file',
@@ -401,6 +419,11 @@ class EmployeeCreate extends Component
 
     public function nextStep(): void
     {
+        if ($this->isViewMode) {
+            $this->currentStep++;
+            return;
+        }
+
         $this->validate($this->getStepRules($this->currentStep));
         $this->currentStep++;
     }
@@ -416,9 +439,12 @@ class EmployeeCreate extends Component
     // FORM SUBMISSION
     // =========================================================================
 
-    public function submitForm(): void
+    public function submitForm()
     {
-        // dd($this->employment_type); // in your save() method, before validation
+        if ($this->isViewMode) {
+            return;
+        }
+
         $this->validate();
         DB::beginTransaction();
 
@@ -443,7 +469,7 @@ class EmployeeCreate extends Component
                 $this->dispatch('resetFileState');
             }
 
-            redirect()->route('hrm.employees.index');
+            return $this->redirectRoute('hrm.employees.index');
         } catch (Exception $e) {
             DB::rollBack();
             Log::error('Employee Form Submission Error', [
@@ -462,26 +488,29 @@ class EmployeeCreate extends Component
     protected function saveEmployee(): Employee
     {
         $data = [
-            'dob'            => $this->dob,
-            'hired_date'     => $this->hired_date,
-            'retiring_date'  => $this->retiring_date,
-            'marital_status' => $this->marital_status,
-            'gender'         => $this->gender,
-            'opf_number'     => $this->opf_number,
-            'education'      => $this->education,
-            'is_disable'     => $this->is_disable,
-            'employment_type'     => $this->employment_type,
-            'is_active'      => 'active',
+            'dob'             => $this->dob,
+            'hired_date'      => $this->hired_date,
+            'retiring_date'   => $this->retiring_date,
+            'marital_status'  => $this->marital_status,
+            'gender'          => $this->gender,
+            'opf_number'      => $this->opf_number,
+            'file_number'     => $this->file_number,
+            'education'       => $this->education,
+            'is_disable'      => $this->is_disable,
+            'employment_type' => $this->employment_type,
+            'is_active'       => 'active',
             'is_hr_registered' => true,
-            // 'is_officer'     => $this->is_officer,
-            'designation_id' => $this->designation_id,
-            'unit_id'        => $this->unit,
-            'department_id'  => $this->department,
-            'user_id'        => $this->userId,
-            'contacts'       => json_encode(
+            'designation_id'  => $this->designation_id,
+            'unit_id'         => $this->unit,
+            'department_id'   => $this->department,
+            'user_id'         => $this->userId,
+            // FIX: guard against non-array / malformed entries so a stray
+            // null (or anything not shaped like ['phone_number' => ...])
+            // can't throw "Trying to access array offset on null" here.
+            'contacts' => json_encode(
                 array_values(array_filter(
                     $this->contacts,
-                    fn($c) => filled($c['phone_number'])
+                    fn($c) => is_array($c) && filled($c['phone_number'] ?? null)
                 ))
             ),
         ];
@@ -497,16 +526,25 @@ class EmployeeCreate extends Component
             $employee = Employee::create($data);
         }
 
-        return $employee;
+        return $employee->fresh();
     }
 
-    protected function saveEmployeeBankDetails(Employee $employee)
+    protected function saveEmployeeBankDetails(Employee $employee): void
     {
-        // dd($this->employee_bank_account_no);
-        $employee->bankAccount()->create([
-            'account_no' => $this->employee_bank_account_no,
-            'bank_id' => $this->employee_bank_id,
-        ]);
+        if (!$this->employee_bank_id && !$this->employee_bank_account_no) {
+            return;
+        }
+
+        // FIX: updateOrCreate instead of always create() — the original
+        // always inserted a new bank_account row on every save, which
+        // would leave duplicate/orphaned rows behind on edit.
+        $employee->bankAccount()->updateOrCreate(
+            ['employee_id' => $employee->id],
+            [
+                'account_no' => $this->employee_bank_account_no,
+                'bank_id'    => $this->employee_bank_id,
+            ]
+        );
     }
 
     protected function handleFileUploads(array $data): array
@@ -540,9 +578,16 @@ class EmployeeCreate extends Component
         }
 
         foreach ($this->education_levels as $index => $edu) {
+            // FIX: skip malformed/empty rows instead of throwing on
+            // array access below (e.g. Alpine's @entangle array getting
+            // out of sync with server state after add/remove).
+            if (!is_array($edu) || blank($edu['course_name'] ?? null)) {
+                continue;
+            }
+
             $row = [
                 'course_name'           => $edu['course_name'],
-                'certificate_name'      => $edu['certificate_name'],
+                'certificate_name'      => $edu['certificate_name'] ?? null,
                 'holder_certificate_no' => $edu['holder_certificate_no'] ?? null,
             ];
 
@@ -566,6 +611,11 @@ class EmployeeCreate extends Component
         }
 
         foreach ($this->identification_items as $index => $item) {
+            // FIX: same defensive guard as education levels above.
+            if (!is_array($item) || blank($item['identification_id'] ?? null)) {
+                continue;
+            }
+
             $row = [
                 'identification_id' => $item['identification_id'],
                 'identification_no' => $item['identification_no'] ?? null,
@@ -592,6 +642,11 @@ class EmployeeCreate extends Component
         }
 
         foreach ($this->certificate_items as $index => $item) {
+            // FIX: same defensive guard as education levels above.
+            if (!is_array($item) || blank($item['certificate_id'] ?? null)) {
+                continue;
+            }
+
             $row = [
                 'certificate_id' => $item['certificate_id'],
                 'certificate_no' => $item['certificate_no'] ?? null,
@@ -713,7 +768,7 @@ class EmployeeCreate extends Component
             'education_levels',
             'certificate_files',
             'employee_bank_account_no',
-            'employee_bank_id'
+            'employee_bank_id',
         ]);
 
         $this->contacts = [
@@ -740,19 +795,29 @@ class EmployeeCreate extends Component
             'units'               => Unit::pluck('name', 'id'),
             'banks'               => Bank::pluck('name', 'id'),
             'emails'              => $this->getAvailableEmails(),
-            'educationLevels'     => EducationLevel::pluck('name','id'),
-            'employmentTypes'     => EmploymentType::pluck('name','id'),
+            'educationLevels'     => EducationLevel::pluck('name', 'id'),
+            'employmentTypes'     => EmploymentType::pluck('name', 'id'),
             'designations'        => Designation::pluck('designation_name', 'id'),
             'identificationTypes' => Identification::pluck('identification_name', 'id'),
             'certificateTypes'    => Certificate::pluck('certificate_name', 'id'),
             'isEditMode'          => $this->isEditMode,
+            'isViewMode'          => $this->isViewMode,
         ]);
     }
 
     protected function getAvailableEmails(): \Illuminate\Support\Collection
     {
         return User::query()
-            ->when(!$this->employeeId, fn($q) => $q->doesntHave('employee'))
+            ->when(
+                $this->employeeId,
+                // Edit mode: allow the currently-assigned user to still show up,
+                // even though they now "have" an employee record.
+                fn($q) => $q->where(function ($q2) {
+                    $q2->doesntHave('employee')
+                        ->orWhere('id', $this->userId);
+                }),
+                fn($q) => $q->doesntHave('employee')
+            )
             ->orderByDesc('created_at')
             ->pluck('email', 'id');
     }

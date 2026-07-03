@@ -6,27 +6,25 @@ use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use Illuminate\Http\Request;
 
+use Barryvdh\DomPDF\Facade\Pdf;
+
 class AttendanceController extends Controller
 {
     public function preview($id, Request $request)
     {
         $attendance = Attendance::where('user_id', auth()->id())->findOrFail($id);
 
-        // Get language from request or use default
-        $lang = $request->get('lang', $attendance->default_lang);
-
-        // Ensure requested language is available
-        if (!in_array($lang, $attendance->languages)) {
-            $lang = $attendance->default_lang;
-        }
-
-        return view('attendance.preview', [
+        $data = [
             'attendance' => $attendance,
-            'lang' => $lang,
-            'title' => $attendance->getTitle($lang),
-            'heading' => $attendance->getHeading($lang),
-            'columns' => $attendance->getColumnHeaders($lang),
+            'title' => $attendance->title,
+            'heading' => $attendance->heading,
+            'columns' => ['No.', 'Name', 'Position', 'From', 'Signature'],
             'rows' => $attendance->number_of_rows,
-        ]);
+        ];
+
+        $pdf = Pdf::loadView('attendance.preview', $data)
+            ->setPaper('a4', 'landscape');
+
+        return $pdf->stream('attendance-' . $attendance->id . '.pdf');
     }
 }

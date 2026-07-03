@@ -18,7 +18,7 @@ class UserProfile extends Component
         // Eager load everything to prevent N+1 queries
         $this->user = User::with(['roles', 'tenant'])->findOrFail($id);
         
-        $this->employee = Employee::with(['department', 'unit', 'bank'])->where('user_id', $id)->first();
+        $this->employee = Employee::with(['department', 'unit', 'bankAccount.bank'])->where('user_id', $id)->first();
     }
 
     public function render()

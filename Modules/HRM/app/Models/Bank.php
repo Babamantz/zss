@@ -20,6 +20,12 @@ class Bank extends Model
         return $this->hasOne(Employee::class);
     }
 
+    public function bankAccount()
+    {
+        
+        return $this->hasOne(EmployeeBankAccount::class);
+    }
+
     // protected static function newFactory(): BankFactory
     // {
     //     // return BankFactory::new();

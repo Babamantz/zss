@@ -36,7 +36,7 @@
             $statCards = [
                 [
                     'label' => 'Total Components',
-                    'value' => $components->total(),
+                    'value' => $salary_components->total(),
                     'icon'  => 'fa-sliders',
                     'color' => 'primary',
                     'sub'   => 'all configured',
@@ -172,18 +172,18 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($components as $comp)
+                        @forelse ($salary_components as $comp)
                             <tr wire:key="comp-{{ $comp->id }}">
 
                                 {{-- # --}}
                                 <td style="padding:11px 16px;"
                                     class="text-muted small">
-                                    {{ ($components->currentPage() - 1) * $components->perPage() + $loop->iteration }}
+                                    {{ ($salary_components->currentPage() - 1) * $salary_components->perPage() + $loop->iteration }}
                                 </td>
 
                                 {{-- Name --}}
                                 <td style="padding:11px 16px;">
-                                    <div class="fw-medium small">{{ $comp->name }}</div>
+                                    <div class="fw-medium small">{{ $comp->component?->name ?? '' }}</div>
                                     @if ($comp->is_global_component)
                                         <small class="text-info" style="font-size:10px;">
                                             <i class="fa fa-globe me-1"></i>
@@ -317,13 +317,13 @@
                 </table>
             </div>
         </div>
-        @if ($components->hasPages())
+        @if ($salary_components->hasPages())
             <div class="card-footer d-flex justify-content-between align-items-center py-2">
                 <small class="text-muted">
-                    Showing {{ $components->firstItem() }}–{{ $components->lastItem() }}
-                    of {{ $components->total() }} components
+                    Showing {{ $salary_components->firstItem() }}–{{ $salary_components->lastItem() }}
+                    of {{ $salary_components->total() }} components
                 </small>
-                {{ $components->links() }}
+                {{ $salary_components->links() }}
             </div>
         @endif
     </div>
@@ -354,10 +354,17 @@
                                 <label class="form-label">
                                     Name <span class="text-danger">*</span>
                                 </label>
-                                <input type="text" class="form-control"
-                                    wire:model.defer="name"
-                                    placeholder="e.g. Housing Allowance">
-                                @error('name')
+                                  <select class="form-select"
+                                    wire:model="componentNameId">
+                                    <option value="">-- Select --</option>
+                                    @foreach ($components as $id => $comp)
+                                        <option value="{{ $id }}">
+                                            {{ ucfirst($comp) }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                             
+                                @error('componentNameId')
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror
                             </div>

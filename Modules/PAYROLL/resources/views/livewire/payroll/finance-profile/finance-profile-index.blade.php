@@ -120,6 +120,7 @@
                                     @endif
                                 </a>
                             </th>
+                            <th>Unit</th>
                             <th>Department</th>
                             <th>
                                 <a href="javascript:void(0)"
@@ -134,6 +135,7 @@
                                 </a>
                             </th>
                             <th>Bank Account</th>
+                            <th>Bank</th>
                             <th>Tax ID</th>
                             <th>Created</th>
                             <th class="text-end">Actions</th>
@@ -166,13 +168,19 @@
                                     </div>
                                 </td>
                                 <td class="small text-muted">
+                                    {{ $profile->employee->unit?->name ?? '—' }}
+                                </td>
+                                <td class="small text-muted">
                                     {{ $profile->employee->department?->name ?? '—' }}
                                 </td>
                                 <td class="fw-medium">
                                     {{ number_format($profile->base_salary, 2) }}
                                 </td>
                                 <td class="small font-monospace">
-                                    {{ $profile->bank_account_number }}
+                                    {{ $profile->employee?->bankAccount?->account_no }}
+                                </td>
+                                <td class="small font-monospace">
+                                    {{ $profile->employee?->bankAccount?->bank?->slug }}
                                 </td>
                                 <td class="small text-muted">
                                     {{ $profile->tax_id ?? '—' }}
@@ -396,7 +404,7 @@
                                     <div class="card-body">
                                         @foreach ([
                                             ['Base Salary',    'TZS ' . number_format($viewProfile->base_salary, 2), 'success'],
-                                            ['Bank Account',   $viewProfile->bank_account_number,                    'dark'],
+                                            ['Bank Account',   $viewProfile->employee?->bankAccount?->account_no,                    'dark'],
                                             ['Tax ID (TIN)',   $viewProfile->tax_id ?? '—',                          'dark'],
                                             ['Profile Since',  $viewProfile->created_at->format('d M Y'),            'muted'],
                                             ['Last Updated',   $viewProfile->updated_at->format('d M Y H:i'),        'muted'],

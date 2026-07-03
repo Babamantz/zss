@@ -21,6 +21,11 @@ class EmployeeBankAccount extends Model
         return $this->belongsTo(Employee::class, 'employee_id');
     }
 
+    public function bank()
+    {
+       return $this->belongsTo(Bank::class);
+    }
+
     // protected static function newFactory(): EmployeeBankAccountFactory
     // {
     //     // return EmployeeBankAccountFactory::new();

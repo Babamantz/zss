@@ -20,6 +20,7 @@ use Modules\HRM\Database\Seeders\EmployeeSeeder;
 use Modules\HRM\Database\Seeders\EmploymentTypeSeeder;
 use Modules\HRM\Database\Seeders\IdentificationSeeder;
 use Modules\HRM\Database\Seeders\UnitSeeder;
+use Modules\PAYROLL\Database\Seeders\ComponentSeeder;
 use Modules\PAYROLL\Database\Seeders\EmployeeComponentSeeder;
 use Modules\PAYROLL\Database\Seeders\EmployeeFinanceProfileSeeder;
 use Modules\PAYROLL\Database\Seeders\PayPeriodSeeder;
@@ -80,12 +81,13 @@ class DatabaseSeeder extends Seeder
             EmployeeBankAccountSeeder::class,
             EmployeeCertificateSeeder::class,
             EmployeeIdentificationSeeder::class,
-            SalaryComponentSeeder::class,
-            EmployeeComponentSeeder::class,
-            EmployeeFinanceProfileSeeder::class,
-            PayPeriodSeeder::class,
-            PayrollEntrySeeder::class,
-            PayrollEntryItemSeeder::class,
+            ComponentSeeder::class,
+            // SalaryComponentSeeder::class,
+            // EmployeeComponentSeeder::class,
+            // EmployeeFinanceProfileSeeder::class,
+            // PayPeriodSeeder::class,
+            // PayrollEntrySeeder::class,
+            // PayrollEntryItemSeeder::class,
             // TenantSeeder::class,
             PermissionSeeder::class,
             RoleSeeder::class

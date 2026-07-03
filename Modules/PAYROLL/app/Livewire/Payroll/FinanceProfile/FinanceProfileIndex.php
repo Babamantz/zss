@@ -90,6 +90,7 @@ class FinanceProfileIndex extends Component
         $this->editId               = $profile->id;
         $this->employee_id          = $profile->employee_id;
         $this->base_salary          = $profile->base_salary;
+        $this->bank_account_number  = $profile->employee?->bankAccount?->account_no;
         $this->tax_id               = $profile->tax_id ?? '';
         $this->showModal            = true;
     }
@@ -121,9 +122,8 @@ class FinanceProfileIndex extends Component
             'employee.user',
             'employee.department',
             'employee.unit',
-            'employee.components.component',
+            'employee.bankAccount',
         ])->findOrFail($profileId);
-
         $this->showView = true;
     }
 

@@ -5,10 +5,11 @@ namespace Modules\PAYROLL\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\HRM\Enums\EmploymentType;
 use Modules\PAYROLL\Enums\AppliesTo;
 use Modules\PAYROLL\Enums\CalculationType;
 use Modules\PAYROLL\Enums\ComponentType;
-use Modules\PAYROLL\Models\EmployeeComponent;
+use Modules\PAYROLL\Models\Component;
 // use Modules\PAYROLL\Database\Factories\SalaryComponentFactory;
 
 class SalaryComponent extends Model
@@ -17,7 +18,7 @@ class SalaryComponent extends Model
 
 
     protected $fillable = [
-        'name',
+        'component_id',
         'type',
         'calculation_type',
         'percentage_value',
@@ -113,7 +114,7 @@ class SalaryComponent extends Model
     public function computeAmount(float $base = 0): float
     {
         if (CalculationType::isFixed($this->calculation_type)) {
-            return (float) ($this->custom_amount ?? 0);
+            return (float) ($this->amount ?? 0);
         }
 
         return round($base * ((float) $this->percentage_value / 100), 2);
@@ -121,8 +122,20 @@ class SalaryComponent extends Model
 
     // ── Relationships ─────────────────────────────────────────────────────────
 
-    public function employeeComponents()
+
+
+    public function employment_type()
     {
-        return $this->hasMany(EmployeeComponent::class, 'component_id');
+        $this->belongsTo(EmploymentType::class);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function component()
+    {
+        return $this->belongsTo(Component::class);
     }
 }

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\HRM\Models\Employee;
 use Modules\PAYROLL\Enums\CalculationType;
+use Modules\PAYROLL\Models\Component;
 // use Modules\PAYROLL\Database\Factories\EmployeeComponentFactory;
 
 class EmployeeComponent extends Model
@@ -62,15 +63,14 @@ class EmployeeComponent extends Model
         return round($base * ((float) $this->percentage_value / 100), 2);
     }
 
+
     public function employee()
     {
-        return $this->belongsTo(\Modules\HRM\Models\Employee::class);
+        return $this->belongsTo(Employee::class);
     }
 
     public function component()
     {
-        return $this->belongsTo(SalaryComponent::class, 'component_id');
+        return $this->belongsTo(Component::class);
     }
-
-   
 }

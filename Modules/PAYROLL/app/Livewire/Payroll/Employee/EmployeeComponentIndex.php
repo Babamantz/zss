@@ -7,7 +7,7 @@ use Livewire\WithPagination;
 use Modules\HRM\Models\Employee;
 use Modules\PAYROLL\Enums\CalculationType;
 use Modules\PAYROLL\Models\EmployeeComponent;
-use Modules\PAYROLL\Models\SalaryComponent;
+use Modules\PAYROLL\Models\Component as PayComponent;
 
 class EmployeeComponentIndex extends Component
 {
@@ -62,7 +62,7 @@ class EmployeeComponentIndex extends Component
     {
         return [
             'emp_id'        => 'required|exists:employees,id',
-            'component_id'  => 'required|exists:salary_components,id',
+            'component_id'  => 'required|exists:components,id',
             'calculation_type' => 'required|string|in:' . implode(',', CalculationType::ALL),
             'custom_amount'    => 'required_if:calculation_type,fixed|nullable|numeric|min:0',
             'percentage_value' => 'required_if:calculation_type,percentage|nullable|numeric|min:0|max:100',
@@ -192,7 +192,7 @@ class EmployeeComponentIndex extends Component
             ->paginate(15);
 
         $employees  = Employee::with('user')->get();
-        $components = SalaryComponent::orderBy('type')->orderBy('name')->get();
+        $components = PayComponent::orderBy('created_at')->get();
 
         return view(
             'payroll::livewire.payroll.employee.employee-component-index',
