@@ -203,7 +203,7 @@
                                                                         {{ $item->employee->isPermanent()
                             ? 'bg-primary-subtle text-primary'
                             : 'bg-warning-subtle text-warning' }}" style="font-size:9px;">
-                                                                    {{ $item->employee->employmentTypeLabel() }}
+                                                                    {{ $item->employee->employmentType->name }}
                                                                 </span>
                                                             </div>
                                                         </div>
@@ -312,6 +312,15 @@
                                                         </button>
                                                     </div>
                                                 </td>
+                                                <td style="padding:11px 16px;" class="text-end">
+                                                    <div class="d-flex gap-1 justify-content-end">
+                                                        <button class="btn btn-sm btn-outline-danger"
+                                                        wire:confirm = "Are you sure you want to delete this?"
+                                                            wire:click="openEdit({{ $item->id }})" title="Edit">
+                                                            <i class="fa fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
 
                                             </tr>
                         @empty
@@ -372,7 +381,7 @@
                                             {{ $emp->user->first_name }}
                                             {{ $emp->user->last_name }}
                                             ({{ $emp->opf_number ?? 'No OPF' }})
-                                            — {{ $emp->employmentTypeLabel() }}
+                                            — {{ $emp->employmentType?->name }}
                                         </option>
                                     @endforeach
                                 </select>

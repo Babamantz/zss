@@ -34,12 +34,12 @@ enum PayPeriodStatus: string
     {
         return match ($status) {
             self::DRAFT->value => 'secondary',
-            self::PROCESSING->value => 'info',
+            self::PROCESSING->value => '',
             self::PENDING_APPROVAL->value => 'warning',
             self::APPROVED->value => 'primary',
             self::REJECTED->value => 'danger',
             self::LOCKED_COMPLETED->value => 'success',
-            default => 'light',
+            default => '',
         };
     }
 }

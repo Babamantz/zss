@@ -43,11 +43,11 @@ class EmployeeCreate extends Component
     public $dob;
     public $hired_date;
     public $retiring_date;
-    public $education;
+    public $education_level_id;
     public $marital_status;
     public $gender;
     public bool $is_disable = false;
-    public $employment_type;
+    public $employment_type_id;
 
     // Contacts JSON (personal + next of kin) — always two fixed slots, keyed by type
     public array $contacts = [
@@ -183,9 +183,9 @@ class EmployeeCreate extends Component
             'gender'          => $emp->gender,
             'opf_number'      => $emp->opf_number,
             'file_number'     => $emp->file_number,
-            'education'       => $emp->education,
+            'education_level_id'       => $emp->education_level_id,
             'is_disable'      => (bool) $emp->is_disable,
-            'employment_type' => $emp->employment_type,
+            'employment_type_id' => $emp->employment_type_id,
             'designation_id'  => $emp->designation_id,
             'unit'            => $emp->unit_id,
             'department'      => $emp->department_id,
@@ -288,7 +288,8 @@ class EmployeeCreate extends Component
                 'employee_id'     => $this->employee->user->id,
                 'unit_id'         => $this->employee->unit_id,
                 'department_id'   => $this->employee->department_id,
-                'employment_type' => $this->employee->employment_type,
+                'employment_type_id' => $this->employee->employment_type_id,
+                'education_level_id' => $this->employee->education_level_id,
             ]);
         }
     }
@@ -307,10 +308,10 @@ class EmployeeCreate extends Component
             'dob'                     => 'required|date|before:today',
             'hired_date'              => 'required|date',
             'retiring_date'           => 'nullable|date|after:hired_date',
-            'education'               => 'required|string',
+            'education_level_id'      => 'required|integer',
             'marital_status'          => 'required|string|in:' . implode(',', MaritalStatus::ALL),
             'is_disable'              => 'required|boolean',
-            'employment_type'         => 'required|integer',
+            'employment_type_id'         => 'required|integer',
             'gender'                  => 'required|string|in:' . implode(',', Gender::ALL),
             'email'                   => 'required|exists:users,id',
             'contacts.0.phone_number' => 'required|string|max:15',
@@ -374,11 +375,11 @@ class EmployeeCreate extends Component
                 'dob',
                 'hired_date',
                 'retiring_date',
-                'education',
+                'education_level_id',
                 'marital_status',
                 'gender',
                 'is_disable',
-                'employment_type',
+                'employment_type_id',
                 'email',
                 'contacts.0.phone_number',
                 'contacts.1.phone_number',
@@ -495,9 +496,9 @@ class EmployeeCreate extends Component
             'gender'          => $this->gender,
             'opf_number'      => $this->opf_number,
             'file_number'     => $this->file_number,
-            'education'       => $this->education,
+            'education_level_id'       => $this->education_level_id,
             'is_disable'      => $this->is_disable,
-            'employment_type' => $this->employment_type,
+            'employment_type_id' => $this->employment_type_id,
             'is_active'       => 'active',
             'is_hr_registered' => true,
             'designation_id'  => $this->designation_id,
@@ -740,14 +741,14 @@ class EmployeeCreate extends Component
             'middle_name',
             'last_name',
             'dob',
-            'education',
+            'education_level_id',
             'hired_date',
             'retiring_date',
             'email',
             'marital_status',
             'gender',
             'is_disable',
-            'employment_type',
+            'employment_type_id',
             'opf_number',
             'designation_id',
             'unit',

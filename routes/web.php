@@ -29,6 +29,7 @@ use Modules\PAYROLL\Livewire\Payroll\FinanceProfile\FinanceProfileIndex;
 use Modules\PAYROLL\Livewire\Payroll\PayPeriod\PayPeriodIndex;
 use Modules\PAYROLL\Livewire\Payroll\PayrollEntries\PayrollEntryIndex;
 use Modules\PAYROLL\Livewire\Payroll\PayrollEntries\PayrollEntryShow;
+use Modules\PAYROLL\Livewire\Payroll\Reports\Deduction\DeductionReportIndex;
 use Modules\PAYROLL\Livewire\Payroll\RunPayroll;
 use Modules\PAYROLL\Livewire\Payroll\Setups\SalaryComponentIndex;
 
@@ -105,6 +106,10 @@ Route::middleware(['auth'])->group(function () {
             [PayslipPdfController::class, 'view']
         )
             ->name('entry.payslip-pdf');
+        Route::get(
+            'reports/deductions',DeductionReportIndex::class
+        )
+            ->name('reports.deductions');
     });
 
     Route::get('/users', UserIndex::class)->name('users.index');

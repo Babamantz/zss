@@ -15,6 +15,7 @@ use Modules\HRM\Enums\Gender;
 use Modules\HRM\Enums\MaritalStatus;
 use Modules\HRM\Models\EmployeeBankAccount;
 use Modules\HRM\Models\EmployeeEducationLevel;
+use Modules\HRM\Models\EmploymentType as ModelsEmploymentType;
 use Modules\PAYROLL\Models\EmployeeComponent;
 use Modules\PAYROLL\Models\EmployeeFinanceProfile;
 use Modules\PAYROLL\Models\PayrollEntry;
@@ -34,6 +35,11 @@ class Employee extends Model
     protected $casts = [
         'contacts' => 'array'
     ];
+
+    public function employmentType()
+    {
+        return $this->belongsTo(ModelsEmploymentType::class);
+    }
 
     protected $guarded = false;
     public static function validEmploymentTypes(): array

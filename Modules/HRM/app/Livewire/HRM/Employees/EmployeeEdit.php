@@ -17,8 +17,8 @@ use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
-use Modules\Hrm\Constants\Gender;
-use Modules\Hrm\Constants\MaritalStatus;
+use Modules\HRM\Enums\Gender;
+use Modules\HRM\Enums\MaritalStatus;
 use Modules\HRM\Models\Bank;
 use Modules\Hrm\Models\Department;
 use Modules\Hrm\Models\EducationLevel;
@@ -46,11 +46,11 @@ class EmployeeEdit extends Component
     public $dob;
     public $hired_date;
     public $retiring_date;
-    public $education;
+    public $education_level_id;
     public $marital_status;
     public $gender;
     public bool $is_disable = false;
-    public $employment_type;
+    public $employment_type_id;
 
     public array $contacts = [
         ['type' => 'personal',    'phone_number' => ''],
@@ -137,9 +137,9 @@ class EmployeeEdit extends Component
             'gender'          => $emp->gender,
             'opf_number'      => $emp->opf_number,
             'file_number'     => $emp->file_number,
-            'education'       => $emp->education,
+            'education_level_id'       => $emp->education_level_id,
             'is_disable'      => (bool) $emp->is_disable,
-            'employment_type' => $emp->employment_type,
+            'employment_type_id' => $emp->employment_type_id,
             'designation_id'  => $emp->designation_id,
             'unit'            => $emp->unit_id,
             'department'      => $emp->department_id,
@@ -221,7 +221,8 @@ class EmployeeEdit extends Component
             'employee_id'     => $this->employee->user_id,
             'unit_id'         => $this->employee->unit_id,
             'department_id'   => $this->employee->department_id,
-            'employment_type' => $this->employee->employment_type,
+            'employment_type_id' => $this->employee->employment_type_id,
+            'education_levle_id' => $this->employee->education_level_id,
         ]);
     }
 
@@ -239,10 +240,10 @@ class EmployeeEdit extends Component
             'dob'                     => 'required|date|before:today',
             'hired_date'              => 'required|date',
             'retiring_date'           => 'nullable|date|after:hired_date',
-            'education'               => 'required|string',
+            'education_level_id'               => 'required|integer',
             'marital_status'          => 'required|string|in:' . implode(',', MaritalStatus::ALL),
             'is_disable'              => 'required|boolean',
-            'employment_type'         => 'required|integer',
+            'employment_type_id'         => 'required|integer',
             'gender'                  => 'required|string|in:' . implode(',', Gender::ALL),
             'email'                   => 'required|exists:users,id',
             'contacts.0.phone_number' => 'required|string|max:15',
@@ -303,11 +304,11 @@ class EmployeeEdit extends Component
                 'dob',
                 'hired_date',
                 'retiring_date',
-                'education',
+                'education_level_id',
                 'marital_status',
                 'gender',
                 'is_disable',
-                'employment_type',
+                'employment_type_id',
                 'email',
                 'contacts.0.phone_number',
                 'contacts.1.phone_number',
@@ -415,9 +416,9 @@ class EmployeeEdit extends Component
             'gender'            => $this->gender,
             'opf_number'        => $this->opf_number,
             'file_number'       => $this->file_number,
-            'education'         => $this->education,
+            'education_level_id'         => $this->education_level_id,
             'is_disable'        => $this->is_disable,
-            'employment_type'   => $this->employment_type,
+            'employment_type_id'   => $this->employment_type_id,
             'designation_id'    => $this->designation_id,
             'unit_id'           => $this->unit,
             'department_id'     => $this->department,

@@ -694,11 +694,11 @@
 <script>
     const initSelect2Fields = () => {
         const selects = [
-            { id: '#select-education',       field: 'education' },
+            { id: '#select-education',       field: 'education_level_id' },
             { id: '#select-designation',     field: 'designation_id' },
             { id: '#select-unit',            field: 'unit' },
             { id: '#select-department',      field: 'department' },
-            { id: '#select-employment-type', field: 'employment_type' },
+            { id: '#select-employment-type', field: 'employment_type_id' },
             { id: '#select-bank-name',       field: 'employee_bank_id' },
         ];
 

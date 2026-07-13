@@ -5,6 +5,7 @@ namespace Modules\PAYROLL\Livewire\Payroll\Employee;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Modules\HRM\Models\Employee;
+use Modules\HRM\Models\EmploymentType;
 use Modules\PAYROLL\Enums\CalculationType;
 use Modules\PAYROLL\Models\EmployeeComponent;
 use Modules\PAYROLL\Models\Component as PayComponent;
@@ -159,6 +160,13 @@ class EmployeeComponentIndex extends Component
         $this->is_recurring     = false;
     }
 
+    public function delete(EmployeeComponent $employeeComponent)
+    {
+
+        $employeeComponent->delete();
+        session()->flash('success', 'Employee component deleted successfullyZ.');
+    }
+
 
     public function render()
     {
@@ -193,6 +201,7 @@ class EmployeeComponentIndex extends Component
 
         $employees  = Employee::with('user')->get();
         $components = PayComponent::orderBy('created_at')->get();
+        $employmentTypes = EmploymentType::pluck('name', 'id');
 
         return view(
             'payroll::livewire.payroll.employee.employee-component-index',

@@ -4,6 +4,7 @@ namespace Modules\PAYROLL\Livewire\Payroll\Setups;
 
 use Livewire\Component;
 use Livewire\WithPagination;
+use Modules\HRM\Models\EmploymentType;
 use Modules\PAYROLL\Enums\AppliesTo;
 use Modules\PAYROLL\Enums\CalculationType;
 use Modules\PAYROLL\Enums\ComponentType;
@@ -20,7 +21,7 @@ class SalaryComponentIndex extends Component
     protected $paginationTheme = 'bootstrap';
 
     public string $calculation_type    = '';
-    public string $applies_to          = 'all';
+    public  $applies_to          = null;
     public        $custom_amount       = '';
     public        $percentage_value    = '';
     public string $filterCalculationType = '';
@@ -56,7 +57,7 @@ class SalaryComponentIndex extends Component
             // 'name'      => 'required|string|max:100|unique:salary_components,name,' . ($this->editId ?? 'NULL'),
             'type'             => 'required|string|in:' . implode(',', ComponentType::ALL),
             'calculation_type' => 'required|string|in:' . implode(',', CalculationType::ALL),
-            'applies_to'       => 'required|string|in:' . implode(',', AppliesTo::OPTIONS),
+            'applies_to'       => 'nullable|integer',
             'is_global' => 'boolean',
         ];
     }
@@ -135,7 +136,7 @@ class SalaryComponentIndex extends Component
             'showModal',
         ]);
         $this->type       = ComponentType::EARNING;
-        $this->applies_to = AppliesTo::ALL;
+        $this->applies_to = null;
     }
 
     // Add to component:
@@ -150,6 +151,8 @@ class SalaryComponentIndex extends Component
     {
         // 4. Eager-loaded 'creator' relationship used by your template loop
         $components = PayComponent::pluck('name', 'id');
+        $appliesTo = EmploymentType::pluck('name','id');
+        // dd($appliesTo);
         $salary_components = SalaryComponent::query()
             // ->with('creator')
             ->when($this->search,       fn($q) => $q->where('name', 'like', "%{$this->search}%"))
@@ -164,6 +167,6 @@ class SalaryComponentIndex extends Component
             ->latest()
             ->paginate(15);
 
-        return view('payroll::livewire.payroll.setups.salary-component-index', compact('salary_components', 'components'));
+        return view('payroll::livewire.payroll.setups.salary-component-index', compact('salary_components', 'components','appliesTo'));
     }
 }

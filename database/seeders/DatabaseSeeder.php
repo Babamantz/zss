@@ -58,11 +58,11 @@ class DatabaseSeeder extends Seeder
             ]);
         };
         $users = [
-            ['first_name' => 'Admin User', 'last_name' => 'Ochu',   'email' => 'test@example.com',   'password' => Hash::make('password'), 'tenant_id' => 1, 'created_at' => now(), 'updated_at' => now()],
-            ['first_name' => 'HR Manager', 'last_name' => 'Ochu',    'email' => 'hr@hrms.go.tz',      'password' => Hash::make('password'), 'tenant_id' => 1, 'created_at' => now(), 'updated_at' => now()],
-            ['first_name' => 'Finance Officer', 'last_name' => 'Ochu', 'email' => 'finance@hrms.go.tz', 'password' => Hash::make('password'), 'tenant_id' => 2, 'created_at' => now(), 'updated_at' => now()],
-            ['first_name' => 'Payroll Clerk', 'last_name' => 'Ochu', 'email' => 'payroll@hrms.go.tz', 'password' => Hash::make('password'), 'tenant_id' => 1, 'created_at' => now(), 'updated_at' => now()],
-            ['first_name' => 'IT Officer', 'last_name' => 'Ochu',   'email' => 'it@hrms.go.tz',      'password' => Hash::make('password'), 'tenant_id' => 1, 'created_at' => now(), 'updated_at' => now()],
+            ['first_name' => 'Othman ', 'last_name' => 'Abdulla',   'email' => 'test@example.com',   'password' => Hash::make('password'), 'tenant_id' => 1, 'created_at' => now(), 'updated_at' => now()],
+            ['first_name' => 'Seif', 'last_name' => 'Ali',    'email' => 'hr@hrms.go.tz',      'password' => Hash::make('password'), 'tenant_id' => 1, 'created_at' => now(), 'updated_at' => now()],
+            ['first_name' => 'Mohd', 'last_name' => 'Juma', 'email' => 'finance@hrms.go.tz', 'password' => Hash::make('password'), 'tenant_id' => 2, 'created_at' => now(), 'updated_at' => now()],
+            ['first_name' => 'Bakathiri', 'last_name' => 'Muambe', 'email' => 'payroll@hrms.go.tz', 'password' => Hash::make('password'), 'tenant_id' => 1, 'created_at' => now(), 'updated_at' => now()],
+            ['first_name' => 'Ameir', 'last_name' => 'Kificho',   'email' => 'it@hrms.go.tz',      'password' => Hash::make('password'), 'tenant_id' => 1, 'created_at' => now(), 'updated_at' => now()],
         ];
 
         DB::table('users')->insert($users);

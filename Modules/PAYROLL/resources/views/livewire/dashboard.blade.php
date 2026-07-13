@@ -230,7 +230,7 @@
         </div>
 
         {{-- ── Recent Pay Periods ───────────────────────────────────────────── --}}
-        <div class="col-md-6">
+        <div class="col-md-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-transparent d-flex justify-content-between">
                     <h6 class="mb-0">Recent Pay Periods</h6>
@@ -280,67 +280,6 @@
                                     <tr>
                                         <td colspan="4" class="text-center text-muted py-3">
                                             No periods yet.
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- ── Top Earners (current period) ────────────────────────────────── --}}
-        <div class="col-md-6">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-transparent d-flex justify-content-between">
-                    <h6 class="mb-0">Top Net Pay — Current Period</h6>
-                    <a href="{{ route('payroll.entries') }}"
-                        class="btn btn-sm btn-link p-0 text-decoration-none">All entries</a>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-sm table-hover mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Employee</th>
-                                    <th class="text-end">Gross</th>
-                                    <th class="text-end">Net Pay</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse ($topEarners as $entry)
-                                    <tr>
-                                        <td>
-                                            <div class="d-flex align-items-center gap-2">
-                                                <div class="rounded-circle bg-primary-subtle d-flex align-items-center
-                                                    justify-content-center flex-shrink-0"
-                                                    style="width:30px;height:30px;font-size:12px;">
-                                                    {{ strtoupper(substr($entry->employee->user->first_name, 0, 1)) }}
-                                                    {{ strtoupper(substr($entry->employee->user->last_name,  0, 1)) }}
-                                                </div>
-                                                <div>
-                                                    <div class="small fw-medium">
-                                                        {{ $entry->employee->user->first_name }}
-                                                        {{ $entry->employee->user->last_name }}
-                                                    </div>
-                                                    <div class="text-muted" style="font-size:11px;">
-                                                        {{ $entry->employee->opf_number ?? '—' }}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="text-end small">
-                                            {{ number_format($entry->total_gross, 0) }}
-                                        </td>
-                                        <td class="text-end small fw-bold text-success">
-                                            TZS {{ number_format($entry->net_pay, 0) }}
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="3" class="text-center text-muted py-3">
-                                            No payroll entries for this period.
                                         </td>
                                     </tr>
                                 @endforelse

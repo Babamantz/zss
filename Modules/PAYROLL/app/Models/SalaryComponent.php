@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\HRM\Enums\EmploymentType;
-use Modules\PAYROLL\Enums\AppliesTo;
+use Modules\HRM\Models\EmploymentType as AppliesTo;
 use Modules\PAYROLL\Enums\CalculationType;
 use Modules\PAYROLL\Enums\ComponentType;
 use Modules\PAYROLL\Models\Component;
@@ -24,7 +24,6 @@ class SalaryComponent extends Model
         'percentage_value',
         'amount',
         'is_global',
-        'is_global_component',
         'applies_to',
         'created_by',
         'updated_by',
@@ -32,7 +31,6 @@ class SalaryComponent extends Model
 
     protected $casts = [
         'is_global'           => 'boolean',
-        'is_global_component' => 'boolean',
         'percentage_value'    => 'decimal:4',
     ];
 
@@ -111,8 +109,20 @@ class SalaryComponent extends Model
     /**
      * Fixed is always superior over percentage.
      */
+    // public function computeAmount(float $base = 0): float
+    // {
+    //     if (CalculationType::isFixed($this->calculation_type)) {
+    //         return (float) ($this->amount ?? 0);
+    //     }
+
+    //     return round($base * ((float) $this->percentage_value / 100), 2);
+    // }
     public function computeAmount(float $base = 0): float
     {
+        if ($this->isPaye()) {
+            return self::calculatePaye($base);
+        }
+
         if (CalculationType::isFixed($this->calculation_type)) {
             return (float) ($this->amount ?? 0);
         }
@@ -120,13 +130,38 @@ class SalaryComponent extends Model
         return round($base * ((float) $this->percentage_value / 100), 2);
     }
 
+    /**
+     * Zanzibar/Tanzania-style monthly PAYE bracket calculation.
+     *
+     * Bands:
+     *   <= 270,000                → 0
+     *   270,000 - 520,000         → 8% of excess over 270,000
+     *   520,001 - 760,000         → 20,000 + 20% of excess over 520,000
+     *   760,001 - 1,000,000       → 68,000 + 25% of excess over 760,000
+     *   > 1,000,000               → 128,000 + 30% of excess over 1,000,000
+     */
+    public static function calculatePaye(float $amount): float
+    {
+        return match (true) {
+            $amount <= 270000  => 0.0,
+            $amount <= 520000  => round(0.08 * ($amount - 270000), 2),
+            $amount <= 760000  => round(20000 + 0.20 * ($amount - 520000), 2),
+            $amount <= 1000000 => round(68000 + 0.25 * ($amount - 760000), 2),
+            default             => round(128000 + 0.30 * ($amount - 1000000), 2),
+        };
+    }
+
+
+
     // ── Relationships ─────────────────────────────────────────────────────────
 
 
 
-    public function employment_type()
+
+
+    public function appliesTo()
     {
-        $this->belongsTo(EmploymentType::class);
+        return $this->belongsTo(AppliesTo::class, 'applies_to');
     }
 
     public function scopeActive($query)

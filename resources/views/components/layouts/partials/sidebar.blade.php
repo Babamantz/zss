@@ -381,11 +381,11 @@
                         </li>
 
                         {{-- ── Reports & Audit ──────────────────────────────────────── --}}
-                        {{-- <li class="sidebar-main-title">
+                        <li class="sidebar-main-title">
                             <div>
                                 <h6>Reports & Audit</h6>
                             </div>
-                        </li> --}}
+                        </li>
 
                         {{-- Payroll Summary --}}
                         {{-- <li class="dropdown">
@@ -406,13 +406,13 @@
                         </li> --}}
 
                         {{-- Deductions Report --}}
-                        {{-- <li class="dropdown">
+                        <li class="dropdown">
                             <a class="nav-link {{ prefixActive('/module/payroll/reports/deductions') }}"
                                 href="{{ route('payroll.reports.deductions') }}">
                                 <i data-feather="trending-down"></i>
                                 <span>Deductions Report</span>
                             </a>
-                        </li> --}}
+                        </li>
 
                         {{-- Audit Trail --}}
                         {{-- <li class="dropdown">

@@ -17,9 +17,9 @@
             <i class="fa fa-file-pdf me-1"></i> View PDF
         </a>
         {{-- Print from browser --}}
-        <button class="btn btn-sm btn-outline-primary" onclick="window.print()">
+        {{-- <button class="btn btn-sm btn-outline-primary" onclick="window.print()">
             <i class="fa fa-print me-1"></i> Print
-        </button>
+        </button> --}}
     </div>
 </div>
 

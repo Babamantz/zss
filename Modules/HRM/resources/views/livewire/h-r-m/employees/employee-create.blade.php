@@ -130,10 +130,10 @@
                                             <option value="">-- Select Education Level --</option>
                                             @foreach ($educationLevels as $id=>$level)
                                                
-<option value="{{ $id }}" {{ (string)$education === (string)$id ? 'selected' : '' }}>{{ ucwords(str_replace(['-', '_'], ' ', $level)) }}</option>
+<option value="{{ $id }}" {{ (string)$education_level_id === (string)$id ? 'selected' : '' }}>{{ ucwords(str_replace(['-', '_'], ' ', $level)) }}</option>
                                             @endforeach
                                         </select>
-                                        @error('education') <small class="text-danger">{{ $message }}</small> @enderror
+                                        @error('education_level_id') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
                                 </div>
                             </div>
@@ -227,11 +227,11 @@
                                             <option value="">-- Employment Type --</option>
                                              @foreach ( $employmentTypes  as $id =>$type)
                                                
-<option value="{{ $id }}" {{ (string)$employment_type === (string)$id ? 'selected' : '' }}> {{ ucwords(str_replace(['-', '_'], ' ', $type)) }}</option>
+<option value="{{ $id }}" {{ (string)$employment_type_id === (string)$id ? 'selected' : '' }}> {{ ucwords(str_replace(['-', '_'], ' ', $type)) }}</option>
                                             @endforeach
                                         
                                         </select>
-                                        @error('employment_type') <small class="text-danger">{{ $message }}</small> @enderror
+                                        @error('employment_type_id') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
                                 </div>
                             </div>
@@ -687,11 +687,11 @@
             const initSelect2Fields = () => {
                 const selects = [
                     { id: '#select-user',        field: 'email',          event: 'user-selected' },
-                    { id: '#select-education',   field: 'education' },
+                    { id: '#select-education',   field: 'education_level_id' },
                     { id: '#select-designation', field: 'designation_id' },
                     { id: '#select-unit',        field: 'unit' },
                     { id: '#select-department',  field: 'department' },
-                    { id: '#select-employment-type',  field: 'employment_type' },
+                    { id: '#select-employment-type',  field: 'employment_type_id' },
                     { id: '#select-bank-name',  field: 'employee_bank_id' },
                 ];
 
@@ -715,13 +715,14 @@
             Livewire.on('eventEmail', (data) => {
                 const row = Array.isArray(data) ? data[0] : data;
                 console.log(row);
-                
+                //Loading user data via user id
                 $('#select-user').val(row.employee_id).trigger('change');
                 $('#select-unit').val(row.unit_id).trigger('change');
                 $('#select-department').val(row.department_id).trigger('change');
                 console.log(row.employment_type);
                 
-                $('#select-employment-type').val(row.employment_type).trigger('change');
+                // $('#select-employment-type').val(row.employment_type_id).trigger('change');
+                // $('#select-employment-type').val(row.employment_type_id).trigger('change');
             });
 
             // Clear file inputs after successful create

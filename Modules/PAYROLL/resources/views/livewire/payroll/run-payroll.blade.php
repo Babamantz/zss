@@ -124,7 +124,7 @@
                                                                 </span>
 
                                                                 {{-- Chain approval indicator --}}
-                                                                @if ($period->chainTransaction)
+                                                                {{-- @if ($period->chainTransaction)
                                                                     @php
                                                                         $lastApproval = $period->chainTransaction->approvals
                                                                             ->sortByDesc('level_no')->first();
@@ -138,7 +138,7 @@
                                                                             @endif
                                                                         </div>
                                                                     @endif
-                                                                @endif
+                                                                @endif --}}
                                                             </td>
 
                                                             {{-- Employee count --}}
@@ -475,34 +475,6 @@
                                         </button>
                                     {{-- @endif --}}
 
-                                    {{-- RE-PROCESS — only for Processing status --}}
-                                    {{-- @if ($selectedPeriod->isProcessing()) --}}
-                                        <div class="d-flex align-items-center gap-2 flex-wrap">
-                                            <div class="form-check mb-0">
-                                                <input class="form-check-input" type="checkbox"
-                                                    wire:model.live="confirmed"
-                                                    id="confirm_reprocess_modal">
-                                                <label class="form-check-label small text-warning"
-                                                    for="confirm_reprocess_modal">
-                                                    I confirm re-processing will
-                                                    <strong>overwrite existing entries</strong>.
-                                                </label>
-                                            </div>
-                                            <button class="btn btn-warning btn-sm text-dark"
-                                                wire:click="process"
-                                                wire:loading.attr="disabled"
-                                                x-bind:disabled="!$wire.confirmed">
-                                                <span wire:loading.remove wire:target="process">
-                                                    <i class="fa fa-rotate-right me-1"></i>
-                                                    Re-process Payroll
-                                                </span>
-                                                <span wire:loading wire:target="process">
-                                                    <span class="spinner-border spinner-border-sm me-1"></span>
-                                                    Re-processing...
-                                                </span>
-                                            </button>
-                                        </div>
-                                    {{-- @endif --}}
 
                                     {{-- LOCK — only for Processing --}}
                                     {{-- @if (

@@ -60,8 +60,8 @@ class EmployeeDashboard extends Component
 
         // ── Education breakdown ───────────────────────────────────────────────
         $byEducation = Employee::where('is_active', 'active')
-            ->select('education', DB::raw('count(*) as total'))
-            ->groupBy('education')
+            ->select('education_level_id', DB::raw('count(*) as total'))
+            ->groupBy('education_level_id')
             ->orderByDesc('total')
             ->get();
 

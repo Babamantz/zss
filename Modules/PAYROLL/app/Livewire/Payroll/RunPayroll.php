@@ -11,150 +11,7 @@ use Modules\PAYROLL\Models\PayPeriod;
 use Modules\PAYROLL\Models\PayrollEntry;
 use Modules\PAYROLL\Services\PayrollProcessor;
 
-// class RunPayroll extends Component
-// {
-//     use WithPagination;
 
-//     protected $paginationTheme = 'bootstrap';
-
-//     // ── Filters ───────────────────────────────────────────────────────────────
-//     public string $filterStatus = '';
-//     public string $search       = '';
-
-//     // ── Selected period (for modal) ───────────────────────────────────────────
-//     public ?int  $selectedPeriodId  = null;
-//     public bool  $showModal         = false;
-
-//     // ── Process state ─────────────────────────────────────────────────────────
-//     public bool  $confirmed  = false;
-//     public array $results    = [];
-//     public bool  $processed  = false;
-
-//     // ── Approval modals ───────────────────────────────────────────────────────
-//     public bool   $showApproveModal  = false;
-//     public bool   $showRejectModal   = false;
-//     public string $approval_notes   = '';
-//     public string $rejection_reason = '';
-
-//     public function updatingSearch(): void
-//     {
-//         $this->resetPage();
-//     }
-//     public function updatingFilterStatus(): void
-//     {
-//         $this->resetPage();
-//     }
-
-//     // ── Open period modal ─────────────────────────────────────────────────────
-
-//     public function openPeriod(int $id): void
-//     {
-//         $this->selectedPeriodId = $id;
-
-
-//         $this->confirmed        = false;
-//         $this->processed        = false;
-//         $this->results          = [];
-//         $this->showModal        = true;
-//     }
-
-//     public function closeModal(): void
-//     {
-//         $this->reset([
-//             'selectedPeriodId',
-//             'showModal',
-//             'confirmed',
-//             'results',
-//             'processed',
-//             'showApproveModal',
-//             'showRejectModal',
-//             'approval_notes',
-//             'rejection_reason',
-//         ]);
-//     }
-
-//     // ── Process ───────────────────────────────────────────────────────────────
-
-//     public function process(): void
-//     {
-//         $this->validate(['selectedPeriodId' => 'required|exists:pay_periods,id']);
-//         $period = PayPeriod::findOrFail($this->selectedPeriodId);
-
-//         try {
-//             $this->results   = (new PayrollProcessor())->process($period,$this->confirmed);
-//             $this->processed = true;
-//             $period->refresh();
-//             session()->flash('success', count($this->results) . ' employees processed.');
-//         } catch (\RuntimeException $e) {
-//             session()->flash('error', $e->getMessage());
-//         }
-//     }
-
-
-//     public function lock(): void
-//     {
-//         $period = PayPeriod::findOrFail($this->selectedPeriodId);
-//         try {
-//             (new PayrollProcessor())->lock($period);
-//             $this->closeModal();
-//             session()->flash('success', 'Pay period locked and completed.');
-//         } catch (\RuntimeException $e) {
-//             session()->flash('error', $e->getMessage());
-//         }
-//     }
-
-//     public function render()
-//     {
-//         // $periods = PayPeriod::with(['chainTransaction.approvals.actionedBy'])
-//         $periods = PayPeriod::query()
-//             ->when(
-//                 $this->filterStatus,
-//                 fn($q) =>
-//                 $q->where('status', $this->filterStatus)
-//             )
-//             ->when(
-//                 $this->search,
-//                 fn($q) =>
-//                 $q->where(
-//                     fn($w) =>
-//                     $w->whereYear('start_date',  'like', "%{$this->search}%")
-//                         ->orWhereMonth('start_date', 'like', "%{$this->search}%")
-//                 )
-//             )
-//             ->orderByDesc('start_date')
-//             ->paginate(15);
-
-
-//         $selectedPeriod = $this->selectedPeriodId
-//             ? PayPeriod::find($this->selectedPeriodId)
-//             : null;
-
-//         // Tenant summary for selected period
-//         $tenantSummary = [];
-//         // if ($selectedPeriod) {
-//         //     $tenants = \App\Models\Tenant::all();
-//         //     foreach ($tenants as $tenant) {
-//         //         $q = PayrollEntry::where('pay_period_id', $selectedPeriod->id)
-//         //             ->whereHas(
-//         //                 'employee.user',
-//         //                 fn($q) =>
-//         //                 $q->where('tenant_id', $tenant->id)
-//         //             );
-//         //         $tenantSummary[] = [
-//         //             'name'      => $tenant->name,
-//         //             'employees' => $q->count(),
-//         //             'gross'     => $q->sum('total_gross'),
-//         //             'net'       => $q->sum('net_pay'),
-//         //         ];
-//         //     }
-//         // }
-
-//         return view(
-//             'payroll::livewire.payroll.run-payroll',
-//             compact('periods', 'selectedPeriod', 'tenantSummary')
-//         );
-//     }
-// }
 class RunPayroll extends Component
 {
     use WithPagination;
@@ -173,6 +30,7 @@ class RunPayroll extends Component
     public bool  $confirmed  = false;
     public array $results    = [];
     public bool  $processed  = false;
+    public bool  $status  = false;
 
     public function updatingSearch(): void
     {
@@ -188,15 +46,16 @@ class RunPayroll extends Component
     public function openPeriod(int $id): void
     {
         $this->selectedPeriodId = $id;
-        $this->confirmed        = false;
-        $this->processed        = false;
+
         $this->results          = [];
         $this->showModal        = true;
 
         $period = PayPeriod::find($id);
+        $this->confirmed        = (bool) $period->is_confirmed;
+        $this->status        = $period->status;
         // dd($period);
         // If already processed — load existing entries for display
-        if ($period && $period->status ==='Processing') {
+        if ($period && $period->status === 'Processing') {
             $this->loadExistingResults($period);
         }
     }
@@ -238,14 +97,15 @@ class RunPayroll extends Component
         // Guard — only process Draft periods
         // if ($period->status === 'Draft') {
 
-            session()->flash('error', 'Only Draft periods can be processed. Current status: ' . $period->statusLabel());
+        session()->flash('error', 'Only Draft periods can be processed. Current status: ' . $period->statusLabel());
 
         //     return;
         // }
 
         try {
-            $this->results   = (new PayrollProcessor())->process($period,$this->confirmed);
+            $this->results   = (new PayrollProcessor())->process($period, $this->confirmed);
             $this->processed = true;
+            $period->is_confirmed = $this->confirmed;
             $period->refresh();
             session()->flash('success', count($this->results) . ' employees processed successfully.');
         } catch (\RuntimeException $e) {

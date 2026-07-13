@@ -13,7 +13,7 @@ class EmploymentTypeSeeder extends Seeder
      */
     public function run(): void
     {
-        $employmentTypes = ['Permanent', 'Contract', 'Casual', 'Intern'];
+        $employmentTypes = ['permanent', 'contract', 'casual', 'intern','non-permananet','all'];
 
         $data = array_map(function ($type) {
             return [
