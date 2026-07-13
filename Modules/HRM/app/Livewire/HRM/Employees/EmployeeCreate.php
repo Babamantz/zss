@@ -269,7 +269,22 @@ class EmployeeCreate extends Component
         if (!$this->email) return;
 
         try {
-            $user = User::with('tenant')->findOrFail($this->email);
+            $currentUser = auth()->user();
+
+            // 1. Initialize the query builder
+            $query = User::with('tenant')->where('email', $this->email);
+
+            // 2. Determine access strategy based on roles
+            if ($currentUser?->hasAnyRole(['super-Admin', 'hr-officer', 'director-hr','director-general'])) {
+                // Admin users can see across all tenants completely unfiltered
+                $query->withoutGlobalScopes();
+            } else {
+                // Regular users are strictly locked to their own tenant record
+                $query->where('tenant_id', $currentUser->tenant_id);
+            }
+
+            // 3. Execute the query
+            $user = $query->firstOrFail();
             $this->first_name  = $user->first_name;
             $this->middle_name = $user->middle_name;
             $this->last_name   = $user->last_name;

@@ -68,9 +68,9 @@ class PayrollProcessor
                 // ── 1. Base salary from Financial Profile ─────────────────────
                 $baseSalary = (float) $employee->financeProfile->base_salary;
 
-                if ($baseSalary <= 0) {
-                    continue; // skip employees with no salary set
-                }
+                // if ($baseSalary <= 0) {
+                //     continue; // skip employees with no salary set
+                // }
 
                 // All percentage-based components compute against this fixed
                 // figure — it must NOT be mutated inside the loops below.
@@ -124,16 +124,17 @@ class PayrollProcessor
                     ->where('is_global', true)
                     // ->where('is_active', true)
                     ->get();
-
                 foreach ($globalComponents as $gc) {
                     // null applies_to => applies to everyone. Otherwise must match employee's type.
                     if ($gc->applies_to !== null && $gc->applies_to !== $employee->employment_type_id) {
                         continue;
                     }
 
-                    $amount = $gc->calculation_type === 'percentage'
-                        ? round($grossBase * ((float) $gc->percentage_value / 100), 2)
-                        : (float) $gc->amount;
+                    $amount = match (true) {
+                        $gc->isPaye()                          => SalaryComponent::calculatePaye($grossBase),
+                        $gc->calculation_type === 'percentage' => round($grossBase * ((float) $gc->percentage_value / 100), 2),
+                        default                                 => (float) $gc->amount,
+                    };
 
                     if ($gc->type === 'Earning') {
                         $earningsTotal   += $amount;
@@ -141,9 +142,9 @@ class PayrollProcessor
                     } else {
                         $deductionsTotal += $amount;
                     }
-                    // dd($gc->component->id);
+
                     $lineItems[] = [
-                        'component_id'            => $gc->component->id,
+                        'component_id'            => $gc->component?->id ?? $gc->component_id,
                         'component_name_snapshot' => $gc->component->name ?? $gc->id,
                         'finalized_amount'        => $amount,
                         'item_type'               => $gc->type,
@@ -151,6 +152,39 @@ class PayrollProcessor
                         'updated_at'              => now(),
                     ];
                 }
+
+                // foreach ($globalComponents as $gc) {
+                //     // null applies_to => applies to everyone. Otherwise must match employee's type.
+                //     if ($gc->applies_to !== null && $gc->applies_to !== $employee->employment_type_id) {
+                //         continue;
+                //     }
+
+                //     $amount = match (true) {
+                //         $gc->isPaye()                          => SalaryComponent::calculatePaye($grossBase),
+                //         $gc->calculation_type === 'percentage' => round($grossBase * ((float) $gc->percentage_value / 100), 2),
+                //         default                                 => (float) $gc->amount,
+                //     };
+
+                //     // $amount = $gc->calculation_type === 'percentage'
+                //     //     ? round($grossBase * ((float) $gc->percentage_value / 100), 2)
+                //     //     : (float) $gc->amount;
+
+                //     if ($gc->type === 'Earning') {
+                //         $earningsTotal   += $amount;
+                //         $allowancesTotal += $amount;
+                //     } else {
+                //         $deductionsTotal += $amount;
+                //     }
+                //     // dd($gc->component->id);
+                //     $lineItems[] = [
+                //         'component_id'            => $gc->component->id,
+                //         'component_name_snapshot' => $gc->component->name ?? $gc->id,
+                //         'finalized_amount'        => $amount,
+                //         'item_type'               => $gc->type,
+                //         'created_at'              => now(),
+                //         'updated_at'              => now(),
+                //     ];
+                // }
                 // ── 4. Total Gross = base + all earning components ─────────────
                 $totalGross = $earningsTotal;
                 $netPay       = $totalGross - $deductionsTotal;

@@ -208,10 +208,15 @@
                                             <i class="fa fa-lock fa-xs me-1"></i>
                                             Fixed
                                         </span>
-                                    @else
+                                    @elseif($comp->isPercentage())
                                         <span class="badge bg-warning-subtle text-warning">
                                             <i class="fa fa-percent fa-xs me-1"></i>
                                             Percentage
+                                        </span>
+                                    @else
+                                        <span class="badge bg-warning-subtle text-warning">
+                                            <i class="fa fa-gear fa-xs me-1"></i>
+                                            Auto
                                         </span>
                                     @endif
                                 </td>
@@ -223,10 +228,15 @@
                                         <small class="text-muted d-block" style="font-size:10px;">
                                             Fixed — overrides %
                                         </small>
-                                    @else
+                                    @elseif($comp->isPercentage())
                                         {{ number_format($comp->percentage_value, 2) }}%
                                         <small class="text-muted d-block" style="font-size:10px;">
                                             of gross salary
+                                        </small>
+                                    @else
+                                        {{ number_format($comp->percentage_value, 2) }}
+                                        <small class="text-muted d-block" style="font-size:10px;">
+                                            auto
                                         </small>
                                     @endif
                                 </td>
@@ -257,7 +267,7 @@
                                         };
                                     @endphp
                                     <span class="badge bg-{{ $atColor[0] }}-subtle
-                                                    text-{{ $atColor[0] }}" style="font-size:10px;">
+                                                        text-{{ $atColor[0] }}" style="font-size:10px;">
                                         {{ $atColor[1] }}
                                     </span>
                                 </td>
@@ -335,7 +345,7 @@
                         <div class="row g-3">
 
                             {{-- Name --}}
-                            <div class="col-md-8">
+                            <div class="col-md-12">
                                 <label class="form-label">
                                     Name <span class="text-danger">*</span>
                                 </label>
@@ -354,7 +364,7 @@
                             </div>
 
                             {{-- Type --}}
-                            <div class="col-md-4">
+                            {{-- <div class="col-md-4">
                                 <label class="form-label">
                                     Type <span class="text-danger">*</span>
                                 </label>
@@ -372,7 +382,7 @@
                                 @error('type')
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror
-                            </div>
+                            </div> --}}
 
                             {{-- Calculation type --}}
                             <div class="col-md-6">
@@ -386,7 +396,7 @@
                                             {{ ucfirst($ct) }}
                                             @if ($ct === \Modules\PAYROLL\Enums\CalculationType::FIXED)
                                                 (Superior — overrides %)
-                                            @else
+                                            @elseif ($ct === \Modules\PAYROLL\Enums\CalculationType::PERCENTAGE)
                                                 (% of gross salary)
                                             @endif
                                         </option>

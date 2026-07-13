@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('component_id')->nullable()->constrained('components')->cascadeOnDelete();
             $table->decimal('percentage', 4, 2)->nullable();
             $table->decimal('amount', 15, 2)->nullable();
-            $table->string('type')->default('Earning'); // Earning | Deduction
+            // $table->string('type')->default('Earning'); // Earning | Deduction
             $table->boolean('is_global')->default(false);
             $table->boolean('is_active')->default(false); // default false as you noted
             $table->string('calculation_type', 50)->default('fixed'); // fixed | percentage

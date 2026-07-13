@@ -30,6 +30,7 @@ use Modules\PAYROLL\Livewire\Payroll\PayPeriod\PayPeriodIndex;
 use Modules\PAYROLL\Livewire\Payroll\PayrollEntries\PayrollEntryIndex;
 use Modules\PAYROLL\Livewire\Payroll\PayrollEntries\PayrollEntryShow;
 use Modules\PAYROLL\Livewire\Payroll\Reports\Deduction\DeductionReportIndex;
+use Modules\PAYROLL\Livewire\Payroll\Reports\Deduction\OtherReportIndex;
 use Modules\PAYROLL\Livewire\Payroll\RunPayroll;
 use Modules\PAYROLL\Livewire\Payroll\Setups\SalaryComponentIndex;
 
@@ -99,7 +100,6 @@ Route::middleware(['auth'])->group(function () {
             [PayrollListPdfController::class, 'view']
         )
             ->name('period.list-pdf');
-        // routes/web.php — inside your payroll route group
 
         Route::get(
             'entries/{entry}/payslip-pdf',
@@ -110,6 +110,10 @@ Route::middleware(['auth'])->group(function () {
             'reports/deductions',DeductionReportIndex::class
         )
             ->name('reports.deductions');
+        Route::get(
+            'reports/deductions/other_reports',OtherReportIndex::class
+        )
+            ->name('reports.others');
     });
 
     Route::get('/users', UserIndex::class)->name('users.index');

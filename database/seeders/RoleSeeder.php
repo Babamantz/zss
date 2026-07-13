@@ -8,14 +8,21 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class RoleSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
+
+
     public function run(): void
     {
-        //
-        Role::create([
-            'name'=>'admin'
-        ]);
+        // Define an array of roles to generate
+        $roles = [
+            'admin',
+            'super-admin',
+            'hr-officer',
+            'director-hr'
+        ];
+
+        // Loop and safely create each record
+        foreach ($roles as $role) {
+            Role::firstOrCreate(['name' => $role]);
+        }
     }
 }

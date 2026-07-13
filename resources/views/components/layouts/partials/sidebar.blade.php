@@ -183,7 +183,7 @@
                                 </li>
                             </ul>
                         </li>
-                        <li class="dropdown">
+                        {{-- <li class="dropdown">
                             <a class="nav-link menu-title {{ prefixActive('/transaction/create') }}"
                                 href="javascript:void(0)"><i data-feather="file"></i><span>Transaction</span></a>
                             <ul class="nav-submenu menu-content" style="display: {{ prefixBlock('/index') }};">
@@ -199,7 +199,7 @@
                                 <li><a href="{{ route('chain.queue') }}" class="{{ routeActive('chain.queue') }}">Queues</a>
                                 </li>
                             </ul>
-                        </li>
+                        </li> --}}
                         {{-- <li class="dropdown">
                             <a class="nav-link menu-title {{ prefixActive('transaction/{transactionId}/timeline') }}"
                                 href="javascript:void(0)"><i data-feather="file"></i><span>Transaction Timeline</span></a>
@@ -411,6 +411,13 @@
                                 href="{{ route('payroll.reports.deductions') }}">
                                 <i data-feather="trending-down"></i>
                                 <span>Deductions Report</span>
+                            </a>
+                        </li>
+                        <li class="dropdown">
+                            <a class="nav-link {{ prefixActive('/module/payroll/reports/deductions') }}"
+                                href="{{ route('payroll.reports.others') }}">
+                                <i data-feather="trending-up"></i>
+                                <span>Other Report</span>
                             </a>
                         </li>
 

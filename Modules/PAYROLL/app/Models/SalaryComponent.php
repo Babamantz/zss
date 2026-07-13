@@ -5,6 +5,7 @@ namespace Modules\PAYROLL\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 use Modules\HRM\Enums\EmploymentType;
 use Modules\HRM\Models\EmploymentType as AppliesTo;
 use Modules\PAYROLL\Enums\CalculationType;
@@ -68,6 +69,18 @@ class SalaryComponent extends Model
         return $this->calculation_type === CalculationType::FIXED;
     }
 
+    public function isPaye(): bool
+    {
+        return str_contains(Str::lower($this->component?->name ?? ''), 'paye');
+    }
+
+
+
+
+    public function isAuto(): bool
+    {
+        return $this->calculation_type === CalculationType::AUTO;
+    }
     public function isPercentage(): bool
     {
         return $this->calculation_type === CalculationType::PERCENTAGE;
