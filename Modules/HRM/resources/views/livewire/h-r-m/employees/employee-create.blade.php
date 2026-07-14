@@ -686,7 +686,7 @@
 
             const initSelect2Fields = () => {
                 const selects = [
-                    { id: '#select-user',        field: 'email',          event: 'user-selected' },
+                    { id: '#select-user',        field: 'selectedUserId',event: 'user-selected' },
                     { id: '#select-education',   field: 'education_level_id' },
                     { id: '#select-designation', field: 'designation_id' },
                     { id: '#select-unit',        field: 'unit' },

@@ -101,6 +101,8 @@ class PayrollProcessor
 
                     // dd($comp->type);
 
+                    // dd($comp->type);
+
                     if ($comp->type === 'Earning') {
                         $earningsTotal   += $amount;
                         $allowancesTotal += $amount;
@@ -120,10 +122,12 @@ class PayrollProcessor
 
 
                 // Eager-load once before the loop to avoid N+1 on ->component and ->appliesTo
-                $globalComponents = SalaryComponent::with(['component', 'appliesTo'])
+                $globalComponents = SalaryComponent::whereHas('component')
+                    ->with(['component', 'appliesTo'])
                     ->where('is_global', true)
                     // ->where('is_active', true)
                     ->get();
+                    // dd($globalComponents);
                 foreach ($globalComponents as $gc) {
                     // null applies_to => applies to everyone. Otherwise must match employee's type.
                     if ($gc->applies_to !== null && $gc->applies_to !== $employee->employment_type_id) {
@@ -136,55 +140,27 @@ class PayrollProcessor
                         default                                 => (float) $gc->amount,
                     };
 
-                    if ($gc->type === 'Earning') {
+                    dd($amount);
+
+                    if ($gc->component->type === 'Earning') {
                         $earningsTotal   += $amount;
                         $allowancesTotal += $amount;
                     } else {
                         $deductionsTotal += $amount;
                     }
+                    dd($lineItems);
 
                     $lineItems[] = [
                         'component_id'            => $gc->component?->id ?? $gc->component_id,
-                        'component_name_snapshot' => $gc->component->name ?? $gc->id,
+                        'component_name_snapshot' => $gc->component?->name ?? $gc->id,
+                        'item_type' => $gc->component?->type,
                         'finalized_amount'        => $amount,
-                        'item_type'               => $gc->type,
                         'created_at'              => now(),
                         'updated_at'              => now(),
                     ];
                 }
 
-                // foreach ($globalComponents as $gc) {
-                //     // null applies_to => applies to everyone. Otherwise must match employee's type.
-                //     if ($gc->applies_to !== null && $gc->applies_to !== $employee->employment_type_id) {
-                //         continue;
-                //     }
 
-                //     $amount = match (true) {
-                //         $gc->isPaye()                          => SalaryComponent::calculatePaye($grossBase),
-                //         $gc->calculation_type === 'percentage' => round($grossBase * ((float) $gc->percentage_value / 100), 2),
-                //         default                                 => (float) $gc->amount,
-                //     };
-
-                //     // $amount = $gc->calculation_type === 'percentage'
-                //     //     ? round($grossBase * ((float) $gc->percentage_value / 100), 2)
-                //     //     : (float) $gc->amount;
-
-                //     if ($gc->type === 'Earning') {
-                //         $earningsTotal   += $amount;
-                //         $allowancesTotal += $amount;
-                //     } else {
-                //         $deductionsTotal += $amount;
-                //     }
-                //     // dd($gc->component->id);
-                //     $lineItems[] = [
-                //         'component_id'            => $gc->component->id,
-                //         'component_name_snapshot' => $gc->component->name ?? $gc->id,
-                //         'finalized_amount'        => $amount,
-                //         'item_type'               => $gc->type,
-                //         'created_at'              => now(),
-                //         'updated_at'              => now(),
-                //     ];
-                // }
                 // ── 4. Total Gross = base + all earning components ─────────────
                 $totalGross = $earningsTotal;
                 $netPay       = $totalGross - $deductionsTotal;

@@ -83,25 +83,24 @@ class DeductionReportIndex extends Component
     //     ]));
     // }
 
-    protected function calculateGrossTotal(PayPeriod $payPeriod)
-    {
-        if ($this->isComponentTotal) {
-            // 1. Find the single component instance
-            $component = Component::find($this->filterComponentId);
+    // protected function calculateGrossTotal(PayPeriod $payPeriod)
+    // {
+    //     if ($this->isComponentTotal) {
+    //         // 1. Find the single component instance
+    //         $component = Component::find($this->filterComponentId);
 
-            if ($component) {
-                // 2. Convert name to lowercase once for easy matching
-                $componentName = strtolower($component->name);
-
-                // 3. Perform the checks with clean math multipliers
-                if (str_contains($componentName, 'zssf')) {
-                    $this->componentTotal = (float)$payPeriod->total_gross * 0.14;
-                } elseif (str_contains($componentName, 'zhsf')) {
-                    $this->componentTotal = (float)$payPeriod->total_gross * 0.035;
-                }
-            }
-        }
-    }
+    //         if ($component) {
+    //             // 2. Convert name to lowercase once for easy matching
+    //             $componentName = strtolower($component->name);
+    //             // 3. Perform the checks with clean math multipliers
+    //             if (str_contains(strtolower($componentName, 'zssf')) {
+    //                 $this->componentTotal = (float)$payPeriod->total_gross * 0.14;
+    //             } elseif (str_contains($componentName, 'zhsf')) {
+    //                 $this->componentTotal = (float)$payPeriod->total_gross * 0.035;
+    //             }
+    //         }
+    //     }
+    // }
 
 
 

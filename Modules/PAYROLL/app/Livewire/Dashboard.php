@@ -54,9 +54,14 @@ class Dashboard extends Component
             ->get();
 
         // ── Component type breakdown (Earnings vs Deductions) ─────────────────
-        $componentBreakdown = SalaryComponent::selectRaw('type, COUNT(*) as count')
-            ->groupBy('type')
+        $componentBreakdown = SalaryComponent::query()
+            ->join('components', 'components.id', '=', 'salary_components.component_id')
+            ->selectRaw('components.type, COUNT(*) as count')
+            ->groupBy('components.type')
             ->pluck('count', 'type');
+        // $componentBreakdown = SalaryComponent::selectRaw('type, COUNT(*) as count')
+        //     ->groupBy('type')
+        //     ->pluck('count', 'type');
 
         // ── Top 5 highest net pay in latest period ────────────────────────────
         $topEarners = PayrollEntry::with('employee.user')

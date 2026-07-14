@@ -31,39 +31,24 @@
 
     {{-- ── Stat Cards ───────────────────────────────────────────────────────── --}}
     <div class="row g-3 mb-4">
-        @php
-            use Modules\PAYROLL\Enums\ComponentType;
-            $statCards = [
-                [
-                    'label' => 'Total Components',
-                    'value' => $salary_components->total(),
-                    'icon' => 'fa-sliders',
-                    'color' => 'primary',
-                    'sub' => 'all configured',
-                ],
-                [
-                    'label' => 'Earnings',
-                    'value' => \Modules\PAYROLL\Models\SalaryComponent::where('type', ComponentType::EARNING)->count(),
-                    'icon' => 'fa-arrow-up-circle',
-                    'color' => 'success',
-                    'sub' => 'earning components',
-                ],
-                [
-                    'label' => 'Deductions',
-                    'value' => \Modules\PAYROLL\Models\SalaryComponent::where('type', ComponentType::DEDUCTION)->count(),
-                    'icon' => 'fa-arrow-down-circle',
-                    'color' => 'danger',
-                    'sub' => 'deduction components',
-                ],
-                // [
-                //     'label' => 'Global Components',
-                //     'value' => \Modules\PAYROLL\Models\SalaryComponent::where('is_global_component', true)->count(),
-                //     'icon'  => 'fa-globe',
-                //     'color' => 'info',
-                //     'sub'   => 'applied to gross salary',
-                // ],
-            ];
-        @endphp
+        <div class="row g-3 mb-4">
+            @foreach($statCards as $card)
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body d-flex align-items-center">
+                            <div class="icon-circle bg-{{ $card['color'] }} bg-opacity-10 text-{{ $card['color'] }} me-3">
+                                <i class="fa {{ $card['icon'] }}"></i>
+                            </div>
+                            <div>
+                                <div class="fs-4 fw-bold">{{ $card['value'] }}</div>
+                                <div class="text-muted small">{{ $card['label'] }}</div>
+                                <div class="text-muted small">{{ $card['sub'] }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
 
         @foreach ($statCards as $card)
             <div class="col-md-3 col-sm-6">
@@ -267,7 +252,7 @@
                                         };
                                     @endphp
                                     <span class="badge bg-{{ $atColor[0] }}-subtle
-                                                        text-{{ $atColor[0] }}" style="font-size:10px;">
+                                                                text-{{ $atColor[0] }}" style="font-size:10px;">
                                         {{ $atColor[1] }}
                                     </span>
                                 </td>
@@ -363,26 +348,7 @@
                                 @enderror
                             </div>
 
-                            {{-- Type --}}
-                            {{-- <div class="col-md-4">
-                                <label class="form-label">
-                                    Type <span class="text-danger">*</span>
-                                </label>
-                                <div class="d-flex gap-3 mt-2">
-                                    @foreach (\Modules\PAYROLL\Enums\ComponentType::ALL as $t)
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" wire:model.live="type" value="{{ $t }}"
-                                                id="type_{{ $t }}">
-                                            <label class="form-check-label" for="type_{{ $t }}">
-                                                {{ $t }}
-                                            </label>
-                                        </div>
-                                    @endforeach
-                                </div>
-                                @error('type')
-                                    <small class="text-danger">{{ $message }}</small>
-                                @enderror
-                            </div> --}}
+                         
 
                             {{-- Calculation type --}}
                             <div class="col-md-6">
@@ -436,9 +402,7 @@
                                     </div>
                                     <small class="text-muted">
                                         of Total Gross Salary
-                                        {{-- @if ($is_global_component)
-                                        (global: applied to all employees)
-                                        @endif --}}
+                               
                                     </small>
                                     @error('percentage_value')
                                         <small class="text-danger">{{ $message }}</small>
@@ -476,15 +440,7 @@
                             <div class="col-md-6">
                                 <label class="form-label d-block">Component Flags</label>
                                 <div class="d-flex flex-column gap-2">
-                                    {{-- <div class="form-check">
-                                        <input class="form-check-input" type="checkbox"
-                                            wire:model.live="is_global_component" id="is_global_component">
-                                        <label class="form-check-label small" for="is_global_component">
-                                            <strong>Global Component</strong>
-                                            — calculated from Total Gross Salary,
-                                            applied to all eligible employees
-                                        </label>
-                                    </div> --}}
+                                  
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" wire:model="is_global"
                                             id="is_global">
@@ -496,23 +452,6 @@
                                     </div>
                                 </div>
                             </div>
-
-                            {{-- Info banner for global component --}}
-                            {{-- @if ($is_global_component)
-                            <div class="col-12">
-                                <div class="alert alert-info py-2 mb-0 small">
-                                    <i class="fa fa-info-circle me-1"></i>
-                                    <strong>Global Component:</strong>
-                                    This component's value will be calculated using the
-                                    employee's <strong>Total Gross Salary</strong> as the
-                                    base during payroll processing.
-                                    @if ($calculation_type === \Modules\PAYROLL\Enums\CalculationType::FIXED)
-                                    The fixed amount will override any percentage.
-                                    @endif
-                                </div>
-                            </div>
-                            @endif --}}
-
                         </div>
                     </div>
 

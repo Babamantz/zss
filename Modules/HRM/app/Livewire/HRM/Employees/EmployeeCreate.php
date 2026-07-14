@@ -29,6 +29,8 @@ class EmployeeCreate extends Component
     // ── Identity & navigation ─────────────────────────────────────────────────
     public $userId;
     public $employeeId;
+    
+    public $selectedUserId =null;
     public $mode;
     public $employee;
     public $employee_bank_id;
@@ -266,35 +268,82 @@ class EmployeeCreate extends Component
     #[On('user-selected')]
     public function selectUser(): void
     {
-        if (!$this->email) return;
+        if (!$this->selectedUserId) return;
 
         try {
             $currentUser = auth()->user();
 
+            
             // 1. Initialize the query builder
-            $query = User::with('tenant')->where('email', $this->email);
-
+            $query = User::with('tenant')->where('id',(int) $this->selectedUserId);
+            
+            // dd($query);
             // 2. Determine access strategy based on roles
-            if ($currentUser?->hasAnyRole(['super-Admin', 'hr-officer', 'director-hr','director-general'])) {
+            if ($currentUser?->hasAnyRole(['super-admin', 'hr-officer', 'director-hr',])) {
                 // Admin users can see across all tenants completely unfiltered
                 $query->withoutGlobalScopes();
             } else {
                 // Regular users are strictly locked to their own tenant record
-                $query->where('tenant_id', $currentUser->tenant_id);
+                $query->where('tenant_id', $currentUser?->tenant_id);
             }
 
             // 3. Execute the query
             $user = $query->firstOrFail();
+
             $this->first_name  = $user->first_name;
             $this->middle_name = $user->middle_name;
             $this->last_name   = $user->last_name;
-            $this->userId      = $user->id;
-            $this->location    = $user->tenant?->name;
-        } catch (Exception $e) {
+            $this->userId       = $user->id;
+            $this->email        = $user->email;
+            $this->location      = $user->tenant?->name;
+        } catch (\Throwable $e) {
             session()->flash('error', 'User not found.');
             Log::error('User Selection Error: ' . $e->getMessage());
         }
     }
+    // public function selectUser(): void
+    // {
+    //     if (!$this->email) return;
+
+    //     try {
+    //         $currentUser = auth()->user();
+
+
+
+    //         // 1. Initialize the query builder
+    //         $query = User::w('tenant')->where('email', $this->email);
+    //         // Log::info('Debug', [
+    //         //     'email' => $this->email,
+    //         //     'current_user_roles' => $currentUser?->getRoleNames(),
+    //         //     'admin_branch_hit' => $currentUser?->hasAnyRole(['super-Admin', 'hr-officer', 'director-hr', 'director-general']),
+    //         //     'sql' => $query->toSql(),
+    //         //     'bindings' => $query->getBindings(),
+    //         // ]);
+
+
+
+
+    //         // 2. Determine access strategy based on roles
+    //         if ($currentUser?->hasAnyRole(['super-Admin', 'hr-officer', 'director-hr', 'director-general'])) {
+    //             // Admin users can see across all tenants completely unfiltered
+    //             $query->withoutGlobalScopes();
+    //         } else {
+    //             // Regular users are strictly locked to their own tenant record
+    //             $query->where('tenant_id', $currentUser->tenant_id);
+    //         }
+
+    //         // 3. Execute the query
+    //         $user = $query->firstOrFail();
+    //         $this->first_name  = $user->first_name;
+    //         $this->middle_name = $user->middle_name;
+    //         $this->last_name   = $user->last_name;
+    //         $this->userId      = $user->id;
+    //         $this->location    = $user->tenant?->name;
+    //     } catch (Exception $e) {
+    //         session()->flash('error', 'User not found.');
+    //         Log::error('User Selection Error: ' . $e->getMessage());
+    //     }
+    // }
 
     public function loadEmail(): void
     {

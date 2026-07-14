@@ -69,10 +69,16 @@ class SalaryComponent extends Model
         return $this->calculation_type === CalculationType::FIXED;
     }
 
+    // public function isPaye(): bool
+    // {
+    //     return str_contains(Str::lower($this->component?->code ?? ''), 'paye');
+    // }
+
     public function isPaye(): bool
     {
-        return str_contains(Str::lower($this->component?->code ?? ''), 'allowance');
+        return Str::contains($this->component?->code ?? '', 'paye', ignoreCase: true);
     }
+
 
 
 
@@ -184,6 +190,6 @@ class SalaryComponent extends Model
 
     public function component()
     {
-        return $this->belongsTo(Component::class);
+        return $this->belongsTo(Component::class,'component_id');
     }
 }

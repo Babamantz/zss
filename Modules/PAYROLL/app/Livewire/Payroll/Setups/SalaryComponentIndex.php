@@ -75,7 +75,6 @@ class SalaryComponentIndex extends Component
 
         $this->editId             = $component->id;
         $this->componentNameId    = $component->component_id;
-        $this->type               = $component->type;
         $this->calculation_type   = $component->calculation_type;
         $this->is_global          = (bool) $component->is_global;
         $this->applies_to         = $component->applies_to;
@@ -93,7 +92,6 @@ class SalaryComponentIndex extends Component
         $data = [
             // 'name'                => $this->name,
             'component_id'    => $this->componentNameId,
-            'type'                => $this->type,
             'calculation_type'    => $this->calculation_type,
             'is_global'           => $this->is_global,
             'applies_to'          => $this->applies_to,
@@ -128,14 +126,12 @@ class SalaryComponentIndex extends Component
         $this->reset([
             'editId',
             'componentNameId',
-            'type',
             'applies_to',
             'calculation_type',
             'custom_amount',
             'percentage_value',
             'showModal',
         ]);
-        $this->type       = ComponentType::EARNING;
         $this->applies_to = null;
     }
 
@@ -145,28 +141,89 @@ class SalaryComponentIndex extends Component
         $this->reset(['search', 'filterType', 'filterGlobal', 'filterCalculationType']);
         $this->resetPage();
     }
-
-
     public function render()
     {
-        // 4. Eager-loaded 'creator' relationship used by your template loop
         $components = PayComponent::pluck('name', 'id');
-        $appliesTo = EmploymentType::pluck('name','id');
-        // dd($appliesTo);
+        $appliesTo  = EmploymentType::pluck('name', 'id');
+
         $salary_components = SalaryComponent::query()
-            // ->with('creator')
-            ->when($this->search,       fn($q) => $q->where('name', 'like', "%{$this->search}%"))
-            ->when($this->filterType,   fn($q) => $q->where('type', $this->filterType))
+            ->with(['component', 'appliesTo'])
+            ->when(
+                $this->search,
+                fn($q) => $q->whereHas('component', fn($cq) => $cq->where('name', 'like', "%{$this->search}%"))
+            )
+            ->when($this->filterType, fn($q) => $q->where('type', $this->filterType))
             ->when(
                 $this->filterCalculationType,
-                fn($q) =>
-                $q->where('calculation_type', $this->filterCalculationType)
+                fn($q) => $q->where('calculation_type', $this->filterCalculationType)
             )
-
             ->withTrashed(false)
             ->latest()
             ->paginate(15);
 
-        return view('payroll::livewire.payroll.setups.salary-component-index', compact('salary_components', 'components','appliesTo'));
+        // One grouped query for Earning/Deduction counts instead of N separate ->count() calls
+        // $typeCounts = SalaryComponent::selectRaw('type, COUNT(*) as count')
+        //     ->groupBy('type')
+        //     ->pluck('count', 'type');
+
+        $statCards = [
+            [
+                'label' => 'Total Components',
+                'value' => $salary_components->total(),
+                'icon'  => 'fa-sliders',
+                'color' => 'primary',
+                'sub'   => 'all configured',
+            ],
+            [
+                'label' => 'Earnings',
+                'value' => $typeCounts[ComponentType::EARNING] ?? 0,
+                'icon'  => 'fa-arrow-up-circle',
+                'color' => 'success',
+                'sub'   => 'earning components',
+            ],
+            [
+                'label' => 'Deductions',
+                'value' => $typeCounts[ComponentType::DEDUCTION] ?? 0,
+                'icon'  => 'fa-arrow-down-circle',
+                'color' => 'danger',
+                'sub'   => 'deduction components',
+            ],
+            [
+                'label' => 'Global Components',
+                'value' => SalaryComponent::where('is_global', true)->count(),
+                'icon'  => 'fa-globe',
+                'color' => 'info',
+                'sub'   => 'applied to gross salary',
+            ],
+        ];
+
+        return view(
+            'payroll::livewire.payroll.setups.salary-component-index',
+            compact('salary_components', 'components', 'appliesTo', 'statCards')
+        );
     }
+
+
+    // public function render()
+    // {
+    //     // 4. Eager-loaded 'creator' relationship used by your template loop
+    //     $components = PayComponent::pluck('name', 'id');
+    //     $appliesTo = EmploymentType::pluck('name','id');
+    //     // dd($appliesTo);
+    //     $salary_components = SalaryComponent::query()
+    //         // ->with('creator')
+    //         ->when($this->search,       fn($q) => $q->where('name', 'like', "%{$this->search}%"))
+    //         ->when($this->filterType,   fn($q) => $q->where('type', $this->filterType))
+    //         ->when(
+    //             $this->filterCalculationType,
+    //             fn($q) =>
+    //             $q->where('calculation_type', $this->filterCalculationType)
+    //         )
+
+    //         ->withTrashed(false)
+    //         ->latest()
+    //         ->paginate(15);
+
+    //     return view('payroll::livewire.payroll.setups.salary-component-index', compact('salary_components', 'components','appliesTo'));
+    // }
 }
