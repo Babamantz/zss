@@ -19,6 +19,7 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade'); // Creator
             $table->string('title');
             $table->string('heading');
+            $table->boolean('is_swahili');
             $table->integer('number_of_rows')->default(10); // Number of attendee rows
             $table->string('attendance_path', 255)->nullable();
             $table->timestamps();

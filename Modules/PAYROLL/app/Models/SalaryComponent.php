@@ -71,7 +71,7 @@ class SalaryComponent extends Model
 
     public function isPaye(): bool
     {
-        return str_contains(Str::lower($this->component?->name ?? ''), 'paye');
+        return str_contains(Str::lower($this->component?->code ?? ''), 'allowance');
     }
 
 

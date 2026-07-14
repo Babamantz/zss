@@ -15,7 +15,8 @@ class AttendanceCreateEdit extends Component
     public $isViewMode = false;
 
     // Fixed column headers
-    public $columns = ['No.', 'Name', 'Position', 'From', 'Signature'];
+    public $englishColumns = ['No.', 'Name', 'Position', 'From', 'Signature'];
+    public $swahiliColumns = ['No.', 'Jina', 'Cheo', 'Unapotoka', 'Sign'];
 
     protected function rules()
     {

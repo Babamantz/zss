@@ -133,71 +133,104 @@
         </div>
     </div>
 
-    @push('scripts')
-        <script src="{{ asset('assets/js/editor/ckeditor/ckeditor.js') }}"></script>
-        <script src="{{ asset('assets/js/editor/ckeditor/adapters/jquery.js') }}"></script>
-        <script>
-            function attendanceForm() {
-                return {
-                    editor: null,
-                    isViewMode: {{ $isViewMode ? 'true' : 'false' }},
 
-                    init() {
-                        this.$nextTick(() => {
-                            this.initEditor();
-                        });
+   
 
-                        Livewire.on('livewire:updated', () => {
-                            this.$nextTick(() => {
-                                if (!this.editor) {
-                                    this.initEditor();
-                                }
-                            });
-                        });
-                    },
+    <script src="{{ asset('assets/js/editor/ckeditor/ckeditor.js') }}"></script>
 
-                    initEditor() {
-                        const elementId = 'heading_editor';
+    <script>
+        function initializeCKEditor() {
 
-                        if (CKEDITOR.instances[elementId]) {
-                            CKEDITOR.instances[elementId].destroy(true);
-                        }
+            const textarea = document.getElementById('heading_editor');
 
-                        if (!document.getElementById(elementId)) {
-                            return;
-                        }
-
-                        const editor = CKEDITOR.replace(elementId, {
-                            height: 300,
-                            readOnly: this.isViewMode
-                        });
-
-                        this.editor = editor;
-
-                        editor.on('instanceReady', () => {
-                            editor.setData(@json($heading ?? ''));
-                        });
-
-                        if (!this.isViewMode) {
-                            editor.on('change', () => {
-                                this.$wire.set('heading', editor.getData());
-                            });
-
-                            editor.on('blur', () => {
-                                this.$wire.set('heading', editor.getData());
-                            });
-                        }
-                    },
-
-                    destroyEditors() {
-                        if (typeof CKEDITOR !== 'undefined') {
-                            for (let instance in CKEDITOR.instances) {
-                                CKEDITOR.instances[instance].destroy(true);
-                            }
-                        }
-                    }
-                }
+            // Editor not on page
+            if (!textarea) {
+                return;
             }
-        </script>
-    @endpush
+
+            // Prevent duplicate instances
+            if (CKEDITOR.instances.heading_editor) {
+                CKEDITOR.instances.heading_editor.destroy(true);
+            }
+
+            // Get Livewire component
+            const component = textarea.closest('[wire\\:id]');
+
+            if (!component) {
+                return;
+            }
+
+            const wire = Livewire.find(component.getAttribute('wire:id'));
+
+            // Create editor
+            const editor = CKEDITOR.replace('heading_editor', {
+                height: 300,
+                removeButtons: '',
+                readOnly: textarea.disabled
+            });
+
+            // Load current value from Livewire
+            editor.on('instanceReady', function () {
+
+                let content = '';
+
+                try {
+                    content = wire.get('heading') || '';
+                } catch (e) {
+                    content = textarea.value || '';
+                }
+
+                editor.setData(content);
+            });
+
+            // Sync changes to Livewire
+            editor.on('change', function () {
+                wire.set('heading', editor.getData());
+            });
+
+            editor.on('blur', function () {
+                wire.set('heading', editor.getData());
+            });
+        }
+
+        // Initial page load
+        document.addEventListener('DOMContentLoaded', function () {
+            initializeCKEditor();
+        });
+
+        // Livewire Navigate
+        document.addEventListener('livewire:navigated', function () {
+            setTimeout(() => {
+                initializeCKEditor();
+            }, 50);
+        });
+
+        // Livewire component refresh/update
+        document.addEventListener('livewire:init', () => {
+
+            Livewire.hook('morph.updated', () => {
+
+                const editorExists =
+                    typeof CKEDITOR !== 'undefined' &&
+                    CKEDITOR.instances.heading_editor;
+
+                if (!editorExists) {
+                    setTimeout(() => {
+                        initializeCKEditor();
+                    }, 50);
+                }
+            });
+        });
+
+        // Cleanup before navigating away
+        document.addEventListener('livewire:navigate', () => {
+
+            if (
+                typeof CKEDITOR !== 'undefined' &&
+                CKEDITOR.instances.heading_editor
+            ) {
+                CKEDITOR.instances.heading_editor.destroy(true);
+            }
+        });
+    </script>
 </div>
