@@ -17,7 +17,7 @@ use RuntimeException;
 
 class PayrollProcessor
 {
-    public function process(PayPeriod $period, $confirmation): array
+    public function process(PayPeriod $period,bool $confirmed): array
     {
         if ($period->isLocked() || $period->isApproved()) {
             throw new RuntimeException('This pay period cannot be re-processed.');
@@ -25,7 +25,6 @@ class PayrollProcessor
 
         $period->update([
             'status'       => 'Processing',
-            'confirmation' => $confirmation,
             'updated_by'   => auth()->id(),
         ]);
 
@@ -127,12 +126,14 @@ class PayrollProcessor
                     ->where('is_global', true)
                     // ->where('is_active', true)
                     ->get();
-                    // dd($globalComponents);
+                // dd($globalComponents);
                 foreach ($globalComponents as $gc) {
                     // null applies_to => applies to everyone. Otherwise must match employee's type.
                     if ($gc->applies_to !== null && $gc->applies_to !== $employee->employment_type_id) {
                         continue;
                     }
+
+                    // dd($grossBase);
 
                     $amount = match (true) {
                         $gc->isPaye()                          => SalaryComponent::calculatePaye($grossBase),
@@ -140,7 +141,7 @@ class PayrollProcessor
                         default                                 => (float) $gc->amount,
                     };
 
-                    dd($amount);
+                    // dd($amount);
 
                     if ($gc->component->type === 'Earning') {
                         $earningsTotal   += $amount;
@@ -148,7 +149,7 @@ class PayrollProcessor
                     } else {
                         $deductionsTotal += $amount;
                     }
-                    dd($lineItems);
+                    // dd($lineItems);
 
                     $lineItems[] = [
                         'component_id'            => $gc->component?->id ?? $gc->component_id,
@@ -162,9 +163,8 @@ class PayrollProcessor
 
 
                 // ── 4. Total Gross = base + all earning components ─────────────
-                $totalGross = $earningsTotal;
-                $netPay       = $totalGross - $deductionsTotal;
-
+                $totalGross = $grossBase;
+                $netPay       = $grossBase - $deductionsTotal;
                 // ── 5. Create payroll entry ────────────────────────────────────
                 $entry = PayrollEntry::create([
                     'employee_id'      => $employee->id,
@@ -205,6 +205,11 @@ class PayrollProcessor
             'status'           => 'Processed',
             'updated_by'       => auth()->id(),
         ]);
+
+        $period->is_confirmed = $confirmed;
+        $period->save();
+
+
 
         return $results;
     }

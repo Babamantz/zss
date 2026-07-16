@@ -265,7 +265,7 @@
                                 </td>
                                 <td style="padding:10px 14px;"
                                     class="text-end small fw-medium">
-                                    {{ number_format($periods->sum('total_gross'), 0) }}
+                                    {{ number_format($periods->sum('gross'), 0) }}
                                 </td>
                                 <td style="padding:10px 14px;"
                                     class="text-end small fw-medium text-info">
@@ -609,6 +609,8 @@
                                                 <th style="font-size:10px;padding:7px 10px;"
                                                     class="text-end">Gross</th>
                                                 <th style="font-size:10px;padding:7px 10px;"
+                                                    class="text-end">Allowances</th>
+                                                <th style="font-size:10px;padding:7px 10px;"
                                                     class="text-end">Deductions</th>
                                                 <th style="font-size:10px;padding:7px 10px;"
                                                     class="text-end">Net Pay</th>
@@ -646,6 +648,10 @@
                                                                                 <td style="padding:7px 10px;"
                                                                                     class="text-end small">
                                                                                     {{ number_format($row['gross'], 0) }}
+                                                                                </td>
+                                                                                <td style="padding:7px 10px;"
+                                                                                    class="text-end small">
+                                                                                    {{ number_format($row['allowances'], 0) }}
                                                                                 </td>
                                                                                 <td style="padding:7px 10px;"
                                                                                     class="text-end small text-danger">

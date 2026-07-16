@@ -382,6 +382,7 @@
                                         <a class="btn btn-sm btn-outline-secondary"
                                             href="{{ route('hrm.employee.edit', [
                                                 'employeeId' => $employee->id,
+                                                'mode' =>'edit'
                                             ]) }}"
                                             wire:navigate title="Edit">
                                             <i class="fa fa-pencil"></i>

@@ -682,6 +682,58 @@
 
     @script
     <script>
+    document.addEventListener('livewire:initialized', () => {
+
+        // Fields to initialize as Select2 dropdowns, synced to Livewire properties
+        const SELECT2_FIELDS = [
+            { id: '#select-user',             field: 'selectedUserId',      event: 'user-selected' },
+            { id: '#select-education',        field: 'education_level_id' },
+            { id: '#select-designation',      field: 'designation_id' },
+            { id: '#select-unit',             field: 'unit' },
+            { id: '#select-department',       field: 'department' },
+            { id: '#select-employment-type',  field: 'employment_type_id' },
+            { id: '#select-bank-name',        field: 'employee_bank_id' },
+        ];
+
+        /**
+         * Initialize (or re-initialize) all Select2 fields and wire their
+         * change events to update the corresponding Livewire property.
+         */
+        const initSelect2Fields = () => {
+            SELECT2_FIELDS.forEach(({ id, field, event }) => {
+                const $el = $(id);
+                if (!$el.length) return;
+
+                $el.select2();
+
+                $el.off('change').on('change', function () {
+                    $wire.set(field, this.value);
+                    if (event) $wire.dispatch(event);
+                });
+            });
+        };
+
+        initSelect2Fields();
+
+        // Re-init after every Livewire DOM morph (step changes, edit load)
+        Livewire.hook('morph.updated', () => initSelect2Fields());
+
+        // Sync Select2 visuals when edit data is dispatched
+        Livewire.on('eventEmail', (data) => {
+            const row = Array.isArray(data) ? data[0] : data;
+
+            $('#select-user').val(row.employee_id).trigger('change');
+            $('#select-unit').val(row.unit_id).trigger('change');
+            $('#select-department').val(row.department_id).trigger('change');
+        });
+
+        // Clear file inputs after successful create
+        Livewire.on('resetFileState', () => {
+            document.querySelectorAll('input[type="file"]').forEach(el => el.value = '');
+        });
+    });
+</script>
+    {{-- <script>
         document.addEventListener('livewire:initialized', () => {
 
             const initSelect2Fields = () => {
@@ -730,6 +782,6 @@
                 document.querySelectorAll('input[type="file"]').forEach(el => el.value = '');
             });
         });
-    </script>
+    </script> --}}
     @endscript
 @endpush

@@ -91,21 +91,14 @@ class RunPayroll extends Component
         $this->validate(['selectedPeriodId' => 'required|exists:pay_periods,id']);
 
         $period = PayPeriod::findOrFail($this->selectedPeriodId);
-        // dd($period);
 
 
-        // Guard — only process Draft periods
-        // if ($period->status === 'Draft') {
-
-        session()->flash('error', 'Only Draft periods can be processed. Current status: ' . $period->statusLabel());
-
-        //     return;
-        // }
-
+        
         try {
-            $this->results   = (new PayrollProcessor())->process($period, $this->confirmed);
+            $this->results   = (new PayrollProcessor())->process($period,$this->confirmed);
             $this->processed = true;
             $period->is_confirmed = $this->confirmed;
+            $period->save();
             $period->refresh();
             session()->flash('success', count($this->results) . ' employees processed successfully.');
         } catch (\RuntimeException $e) {

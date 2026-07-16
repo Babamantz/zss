@@ -29,8 +29,8 @@ class EmployeeCreate extends Component
     // ── Identity & navigation ─────────────────────────────────────────────────
     public $userId;
     public $employeeId;
-    
-    public $selectedUserId =null;
+
+    public $selectedUserId = null;
     public $mode;
     public $employee;
     public $employee_bank_id;
@@ -266,20 +266,21 @@ class EmployeeCreate extends Component
     // =========================================================================
 
     #[On('user-selected')]
+    #[On('user-selected')]
     public function selectUser(): void
     {
-        if (!$this->selectedUserId) return;
+        if (!$this->selectedUserId) {
+            return;
+        }
 
         try {
             $currentUser = auth()->user();
 
-            
             // 1. Initialize the query builder
-            $query = User::with('tenant')->where('id',(int) $this->selectedUserId);
-            
-            // dd($query);
+            $query = User::with('tenant')->where('id', (int) $this->selectedUserId);
+
             // 2. Determine access strategy based on roles
-            if ($currentUser?->hasAnyRole(['super-admin', 'hr-officer', 'director-hr',])) {
+            if ($currentUser?->hasAnyRole(['super-admin', 'hr-officer', 'director-hr'])) {
                 // Admin users can see across all tenants completely unfiltered
                 $query->withoutGlobalScopes();
             } else {
@@ -301,6 +302,9 @@ class EmployeeCreate extends Component
             Log::error('User Selection Error: ' . $e->getMessage());
         }
     }
+
+    // (delete the entire commented-out old version of selectUser() that
+    // follows this method — it's dead code and not part of the fix)
     // public function selectUser(): void
     // {
     //     if (!$this->email) return;
@@ -348,13 +352,23 @@ class EmployeeCreate extends Component
     public function loadEmail(): void
     {
         if ($this->employee?->user) {
+
             $this->dispatch('eventEmail', [
-                'employee_id'     => $this->employee->user->id,
-                'unit_id'         => $this->employee->unit_id,
-                'department_id'   => $this->employee->department_id,
-                'employment_type_id' => $this->employee->employment_type_id,
-                'education_level_id' => $this->employee->education_level_id,
+                'employee_id'          => $this->employee->user->id,
+                'education_level_id'   => $this->employee->education_level_id,
+                'employment_type_id'   => $this->employee->employment_type_id,
+                'designation_id'       => $this->employee->designation_id,
+                'unit_id'              => $this->employee->unit_id,
+                'department_id'        => $this->employee->department_id,
+                'employee_bank_id'     => $this->employee->bankAccount?->bank_id,
             ]);
+            // $this->dispatch('eventEmail', [
+            //     'employee_id'     => $this->employee->user->id,
+            //     'unit_id'         => $this->employee->unit_id,
+            //     'department_id'   => $this->employee->department_id,
+            //     'employment_type_id' => $this->employee->employment_type_id,
+            //     'education_level_id' => $this->employee->education_level_id,
+            // ]);
         }
     }
 
@@ -377,7 +391,7 @@ class EmployeeCreate extends Component
             'is_disable'              => 'required|boolean',
             'employment_type_id'         => 'required|integer',
             'gender'                  => 'required|string|in:' . implode(',', Gender::ALL),
-            'email'                   => 'required|exists:users,id',
+            'selectedUserId'                   => 'required|exists:users,id',
             'contacts.0.phone_number' => 'required|string|max:15',
             'contacts.1.phone_number' => 'nullable|string|max:15',
 
@@ -411,8 +425,8 @@ class EmployeeCreate extends Component
     protected function messages(): array
     {
         return [
-            'email.required'                           => 'Please select a user email.',
-            'email.exists'                              => 'The selected user does not exist.',
+            'selectedUserId.required'                           => 'Please select a user email.',
+            'selectedUserId.exists'                              => 'The selected user does not exist.',
             'dob.before'                                => 'Date of birth must be before today.',
             'designation_id.required'                   => 'Please select a designation.',
             'designation_id.exists'                      => 'Selected designation is invalid.',

@@ -1,30 +1,27 @@
 <?php
 
-// NOTE: adjust namespace + use-statement paths below to match your project's
-// actual module structure (these mirror the models/constants referenced by
-// your existing EmployeeCreate component).
-
-namespace Modules\Hrm\Http\Livewire\HRM\Employees;
+namespace Modules\HRM\Livewire\HRM\Employees;
 
 use App\Models\Certificate;
 use App\Models\Designation;
+use App\Models\EducationLevel;
 use App\Models\Identification;
 use App\Models\User;
-use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Modules\HRM\Enums\Gender;
 use Modules\HRM\Enums\MaritalStatus;
 use Modules\HRM\Models\Bank;
-use Modules\Hrm\Models\Department;
-use Modules\Hrm\Models\EducationLevel;
-use Modules\Hrm\Models\Employee;
-use Modules\Hrm\Models\EmploymentType;
-use Modules\Hrm\Models\Unit;
+use Modules\HRM\Models\Department;
+use Modules\HRM\Models\Employee;
+use Modules\HRM\Models\EmploymentType;
+use Modules\HRM\Models\Unit;
+use Throwable;
 
 class EmployeeEdit extends Component
 {
@@ -39,11 +36,19 @@ class EmployeeEdit extends Component
     public bool $isViewMode = false;
 
     // ── Step 1: Basic Information ─────────────────────────────────────────────
-    public $email;
+    // FIX: this is the property the "Email" Select2 actually writes to
+    // (see the JS: { id: '#select-user', field: 'selectedUserId' }).
+    // It was declared but never populated on load, so it stayed null and
+    // silently failed the 'selectedUserId' => 'required' rule on submit —
+    // with no @error('selectedUserId') anywhere in the blade to surface it.
+    // public $selectedUserId = null;
+
     public $first_name;
     public $middle_name;
     public $last_name;
     public $dob;
+
+    // public $email;
     public $hired_date;
     public $retiring_date;
     public $education_level_id;
@@ -74,6 +79,8 @@ class EmployeeEdit extends Component
     public $existing_birth_certificate_file;
     public $employment_contract_file;
     public $existing_employment_contract_file;
+
+    public bool $isEdit = true;
 
     // ── Step 3: Identifications ───────────────────────────────────────────────
     public array $identification_items        = [];
@@ -130,19 +137,19 @@ class EmployeeEdit extends Component
         $emp = $this->employee;
 
         $this->fill([
-            'dob'             => $emp->dob,
-            'hired_date'      => $emp->hired_date,
-            'retiring_date'   => $emp->retiring_date,
-            'marital_status'  => $emp->marital_status,
-            'gender'          => $emp->gender,
-            'opf_number'      => $emp->opf_number,
-            'file_number'     => $emp->file_number,
-            'education_level_id'       => $emp->education_level_id,
-            'is_disable'      => (bool) $emp->is_disable,
+            'dob'                => $emp->dob,
+            'hired_date'         => $emp->hired_date,
+            'retiring_date'      => $emp->retiring_date,
+            'marital_status'     => $emp->marital_status,
+            'gender'             => $emp->gender,
+            'opf_number'         => $emp->opf_number,
+            'file_number'        => $emp->file_number,
+            'education_level_id' => $emp->education_level_id,
+            'is_disable'         => (bool) $emp->is_disable,
             'employment_type_id' => $emp->employment_type_id,
-            'designation_id'  => $emp->designation_id,
-            'unit'            => $emp->unit_id,
-            'department'      => $emp->department_id,
+            'designation_id'     => $emp->designation_id,
+            'unit'               => $emp->unit_id,
+            'department'         => $emp->department_id,
         ]);
 
         // Existing files
@@ -150,17 +157,35 @@ class EmployeeEdit extends Component
         $this->existing_birth_certificate_file    = $emp->birth_certificate_file;
         $this->existing_employment_contract_file  = $emp->employment_contract_file;
 
-        // User / email (read-only in edit mode)
-        $this->userId      = $emp->user_id;
-        $this->email       = $emp->user_id;
-        $this->first_name  = $emp->user->first_name;
-        $this->middle_name = $emp->user->middle_name;
-        $this->last_name   = $emp->user->last_name;
-        $this->location    = $emp->user->tenant?->name;
+        // User / email
+        // FIX: selectedUserId is what the dropdown + validation rule actually
+        // use. email is kept as the human-readable value for reference.
+        $this->userId         = $emp->user_id;
+        // $this->selectedUserId = $emp->user_id;
+        // $this->email          = $emp->user->email ?? $emp->user_id;
+        $this->first_name     = $emp->user->first_name;
+        $this->middle_name    = $emp->user->middle_name;
+        $this->last_name      = $emp->user->last_name;
+        $this->location       = $emp->user->tenant?->name;
 
-        // Contacts JSON
+        // ── Contacts JSON ────────────────────────────────────────────────────
+        // FIX: same normalization as EmployeeCreate — always resolve to two
+        // fixed, type-keyed slots instead of trusting whatever shape came
+        // back from the DB. Prevents null offset errors on save and keeps
+        // the "next of kin" field bound correctly.
         $saved = $emp->contacts;
-        $this->contacts = !empty($saved) ? $saved : $this->contacts;
+        if (is_string($saved)) {
+            $saved = json_decode($saved, true) ?? [];
+        }
+        $saved = is_array($saved) ? $saved : [];
+
+        $personal  = collect($saved)->first(fn($c) => is_array($c) && ($c['type'] ?? null) === 'personal');
+        $nextOfKin = collect($saved)->first(fn($c) => is_array($c) && ($c['type'] ?? null) === 'next_of_kin');
+
+        $this->contacts = [
+            ['type' => 'personal',    'phone_number' => $personal['phone_number']  ?? ''],
+            ['type' => 'next_of_kin', 'phone_number' => $nextOfKin['phone_number'] ?? ''],
+        ];
 
         // Bank details
         $this->employee_bank_id         = $emp->bankAccount?->bank_id;
@@ -211,18 +236,23 @@ class EmployeeEdit extends Component
     #[On('user-selected')]
     public function selectUser(): void
     {
-        // Email/user reassignment is disabled on edit; kept only so the
-        // eventEmail dispatch below has somewhere consistent to land.
+        // Reassigning the employee to a different user record is intentionally
+        // not supported on edit — selectedUserId stays pinned to the employee's
+        // existing user via populateEmployeeData(). Kept as a listener no-op so
+        // the shared '#select-user' JS (used by both create & edit blades)
+        // doesn't error if it fires.
     }
 
     public function loadEmail(): void
     {
         $this->dispatch('eventEmail', [
-            'employee_id'     => $this->employee->user_id,
-            'unit_id'         => $this->employee->unit_id,
-            'department_id'   => $this->employee->department_id,
-            'employment_type_id' => $this->employee->employment_type_id,
-            'education_levle_id' => $this->employee->education_level_id,
+            'employee_id'         => $this->employee->user->id,
+            'education_level_id'  => $this->employee->education_level_id,
+            'employment_type_id'  => $this->employee->employment_type_id,
+            'designation_id'      => $this->employee->designation_id,
+            'unit_id'             => $this->employee->unit_id,
+            'department_id'       => $this->employee->department_id,
+            'employee_bank_id'    => $this->employee->bankAccount?->bank_id,
         ]);
     }
 
@@ -240,12 +270,12 @@ class EmployeeEdit extends Component
             'dob'                     => 'required|date|before:today',
             'hired_date'              => 'required|date',
             'retiring_date'           => 'nullable|date|after:hired_date',
-            'education_level_id'               => 'required|integer',
+            'education_level_id'      => 'required|integer',
             'marital_status'          => 'required|string|in:' . implode(',', MaritalStatus::ALL),
             'is_disable'              => 'required|boolean',
-            'employment_type_id'         => 'required|integer',
+            'employment_type_id'      => 'required|integer',
             'gender'                  => 'required|string|in:' . implode(',', Gender::ALL),
-            'email'                   => 'required|exists:users,id',
+            // 'selectedUserId'          => 'required|exists:users,id',
             'contacts.0.phone_number' => 'required|string|max:15',
             'contacts.1.phone_number' => 'nullable|string|max:15',
 
@@ -279,16 +309,18 @@ class EmployeeEdit extends Component
     protected function messages(): array
     {
         return [
-            'dob.before'                                         => 'Date of birth must be before today.',
-            'designation_id.required'                            => 'Please select a designation.',
-            'designation_id.exists'                              => 'Selected designation is invalid.',
-            'marital_status.in'                                  => 'Please select a valid marital status.',
-            'retiring_date.after'                                => 'Retiring date must be after hired date.',
-            'contacts.0.phone_number.required'                   => 'Personal phone number is required.',
-            'identification_items.*.identification_id.required'  => 'Please select an identification type.',
-            'certificate_items.*.certificate_id.required'        => 'Please select a certificate type.',
-            'education_levels.*.course_name.required'            => 'Course name is required.',
-            'education_levels.*.certificate_name.required'       => 'Certificate name is required.',
+            // 'selectedUserId.required'                            => 'Please select an employee email.',
+            // 'selectedUserId.exists'                               => 'The selected user does not exist.',
+            'dob.before'                                          => 'Date of birth must be before today.',
+            'designation_id.required'                             => 'Please select a designation.',
+            'designation_id.exists'                               => 'Selected designation is invalid.',
+            'marital_status.in'                                   => 'Please select a valid marital status.',
+            'retiring_date.after'                                 => 'Retiring date must be after hired date.',
+            'contacts.0.phone_number.required'                    => 'Personal phone number is required.',
+            'identification_items.*.identification_id.required'   => 'Please select an identification type.',
+            'certificate_items.*.certificate_id.required'         => 'Please select a certificate type.',
+            'education_levels.*.course_name.required'             => 'Course name is required.',
+            'education_levels.*.certificate_name.required'        => 'Certificate name is required.',
         ];
     }
 
@@ -309,7 +341,7 @@ class EmployeeEdit extends Component
                 'gender',
                 'is_disable',
                 'employment_type_id',
-                'email',
+                // 'selectedUserId',
                 'contacts.0.phone_number',
                 'contacts.1.phone_number',
             ],
@@ -354,7 +386,19 @@ class EmployeeEdit extends Component
             return;
         }
 
-        $this->validate($this->getStepRules($this->currentStep));
+        try {
+            $this->validate($this->getStepRules($this->currentStep));
+        } catch (ValidationException $e) {
+            // FIX: the step-1 validation error most commonly hit here is
+            // 'selectedUserId' (no visible field for it in older markup).
+            // Surface a flash message in addition to the field-level errors
+            // so the user always sees *something* even if a given step's
+            // partial view doesn't render every @error() tag.
+            session()->flash('error', 'Please fix the highlighted fields before continuing: ' .
+                collect($e->validator->errors()->all())->implode(' '));
+            throw $e;
+        }
+
         $this->currentStep++;
     }
 
@@ -371,15 +415,29 @@ class EmployeeEdit extends Component
 
     public function submitForm()
     {
+        // dd('nafika');
         if ($this->isViewMode) {
             return;
         }
 
-        $this->validate();
+        try {
+            $this->validate();
+        } catch (ValidationException $e) {
+            // FIX: this used to fail silently on 'selectedUserId' with no
+            // @error() tag anywhere near it. Now we always flash a summary
+            // and jump back to step 1 (where that field lives) so the user
+            // can actually see and fix it.
+            $this->currentStep = 1;
+            session()->flash('error', 'Could not save changes — please fix: ' .
+                collect($e->validator->errors()->all())->implode(' '));
+            throw $e;
+        }
+
         DB::beginTransaction();
 
         try {
             $employee = $this->saveEmployee();
+
             $this->saveEmployeeBankDetails($employee);
             $this->saveEducationLevels($employee);
             $this->saveIdentifications($employee);
@@ -391,14 +449,25 @@ class EmployeeEdit extends Component
             $this->dispatch('resetFileState');
 
             return $this->redirectRoute('hrm.employees.index');
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
+            // FIX: was `catch (Exception $e)`, which misses Error/TypeError
+            // (e.g. a malformed repeater row throwing "access array offset
+            // on null"). Catching Throwable means those failures are now
+            // logged and reported instead of producing a blank/broken page.
             DB::rollBack();
+
             Log::error('Employee Edit Submission Error', [
-                'error'   => $e->getMessage(),
-                'trace'   => $e->getTraceAsString(),
-                'user_id' => auth()->id(),
+                'error'        => $e->getMessage(),
+                'exception'    => get_class($e),
+                'trace'        => $e->getTraceAsString(),
+                'employee_id'  => $this->employeeId,
+                'user_id'      => auth()->id(),
             ]);
-            session()->flash('error', 'Failed to update employee. Please try again.');
+
+            session()->flash(
+                'error',
+                'Failed to update employee: ' . $e->getMessage()
+            );
         }
     }
 
@@ -409,24 +478,26 @@ class EmployeeEdit extends Component
     protected function saveEmployee(): Employee
     {
         $data = [
-            'dob'               => $this->dob,
-            'hired_date'        => $this->hired_date,
-            'retiring_date'     => $this->retiring_date,
-            'marital_status'    => $this->marital_status,
-            'gender'            => $this->gender,
-            'opf_number'        => $this->opf_number,
-            'file_number'       => $this->file_number,
-            'education_level_id'         => $this->education_level_id,
-            'is_disable'        => $this->is_disable,
-            'employment_type_id'   => $this->employment_type_id,
-            'designation_id'    => $this->designation_id,
-            'unit_id'           => $this->unit,
-            'department_id'     => $this->department,
-            'updated_by'        => auth()->id(),
-            'contacts'          => json_encode(
+            'dob'                 => $this->dob,
+            'hired_date'          => $this->hired_date,
+            'retiring_date'       => $this->retiring_date,
+            'marital_status'      => $this->marital_status,
+            'gender'              => $this->gender,
+            'opf_number'          => $this->opf_number,
+            'file_number'         => $this->file_number,
+            'education_level_id'  => $this->education_level_id,
+            'is_disable'          => $this->is_disable,
+            'employment_type_id'  => $this->employment_type_id,
+            'designation_id'      => $this->designation_id,
+            'unit_id'             => $this->unit,
+            'department_id'       => $this->department,
+            'updated_by'          => auth()->id(),
+            // FIX: guard against non-array / malformed entries, same as
+            // EmployeeCreate, so a stray null row can't throw here.
+            'contacts' => json_encode(
                 array_values(array_filter(
                     $this->contacts,
-                    fn($c) => filled($c['phone_number'])
+                    fn($c) => is_array($c) && filled($c['phone_number'] ?? null)
                 ))
             ),
         ];
@@ -471,7 +542,6 @@ class EmployeeEdit extends Component
                 }
                 $data[$column] = $file->store($cfg['dir'], 'public');
             } else {
-                // Preserve existing path; null if it was explicitly cleared
                 $data[$column] = $existing ?: null;
             }
         }
@@ -484,9 +554,14 @@ class EmployeeEdit extends Component
         $employee->education_levels()->delete();
 
         foreach ($this->education_levels as $index => $edu) {
+            // FIX: skip malformed/empty rows instead of throwing.
+            if (!is_array($edu) || blank($edu['course_name'] ?? null)) {
+                continue;
+            }
+
             $row = [
                 'course_name'           => $edu['course_name'],
-                'certificate_name'      => $edu['certificate_name'],
+                'certificate_name'      => $edu['certificate_name'] ?? null,
                 'holder_certificate_no' => $edu['holder_certificate_no'] ?? null,
             ];
 
@@ -508,6 +583,11 @@ class EmployeeEdit extends Component
         $employee->identifications()->delete();
 
         foreach ($this->identification_items as $index => $item) {
+            // FIX: same defensive guard as education levels.
+            if (!is_array($item) || blank($item['identification_id'] ?? null)) {
+                continue;
+            }
+
             $row = [
                 'identification_id' => $item['identification_id'],
                 'identification_no' => $item['identification_no'] ?? null,
@@ -532,6 +612,11 @@ class EmployeeEdit extends Component
         $employee->certificates()->delete();
 
         foreach ($this->certificate_items as $index => $item) {
+            // FIX: same defensive guard as education levels.
+            if (!is_array($item) || blank($item['certificate_id'] ?? null)) {
+                continue;
+            }
+
             $row = [
                 'certificate_id' => $item['certificate_id'],
                 'certificate_no' => $item['certificate_no'] ?? null,
@@ -569,6 +654,9 @@ class EmployeeEdit extends Component
     public function removeEducationLevel(int $index): void
     {
         if (count($this->education_levels) > 1) {
+            if (!empty($this->education_levels[$index]['existing_file'])) {
+                Storage::disk('public')->delete($this->education_levels[$index]['existing_file']);
+            }
             array_splice($this->education_levels, $index, 1);
         }
     }
@@ -585,6 +673,9 @@ class EmployeeEdit extends Component
     public function removeIdentificationItem(int $index): void
     {
         if (count($this->identification_items) > 1) {
+            if (!empty($this->identification_items[$index]['existing_file'])) {
+                Storage::disk('public')->delete($this->identification_items[$index]['existing_file']);
+            }
             array_splice($this->identification_items, $index, 1);
         }
     }
@@ -601,6 +692,9 @@ class EmployeeEdit extends Component
     public function removeCertificateItem(int $index): void
     {
         if (count($this->certificate_items) > 1) {
+            if (!empty($this->certificate_items[$index]['existing_file'])) {
+                Storage::disk('public')->delete($this->certificate_items[$index]['existing_file']);
+            }
             array_splice($this->certificate_items, $index, 1);
         }
     }
@@ -615,6 +709,9 @@ class EmployeeEdit extends Component
             'departments'         => Department::pluck('name', 'id'),
             'units'               => Unit::pluck('name', 'id'),
             'banks'               => Bank::pluck('name', 'id'),
+            // FIX: this was completely missing, which throws an undefined
+            // variable error the moment the blade tries to loop over it.
+            'emails'              => $this->getAvailableEmails(),
             'educationLevels'     => EducationLevel::pluck('name', 'id'),
             'employmentTypes'     => EmploymentType::pluck('name', 'id'),
             'designations'        => Designation::pluck('designation_name', 'id'),
@@ -622,5 +719,19 @@ class EmployeeEdit extends Component
             'certificateTypes'    => Certificate::pluck('certificate_name', 'id'),
             'isViewMode'          => $this->isViewMode,
         ]);
+    }
+
+    protected function getAvailableEmails(): \Illuminate\Support\Collection
+    {
+        // FIX: same helper EmployeeCreate uses — includes users who don't
+        // yet have an employee record, plus the user already tied to this
+        // employee (so the dropdown always has an option to render).
+        return User::query()
+            ->where(function ($q) {
+                $q->doesntHave('employee')
+                    ->orWhere('id', $this->userId);
+            })
+            ->orderByDesc('created_at')
+            ->pluck('email', 'id');
     }
 }
