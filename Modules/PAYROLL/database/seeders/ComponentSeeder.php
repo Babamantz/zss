@@ -48,11 +48,16 @@ class ComponentSeeder extends Seeder
         $rows = [];
 
         foreach ($components as $comp) {
+            // Explicitly check if the string ends with '-ALLOWANCE'
+            $code = Str::endsWith($comp, '-ALLOWANCE')
+                ? 'allowance'
+                : strtoupper($comp);
+
             $rows[] = [
                 // Str::headline converts 'PBZ-LOAN' into nicely formatted 'PBZ Loan'
-                'name'       => \Illuminate\Support\Str::headline(strtolower($comp)),
+                'name'       => Str::headline(strtolower($comp)),
                 'type'       => $types[$comp],
-                'code'       => strtoupper($comp), // Keeps codes uniform, unique, and predictable
+                'code'       => $code,
                 'is_active'  => true,
                 'created_at' => now(),
                 'updated_at' => now(),

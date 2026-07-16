@@ -74,7 +74,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('dashboard',        Dashboard::class)
             ->name('dashboard');
-        Route::get('components',        SalaryComponentIndex::class)
+        Route::get('salary_components',        SalaryComponentIndex::class)
             ->name('components');
 
         Route::get('pay-periods',       PayPeriodIndex::class)
