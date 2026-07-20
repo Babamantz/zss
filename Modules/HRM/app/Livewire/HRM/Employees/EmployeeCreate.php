@@ -29,8 +29,6 @@ class EmployeeCreate extends Component
     // ── Identity & navigation ─────────────────────────────────────────────────
     public $userId;
     public $employeeId;
-
-    public $selectedUserId = null;
     public $mode;
     public $employee;
     public $employee_bank_id;
@@ -266,109 +264,33 @@ class EmployeeCreate extends Component
     // =========================================================================
 
     #[On('user-selected')]
-    #[On('user-selected')]
     public function selectUser(): void
     {
-        if (!$this->selectedUserId) {
-            return;
-        }
+        if (!$this->email) return;
 
         try {
-            $currentUser = auth()->user();
-
-            // 1. Initialize the query builder
-            $query = User::with('tenant')->where('id', (int) $this->selectedUserId);
-
-            // 2. Determine access strategy based on roles
-            if ($currentUser?->hasAnyRole(['super-admin', 'hr-officer', 'director-hr'])) {
-                // Admin users can see across all tenants completely unfiltered
-                $query->withoutGlobalScopes();
-            } else {
-                // Regular users are strictly locked to their own tenant record
-                $query->where('tenant_id', $currentUser?->tenant_id);
-            }
-
-            // 3. Execute the query
-            $user = $query->firstOrFail();
-
+            $user = User::with('tenant')->findOrFail($this->email);
             $this->first_name  = $user->first_name;
             $this->middle_name = $user->middle_name;
             $this->last_name   = $user->last_name;
-            $this->userId       = $user->id;
-            $this->email        = $user->email;
-            $this->location      = $user->tenant?->name;
-        } catch (\Throwable $e) {
+            $this->userId      = $user->id;
+            $this->location    = $user->tenant?->name;
+        } catch (Exception $e) {
             session()->flash('error', 'User not found.');
             Log::error('User Selection Error: ' . $e->getMessage());
         }
     }
 
-    // (delete the entire commented-out old version of selectUser() that
-    // follows this method — it's dead code and not part of the fix)
-    // public function selectUser(): void
-    // {
-    //     if (!$this->email) return;
-
-    //     try {
-    //         $currentUser = auth()->user();
-
-
-
-    //         // 1. Initialize the query builder
-    //         $query = User::w('tenant')->where('email', $this->email);
-    //         // Log::info('Debug', [
-    //         //     'email' => $this->email,
-    //         //     'current_user_roles' => $currentUser?->getRoleNames(),
-    //         //     'admin_branch_hit' => $currentUser?->hasAnyRole(['super-Admin', 'hr-officer', 'director-hr', 'director-general']),
-    //         //     'sql' => $query->toSql(),
-    //         //     'bindings' => $query->getBindings(),
-    //         // ]);
-
-
-
-
-    //         // 2. Determine access strategy based on roles
-    //         if ($currentUser?->hasAnyRole(['super-Admin', 'hr-officer', 'director-hr', 'director-general'])) {
-    //             // Admin users can see across all tenants completely unfiltered
-    //             $query->withoutGlobalScopes();
-    //         } else {
-    //             // Regular users are strictly locked to their own tenant record
-    //             $query->where('tenant_id', $currentUser->tenant_id);
-    //         }
-
-    //         // 3. Execute the query
-    //         $user = $query->firstOrFail();
-    //         $this->first_name  = $user->first_name;
-    //         $this->middle_name = $user->middle_name;
-    //         $this->last_name   = $user->last_name;
-    //         $this->userId      = $user->id;
-    //         $this->location    = $user->tenant?->name;
-    //     } catch (Exception $e) {
-    //         session()->flash('error', 'User not found.');
-    //         Log::error('User Selection Error: ' . $e->getMessage());
-    //     }
-    // }
-
     public function loadEmail(): void
     {
         if ($this->employee?->user) {
-
             $this->dispatch('eventEmail', [
-                'employee_id'          => $this->employee->user->id,
-                'education_level_id'   => $this->employee->education_level_id,
-                'employment_type_id'   => $this->employee->employment_type_id,
-                'designation_id'       => $this->employee->designation_id,
-                'unit_id'              => $this->employee->unit_id,
-                'department_id'        => $this->employee->department_id,
-                'employee_bank_id'     => $this->employee->bankAccount?->bank_id,
+                'employee_id'     => $this->employee->user->id,
+                'unit_id'         => $this->employee->unit_id,
+                'department_id'   => $this->employee->department_id,
+                'employment_type_id' => $this->employee->employment_type_id,
+                'education_level_id' => $this->employee->education_level_id,
             ]);
-            // $this->dispatch('eventEmail', [
-            //     'employee_id'     => $this->employee->user->id,
-            //     'unit_id'         => $this->employee->unit_id,
-            //     'department_id'   => $this->employee->department_id,
-            //     'employment_type_id' => $this->employee->employment_type_id,
-            //     'education_level_id' => $this->employee->education_level_id,
-            // ]);
         }
     }
 
@@ -391,7 +313,7 @@ class EmployeeCreate extends Component
             'is_disable'              => 'required|boolean',
             'employment_type_id'         => 'required|integer',
             'gender'                  => 'required|string|in:' . implode(',', Gender::ALL),
-            'selectedUserId'                   => 'required|exists:users,id',
+            'email'                   => 'required|exists:users,id',
             'contacts.0.phone_number' => 'required|string|max:15',
             'contacts.1.phone_number' => 'nullable|string|max:15',
 
@@ -425,8 +347,8 @@ class EmployeeCreate extends Component
     protected function messages(): array
     {
         return [
-            'selectedUserId.required'                           => 'Please select a user email.',
-            'selectedUserId.exists'                              => 'The selected user does not exist.',
+            'email.required'                           => 'Please select a user email.',
+            'email.exists'                              => 'The selected user does not exist.',
             'dob.before'                                => 'Date of birth must be before today.',
             'designation_id.required'                   => 'Please select a designation.',
             'designation_id.exists'                      => 'Selected designation is invalid.',
