@@ -65,8 +65,8 @@ class EmployeeEdit extends Component
     // ── Step 2: Employment Details ────────────────────────────────────────────
     public $opf_number;
     public $designation_id;
-    public $unit;
-    public $department;
+    public $unit_id;
+    public $department_id;
     public $location;
 
     public $employee_bank_id;
@@ -148,8 +148,8 @@ class EmployeeEdit extends Component
             'is_disable'         => (bool) $emp->is_disable,
             'employment_type_id' => $emp->employment_type_id,
             'designation_id'     => $emp->designation_id,
-            'unit'               => $emp->unit_id,
-            'department'         => $emp->department_id,
+            'unit_id'               => $emp->unit_id,
+            'department_id'         => $emp->department_id,
         ]);
 
         // Existing files
@@ -282,8 +282,8 @@ class EmployeeEdit extends Component
             // Step 2
             'opf_number'                => 'nullable|string|max:50',
             'designation_id'            => 'required|exists:designations,id',
-            'unit'                      => 'nullable|exists:units,id',
-            'department'                => 'nullable|exists:departments,id',
+            'unit_id'                      => 'nullable|exists:units,id',
+            'department_id'                => 'nullable|exists:departments,id',
             'file_number'               => 'nullable|string|max:50',
             'employee_bank_id'          => 'nullable|exists:banks,id',
             'employee_bank_account_no'  => 'nullable|string|max:50',
@@ -348,8 +348,8 @@ class EmployeeEdit extends Component
             2 => [
                 'opf_number',
                 'designation_id',
-                'unit',
-                'department',
+                'unit_id',
+                'department_id',
                 'file_number',
                 'employee_bank_id',
                 'employee_bank_account_no',
@@ -489,8 +489,8 @@ class EmployeeEdit extends Component
             'is_disable'          => $this->is_disable,
             'employment_type_id'  => $this->employment_type_id,
             'designation_id'      => $this->designation_id,
-            'unit_id'             => $this->unit,
-            'department_id'       => $this->department,
+            'unit_id'             => $this->unit_id,
+            'department_id'       => $this->department_id,
             'updated_by'          => auth()->id(),
             // FIX: guard against non-array / malformed entries, same as
             // EmployeeCreate, so a stray null row can't throw here.

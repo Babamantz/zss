@@ -143,8 +143,9 @@
 <option value="{{ $id }}" {{ (string)$education_level_id === (string)$id ? 'selected' : '' }}>{{ ucwords(str_replace(['-', '_'], ' ', $level)) }}</option>
                                             @endforeach
                                         </select>
-                                        @error('education_level_id') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
+                                 @error('education_level_id') <small class="text-danger">{{ $message }}</small> @enderror
+
                                 </div>
                             </div>
 
@@ -230,8 +231,8 @@
                                         @error('is_disable') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
                                 </div>
-                                <div wire:ignore  class="col-md-6">
-                                    <div  class="form-group">
+                                <div  class="col-md-6">
+                                    <div wire:ignore  class="form-group">
                                          <label>Employment Type: <span class="text-danger">*</span></label>
                                         <select id="select-employment-type" class="js-example-basic-single form-control">
                                             <option value="">-- Employment Type --</option>
@@ -240,8 +241,8 @@
                                             @endforeach
                                         
                                         </select>
-                                        @error('employment_type_id') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
+                                    @error('employment_type_id') <small class="text-danger">{{ $message }}</small> @enderror
                                 </div>
                             </div>
 
@@ -295,13 +296,13 @@
                                             <select id="select-unit" class="js-example-basic-single form-control" {{ $disabledAttr }}>
                                                 <option value="">-- Select Unit --</option>
                                                 @foreach ($units as $id => $unitName)
-                                                    <option value="{{ $id }}" {{ (string) $unit === (string) $id ? 'selected' : '' }}>
+                                                    <option value="{{ $id }}" {{ (string) $unit_id === (string) $id ? 'selected' : '' }}>
                                                         {{ $unitName }}
                                                     </option>
                                                 @endforeach
                                             </select>
-                                            @error('unit') <small class="text-danger">{{ $message }}</small> @enderror
                                         </div>
+                                        @error('unit_id') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
                                     <div class="col-md-6">
                                         <div wire:ignore class="form-group">
@@ -310,14 +311,15 @@
                                                 {{ $disabledAttr }}>
                                                 <option value="">-- Select Department --</option>
                                                 @foreach ($departments as $id => $deptName)
-                                                    <option value="{{ $id }}" {{ (string) $department === (string) $id ? 'selected' : '' }}>
+                                                    <option value="{{ $id }}" {{ (string) $department_id === (string) $id ? 'selected' : '' }}>
                                                         {{ $deptName }}
                                                     </option>
                                                 @endforeach
                                             </select>
+                                        
+                                        </div>
                                             @error('department') <small class="text-danger">{{ $message }}</small>
                                             @enderror
-                                        </div>
                                     </div>
                                 </div>
 
@@ -335,9 +337,10 @@
                                                     </option>
                                                 @endforeach
                                             </select>
-                                            @error('employee_bank_id') <small class="text-danger">{{ $message }}</small>
-                                            @enderror
+                                         
                                         </div>
+                                           @error('employee_bank_id') <small class="text-danger">{{ $message }}</small>
+                                            @enderror
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
@@ -722,16 +725,71 @@
 
 @push('scripts')
     <script src="{{ asset('./assets/js/select2/select2.full.min.js') }}"></script>
-    <script src="{{ asset('./assets/js/select2/select2-custom.js') }}"></script>
+    {{-- <script src="{{ asset('./assets/js/select2/select2-custom.js') }}"></script> --}}
 
     @script
     <script>
+    const initSelect2Fields = () => {
+        const selects = [
+            { id: '#select-education', field: 'education_level_id' },
+            { id: '#select-designation', field: 'designation_id' },
+            { id: '#select-unit', field: 'unit_id' },
+            { id: '#select-department', field: 'department_id' },
+            { id: '#select-employment-type', field: 'employment_type_id' },
+            { id: '#select-bank-name', field: 'employee_bank_id' },
+        ];
+
+        selects.forEach(({ id, field }) => {
+            const $el = $(id);
+            if (!$el.length) return;
+
+            // FIX: Destroy existing instance before re-initializing to prevent duplication
+            if ($el.hasClass("select2-hidden-accessible")) {
+                $el.select2('destroy');
+            }
+
+            $el.select2();
+            
+            $el.off('change').on('change', function () {
+                $wire.set(field, this.value);
+            });
+        });
+    };
+
+    // Initialize on load
+    initSelect2Fields();
+
+    // Re-initialize safely on Livewire updates
+    Livewire.hook('morph.updated', () => initSelect2Fields());
+
+    // Listen to backend events
+    Livewire.on('eventEmail', (eventData) => {
+        const data = Array.isArray(eventData) ? (eventData[0] || {}) : eventData;
+        const row = data.detail ? data.detail : data;
+
+        // Sync values safely
+        $('#select-unit').val(row.unit_id).trigger('change');
+        $('#select-department').val(row.department_id).trigger('change');
+        
+        // FIX: Removed the duplicate line here
+        $('#select-employment-type').val(row.employment_type_id).trigger('change'); 
+        
+        $('#select-education').val(row.education_level_id).trigger('change'); 
+        $('#select-bank').val(row.employee_bank_id).trigger('change'); 
+    });
+
+    Livewire.on('resetFileState', () => {
+        document.querySelectorAll('input[type="file"]').forEach(el => el.value = '');
+    });
+</script>
+
+    {{-- <script>
         const initSelect2Fields = () => {
             const selects = [
                 { id: '#select-education', field: 'education_level_id' }, // Double check if your backend property is $education or $education_level_id
                 { id: '#select-designation', field: 'designation_id' },
-                { id: '#select-unit', field: 'unit' },
-                { id: '#select-department', field: 'department' },
+                { id: '#select-unit', field: 'unit_id' },
+                { id: '#select-department', field: 'department_id' },
                 { id: '#select-employment-type', field: 'employment_type_id' },
                 { id: '#select-bank-name', field: 'employee_bank_id' },
             ];
@@ -763,102 +821,13 @@
             $('#select-department').val(row.department_id).trigger('change');
             $('#select-employment-type').val(row.employment_type_id).trigger('change'); // Added missing '_id'
             $('#select-education').val(row.education_level_id).trigger('change'); // Added missing execution line
-        });
-
-        Livewire.on('resetFileState', () => {
-            document.querySelectorAll('input[type="file"]').forEach(el => el.value = '');
-        });
-    </script>
-
-    {{--
-    <script>
-        const initSelect2Fields = () => {
-            const selects = [
-                { id: '#select-education', field: 'education_level_id' },
-                { id: '#select-designation', field: 'designation_id' },
-                { id: '#select-unit', field: 'unit' },
-                { id: '#select-department', field: 'department' },
-                { id: '#select-employment-type', field: 'employment_type_id' },
-                { id: '#select-bank-name', field: 'employee_bank_id' },
-            ];
-
-            selects.forEach(({ id, field }) => {
-                const $el = $(id);
-                if (!$el.length) return;
-                $el.select2();
-                $el.off('change').on('change', function () {
-                    $wire.set(field, this.value);
-                });
-            });
-
-            $('#select-user').select2();
-        };
-
-        initSelect2Fields();
-        Livewire.hook('morph.updated', () => initSelect2Fields());
-
-        Livewire.on('eventEmail', (data) => {
-            const row = Array.isArray(data) ? data[0] : data;
-            $('#select-user').val(row.employee_id).trigger('change');
-            $('#select-unit').val(row.unit_id).trigger('change');
-            $('#select-department').val(row.department_id).trigger('change');
-            $('#select-employment-type').val(row.employment_type).trigger('change');
+            $('#select-bank').val(row.employee_bank_id).trigger('change'); // Added missing execution line
         });
 
         Livewire.on('resetFileState', () => {
             document.querySelectorAll('input[type="file"]').forEach(el => el.value = '');
         });
     </script> --}}
-    {{--
-    <script>
-        document.addEventListener('livewire:initialized', () => {
 
-            const initSelect2Fields = () => {
-                const selects = [
-                    { id: '#select-education', field: 'education' },
-                    { id: '#select-designation', field: 'designation_id' },
-                    { id: '#select-unit', field: 'unit' },
-                    { id: '#select-department', field: 'department' },
-                    { id: '#select-employment-type', field: 'employment_type' },
-                    { id: '#select-bank-name', field: 'employee_bank_id' },
-                ];
-
-                selects.forEach(({ id, field }) => {
-                    const $el = $(id);
-                    if (!$el.length) return;
-                    $el.select2();
-                    $el.off('change').on('change', function () {
-                        $wire.set(field, this.value);
-                    });
-                });
-
-                // Email select is always locked on edit; still initialise so it renders consistently
-                const $email = $('#select-user');
-                if ($email.length) {
-                    $email.select2();
-                }
-            };
-
-            initSelect2Fields();
-
-            // Re-init after every Livewire DOM morph (step changes)
-            Livewire.hook('morph.updated', () => initSelect2Fields());
-
-            // Sync Select2 visuals with loaded employee data
-            Livewire.on('eventEmail', (data) => {
-                const row = Array.isArray(data) ? data[0] : data;
-
-                $('#select-user').val(row.employee_id).trigger('change');
-                $('#select-unit').val(row.unit_id).trigger('change');
-                $('#select-department').val(row.department_id).trigger('change');
-                $('#select-employment-type').val(row.employment_type).trigger('change');
-            });
-
-            // Clear file inputs after successful update
-            Livewire.on('resetFileState', () => {
-                document.querySelectorAll('input[type="file"]').forEach(el => el.value = '');
-            });
-        });
-    </script> --}}
     @endscript
 @endpush
