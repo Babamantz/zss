@@ -1,3 +1,4 @@
+
 {{-- resources/views/attendance/preview.blade.php --}}
 <!DOCTYPE html>
 <html>
