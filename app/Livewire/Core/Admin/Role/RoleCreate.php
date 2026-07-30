@@ -5,7 +5,6 @@ namespace App\Livewire\Core\Admin\Role;
 use Livewire\Component;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use Livewire\Attributes\Session;
 
 class RoleCreate extends Component
 {
@@ -14,18 +13,25 @@ class RoleCreate extends Component
 
     public ?string $role = null;
     public array $permissions = [];
+
     public function getRolesProperty()
     {
-        return Role::select(['id', 'name'])->get();
+        return Role::select(['id', 'name'])->get()->map(fn($role) => [
+            'value' => $role->name,
+            'label' => $role->name,
+        ]);
     }
+
     public function getPermissionNamesProperty()
     {
-        return Permission::select(['id', 'name'])->get();
+        return Permission::select(['id', 'name'])->get()->map(fn($permission) => [
+            'value' => $permission->name,
+            'label' => $permission->name,
+        ]);
     }
 
     public function mount(?string $roleName = null)
     {
-        // dd($roleName);
         $this->permissions = [];
 
         if ($roleName) {
@@ -35,10 +41,6 @@ class RoleCreate extends Component
 
             $this->role = $role->name;
             $this->permissions = $role->permissions->pluck('name')->toArray();
-
-            // dd($this->permissions);
-
-            $this->dispatch('prefill-permissions', $this->permissions);
         }
     }
 
@@ -46,11 +48,10 @@ class RoleCreate extends Component
     public function save(): void
     {
         $this->validate([
-            'role'        => ['required', 'string'],
-            'permissions' => [ 'array'],
+            'role'          => ['required', 'string', 'exists:roles,name'],
+            'permissions'   => ['array'],
+            'permissions.*' => ['string', 'exists:permissions,name'],
         ]);
-
-        // dd($this->permissions);
 
         try {
             $role = Role::findByName($this->role);
@@ -59,22 +60,18 @@ class RoleCreate extends Component
 
             $this->reset(['role', 'permissions']);
 
-            $this->dispatch('resetSelectedPermissions');
-            $this->dispatch('resetRoleName');
-            // In your save method:
+          
 
             session()->flash('toastMagic', [
                 'status' => 'success',
                 'message' => $this->isEdit ? 'Permissions updated successfully' : 'Permissions created successfully.',
             ]);
 
-            $this->redirectRoute('roles.index', navigate: true);
+            $this->redirectRoute('roles.create', navigate: true);
         } catch (\Throwable $e) {
             report($e);
 
-            $this->dispatch('error', [
-                'message' => 'Unable to assign permissions.',
-            ]);
+            $this->dispatch('toastMagic', type: 'error', message: 'Unable to assign permissions.');
         }
     }
     public function render()

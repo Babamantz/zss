@@ -1,5 +1,7 @@
 @push('css')
-    <link rel="stylesheet" type="text/css" href="{{ asset('./assets/css/select2.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/async-select/async-select.css') }}">
+    <!-- Optional: include when using Bootstrap 4 theme styling -->
+    <link rel="stylesheet" href="{{ asset('vendor/async-select/async-select-bootstrap-v4.css') }}">
 @endpush
 
 <div class="container-fluid">
@@ -20,14 +22,8 @@
                             {{-- User Email Selection --}}
                             <div class="col-md-6" wire:ignore>
                                 <label class="form-label fw-medium" for="email-select">User Email Address</label>
-                                <select class="js-example-basic-single form-control" id="email-select" required>
-                                    <option value="">--select user--</option>
-                                    @forelse ($this->users as $user)
-                                        <option value="{{ $user->id }}">{{ $user->email }}</option>
-                                    @empty
-                                        <option disabled>No users found</option>
-                                    @endforelse
-                                </select>
+                                <livewire:async-select name="users" wire:model="userId" :options="$this->users"
+                                    placeholder="Select users..." />
                                 @error('userId') <small class="text-danger d-block mt-1">{{ $message }}</small>
                                 @enderror
                             </div>
@@ -36,7 +32,7 @@
                             <div class="col-md-6">
                                 <label class="form-label fw-medium" for="password">New Secure Password</label>
                                 <input class="form-control" type="password" wire:model.defer="password" id="password"
-                                    required >
+                                    required>
                                 @error('password') <small class="text-danger d-block mt-1">{{ $message }}</small>
                                 @enderror
                             </div>
@@ -62,37 +58,4 @@
 </div>
 
 @push('scripts')
-    <script src="{{ asset('./assets/js/select2/select2.full.min.js') }}"></script>
-    <script src="{{ asset('./assets/js/select2/select2-custom.js') }}"></script>
-    <script>
-        document.addEventListener('livewire:initialized', () => {
-            const elEmail = $("#email-select");
-
-            function initSelect2() {
-                elEmail.select2({
-                    placeholder: "-- Select Email --",
-                    width: '100%'
-                });
-            }
-
-            // Boot plugin directly on page rendering cycles
-            initSelect2();
-
-            // Sync updates cleanly upstream with the Livewire instance state
-            elEmail.on('change', function () {
-                @this.set('userId', $(this).val());
-            });
-
-            // Handle customized component-emitted tracking rules
-            Livewire.on('resetEmail', (event) => {
-                const values = Array.isArray(event) ? event : (event.values || '');
-                elEmail.val(values).trigger('change.select2');
-            });
-
-            // CRITICAL: Reinitialize Select2 whenever Livewire morphs the active DOM tree
-            Livewire.hook('morph.updated', () => {
-                initSelect2();
-            });
-        }); 
-    </script>
 @endpush

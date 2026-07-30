@@ -39,7 +39,7 @@ class UserCreate extends Component
             'last_name' => 'required|string|min:2|max:50',
             'email' => 'required|email|unique:users,email',
             'location' => 'required|numeric|exists:tenants,id',
-            'role' => 'required|numeric|exists:roles,name',
+            'role' => 'required|numeric|exists:roles,id',
             'direct_permissions' => 'nullable|array',
             'direct_permissions.*' => 'numeric|exists:permissions,id',
         ];
@@ -66,20 +66,25 @@ class UserCreate extends Component
         $this->roles = [];
     }
 
+
     #[Computed]
     public function roleNames()
     {
-        return Role::select(['id', 'name'])
-            ->orderBy('name')
-            ->get();
+        return $roles = Role::select(['id', 'name'])->get()->map(fn($role) => [
+            'value' => $role->id,
+            'label' => $role->name,
+        ]);
     }
+
 
     #[Computed]
     public function permissionNames()
     {
-        return Permission::select(['id', 'name'])
-            ->orderBy('name')
-            ->get();
+        return Permission::select(['id', 'name'])->get()->map(fn($permission) => [
+            'value' => $permission->id,
+            'label' => $permission->name,
+
+        ]);
     }
 
     #[Computed]
@@ -92,7 +97,9 @@ class UserCreate extends Component
 
     public function save()
     {
-      
+
+        $validated = $this->validate();
+
         try {
             DB::transaction(function () {
 
@@ -116,12 +123,8 @@ class UserCreate extends Component
 
                 // dd('nafika hapa pili');
 
-                $this->dispatch('toastMagic', [
-                    'type' => 'success',
-                    'message' => 'User created successfully!',
-                ]);
+                $this->dispatch('toastMagic', type: 'success', message: 'User created successfully!');
 
-                $this->dispatch('user-created', userId: $user->id);
 
                 $this->reset(['first_name', 'middle_name', 'last_name', 'email', 'location', 'role', 'direct_permissions', 'is_officer']);
 
@@ -135,41 +138,33 @@ class UserCreate extends Component
                 'trace' => $e->getTraceAsString()
             ]);
 
-            $this->dispatch('toast', [
-                'type' => 'error',
-                'message' => 'Failed to create user. Please try again.',
-            ]);
+            $this->dispatch('toastMagic', type: 'error', message: 'Failed to create user. Please try again.');
         }
     }
 
     protected function assignRole(User $user): void
     {
         if ($this->role) {
-            $user->assignRole($this->role);
+            $role = Role::findById($this->role);
+
+            $user->syncRoles([$role]);
         }
     }
 
     protected function assignPermissions(User $user): void
     {
         if (!empty($this->direct_permissions)) {
-            $user->givePermissionTo($this->direct_permissions); // already names
+
+            $permissions = Permission::whereIn(
+                'id',
+                $this->direct_permissions
+            )->get();
+
+            $user->syncPermissions($permissions);
         }
     }
 
-    // protected function assignPermissions(User $user): void
-    // {
-    //     if (!empty($this->direct_permissions)) {
-    //         // Get permission names from IDs
-    //         $permissionNames = Permission::whereIn('id', $this->direct_permissions)
-    //             ->where('guard_name', 'web')
-    //             ->pluck('name')
-    //             ->toArray();
 
-    //         if (!empty($permissionNames)) {
-    //             $user->givePermissionTo($permissionNames);
-    //         }
-    //     }
-    // }
 
     public function render()
     {

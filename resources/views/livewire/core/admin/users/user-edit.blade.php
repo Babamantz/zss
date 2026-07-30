@@ -1,5 +1,8 @@
 @push('css')
-    <link rel="stylesheet" type="text/css" href="{{ asset('./assets/css/select2.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/async-select/async-select.css') }}">
+    <!-- Optional: include when using Bootstrap 4 theme styling -->
+    <link rel="stylesheet" href="{{ asset('vendor/async-select/async-select-bootstrap-v4.css') }}">
+
 @endpush
 
 
@@ -20,27 +23,29 @@
                                 <label class="form-label" for="name">First Name</label>
                                 <input class="form-control" id="name" type="text" wire:model="first_name"
                                     required="required" placeholder="John">
-                                @error('first_name') <small class="text-danger d-block mt-1">{{ $message }}</small>
-                                @enderror
                             </div>
+                            @error('first_name') <small class="text-danger d-block mt-1">{{ $message }}</small>
+                            @enderror
 
                             {{-- Middle Name --}}
                             <div class="col-md-4">
                                 <label class="form-label" for="Mname">Middle Name</label>
                                 <input class="form-control" id="Mname" type="text" wire:model="middle_name"
                                     placeholder="Robert">
-                                @error('middle_name') <small class="text-danger d-block mt-1">{{ $message }}</small>
-                                @enderror
+
                             </div>
+                            @error('middle_name') <small class="text-danger d-block mt-1">{{ $message }}</small>
+                            @enderror
 
                             {{-- Last Name --}}
                             <div class="col-md-4">
                                 <label class="form-label" for="lname">Last Name</label>
                                 <input class="form-control" id="lname" type="text" wire:model="last_name"
                                     placeholder="Doe">
-                                @error('last_name') <small class="text-danger d-block mt-1">{{ $message }}</small>
-                                @enderror
+
                             </div>
+                            @error('last_name') <small class="text-danger d-block mt-1">{{ $message }}</small>
+                            @enderror
 
                             {{-- Is Officer? --}}
                             <div class="col-md-6">
@@ -61,9 +66,10 @@
                                         </div>
                                     </label>
                                 </div>
-                                @error('is_officer') <small class="text-danger d-block mt-1">{{ $message }}</small>
-                                @enderror
+
                             </div>
+                            @error('is_officer') <small class="text-danger d-block mt-1">{{ $message }}</small>
+                            @enderror
 
                             {{-- Is Active? --}}
                             <div class="col-md-6">
@@ -96,8 +102,9 @@
                                 <label class="form-label" for="email">Email Address</label>
                                 <input class="form-control" id="email" type="email" wire:model="email"
                                     placeholder="john@example.com">
-                                @error('email') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
                             </div>
+                            @error('email') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
+
 
                             {{-- Location --}}
                             <div class="col-md-6">
@@ -110,38 +117,29 @@
                                         <option disabled>No location found</option>
                                     @endforelse
                                 </select>
-                                @error('location') <small class="text-danger d-block mt-1">{{ $message }}</small>
-                                @enderror
+
                             </div>
+                            @error('location') <small class="text-danger d-block mt-1">{{ $message }}</small>
+                            @enderror
 
                             {{-- Role Dropdown Select --}}
                             <div class="col-md-6" wire:ignore>
                                 <label class="form-label">Role</label>
-                                <select class="js-example-basic-single form-control" id="role-select">
-                                    <option value="">--select role--</option>
-                                    @forelse ($this->roleNames as $roleItem)
-                                        <option value="{{ $roleItem->name }}" {{ $role == $roleItem->name ? 'selected' : '' }}>{{ $roleItem->name }}</option>
-                                    @empty
-                                        <option disabled>No roles found</option>
-                                    @endforelse
-                                </select>
-                                @error('role') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
+                                <livewire:async-select name="roles" wire:model="role" :options="$this->roleNames"
+                                    placeholder="Select role..." />
                             </div>
+                            @error('role') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
+
 
                             {{-- Permissions Dropdown Select --}}
                             <div class="col-12" wire:ignore>
                                 <label class="form-label">Direct Permissions</label>
-                                <select class="js-example-placeholder-multiple form-control" multiple="multiple"
-                                    id="permissions-select">
-                                    @forelse ($this->permissionNames as $permission)
-                                        <option value="{{ $permission->name }}" {{ in_array($permission->name, $direct_permissions) ? 'selected' : '' }}>{{ $permission->name }}</option>
-                                    @empty
-                                        <option disabled>No permissions found</option>
-                                    @endforelse
-                                </select>
-                                @error('direct_permissions') <small
-                                class="text-danger d-block mt-1">{{ $message }}</small> @enderror
+                                <livewire:async-select name="direct_permissions[]" wire:model="direct_permissions"
+                                    :options="$this->permissionNames" :multiple="true"
+                                    placeholder="Select permission..." />
                             </div>
+                            @error('direct_permissions') <small class="text-danger d-block mt-1">{{ $message }}</small>
+                            @enderror
                         </div>
 
                         {{-- Action Bar --}}
@@ -168,43 +166,5 @@
 
 
 @push('scripts')
-    <script src="{{ asset('./assets/js/select2/select2.full.min.js') }}"></script>
-    <script src="{{ asset('./assets/js/select2/select2-custom.js') }}"></script>
-    <script>
-        function initUserEditSelect2() {
-            const $role = $('#role-select');
-            const $perms = $('#permissions-select');
 
-            if ($role.length && !$role.hasClass('select2-hidden-accessible')) {
-                $role.select2({ width: '100%' });
-            }
-            if ($perms.length && !$perms.hasClass('select2-hidden-accessible')) {
-                $perms.select2({ width: '100%', placeholder: '--select permissions--' });
-            }
-        }
-
-        // Delegated on document — survives full reloads AND wire:navigate swaps,
-        // since the handler isn't tied to a specific (possibly-replaced) DOM node.
-        $(document).off('change', '#role-select').on('change', '#role-select', function (e) {
-            @this.set('role', e.target.value);
-        });
-
-        $(document).off('change', '#permissions-select').on('change', '#permissions-select', function () {
-            @this.set('direct_permissions', $(this).val() || []);
-        });
-
-        // Fires on the initial page load AND after every wire:navigate transition —
-        // unlike 'livewire:initialized', which only fires once ever.
-        document.addEventListener('livewire:navigated', initUserEditSelect2);
-
-        // Cover the very first paint (before any navigation event exists yet)
-        initUserEditSelect2();
-
-        // Keep the widget's displayed selection in sync with server-side state
-        // (e.g. after validation errors reset other fields but role should persist)
-        Livewire.on('refreshSelect2', (data) => {
-            $('#role-select').val(data.role).trigger('change.select2');
-            $('#permissions-select').val(data.permissions).trigger('change.select2');
-        });
-    </script>
 @endpush

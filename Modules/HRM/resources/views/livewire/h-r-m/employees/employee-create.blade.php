@@ -1,5 +1,8 @@
 @push('css')
     <link rel="stylesheet" type="text/css" href="{{ asset('./assets/css/select2.css') }}">
+        <link rel="stylesheet" href="{{ asset('vendor/async-select/async-select.css') }}">
+    <!-- Optional: include when using Bootstrap 4 theme styling -->
+    <link rel="stylesheet" href="{{ asset('vendor/async-select/async-select-bootstrap-v4.css') }}">
 @endpush
 
 <div class="container-fluid">

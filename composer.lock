@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4483069b8fb27afb06f5321dfa82e425",
+    "content-hash": "897e543ab05c939574c834e42b7b8dd0",
     "packages": [
         {
             "name": "barryvdh/laravel-dompdf",
@@ -891,6 +891,76 @@
                 }
             ],
             "time": "2025-10-31T18:51:33+00:00"
+        },
+        {
+            "name": "drpshtiwan/livewire-async-select",
+            "version": "3.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/drpshtiwan/livewire-async-select.git",
+                "reference": "905c0a6770f56f8523193593c637af2e1b90fc2e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/drpshtiwan/livewire-async-select/zipball/905c0a6770f56f8523193593c637af2e1b90fc2e",
+                "reference": "905c0a6770f56f8523193593c637af2e1b90fc2e",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/database": "^11.0|^12.0|^13.0",
+                "illuminate/support": "^11.0|^12.0|^13.0",
+                "livewire/livewire": "^3.3|^4.0",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "guzzlehttp/guzzle": "^7.5",
+                "laravel/pint": "^1.20.0|^1.25.0",
+                "orchestra/testbench": "^9.0|^10.0|^11.0",
+                "pestphp/pest": "^3.0",
+                "pestphp/pest-plugin-laravel": "^3.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "DrPshtiwan\\LivewireAsyncSelect\\AsyncSelectServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "DrPshtiwan\\LivewireAsyncSelect\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Dr. Pshtiwan Mahmood",
+                    "role": "Developer"
+                }
+            ],
+            "description": "A powerful async select component for Laravel Livewire with Alpine.js - a modern alternative to Select2",
+            "homepage": "https://livewire-select.thejano.com",
+            "keywords": [
+                "ajax-select",
+                "alpine",
+                "alpinejs",
+                "async-select",
+                "autocomplete",
+                "dropdown",
+                "laravel",
+                "livewire",
+                "select",
+                "select2"
+            ],
+            "support": {
+                "issues": "https://github.com/drpshtiwan/livewire-async-select/issues",
+                "source": "https://github.com/drpshtiwan/livewire-async-select/tree/3.3.0"
+            },
+            "time": "2026-06-06T12:07:49+00:00"
         },
         {
             "name": "egulias/email-validator",

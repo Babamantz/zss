@@ -1,5 +1,7 @@
 @push('css')
-    <link rel="stylesheet" href="{{ asset('assets/css/select2.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/async-select/async-select.css') }}">
+    <!-- Optional: include when using Bootstrap 4 theme styling -->
+    <link rel="stylesheet" href="{{ asset('vendor/async-select/async-select-bootstrap-v4.css') }}">
 
     <style>
         .form-card {
@@ -94,21 +96,21 @@
                     <div class="col-md-4">
                         <label class="form-label"> First Name </label>
                         <input type="text" class="form-control" wire:model.defer="first_name" placeholder="John">
-                        @error('first_name') <small class="text-danger">{{ $message }}</small> @enderror
+                        @error('first_name') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
                     </div>
 
                     {{-- Middle Name --}}
                     <div class="col-md-4">
                         <label class="form-label"> Middle Name </label>
                         <input type="text" class="form-control" wire:model.defer="middle_name" placeholder="Robert">
-                        @error('middle_name') <small class="text-danger">{{ $message }}</small> @enderror
+                        @error('middle_name') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
                     </div>
 
                     {{-- Last Name --}}
                     <div class="col-md-4">
                         <label class="form-label"> Last Name </label>
                         <input type="text" class="form-control" wire:model.defer="last_name" placeholder="Doe">
-                        @error('last_name') <small class="text-danger">{{ $message }}</small> @enderror
+                        @error('last_name') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
                     </div>
 
                     {{-- Officer --}}
@@ -130,7 +132,7 @@
                                 </div>
                             </label>
                         </div>
-                        @error('is_officer') <small class="text-danger">{{ $message }}</small> @enderror
+                        @error('is_officer') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
                     </div>
 
                     {{-- Email --}}
@@ -138,7 +140,7 @@
                         <label class="form-label"> Email Address </label>
                         <input type="email" class="form-control" wire:model.defer="email"
                             placeholder="john@example.com">
-                        @error('email') <small class="text-danger">{{ $message }}</small> @enderror
+                        @error('email') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
                     </div>
 
                     {{-- Location --}}
@@ -150,34 +152,29 @@
                                 <option value="{{ $location->id }}"> {{ $location->name }} </option>
                             @endforeach
                         </select>
-                        @error('location') <small class="text-danger">{{ $message }}</small> @enderror
+                        @error('location') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
                     </div>
 
                     {{-- Role --}}
-                    <div class="col-md-6" wire:ignore>
+                    <div class="col-md-6">
                         <label class="form-label"> Role </label>
-                        <select id="role-select" class="js-example-basic-single form-control">
-                            <option value=""> Select role </option>
-                            @foreach($this->roleNames as $role)
-                                <option value="{{ $role->name }}"> {{ $role->name }} </option>
-                            @endforeach
-                        </select>
-                        @error('role') <small class="text-danger">{{ $message }}</small> @enderror
+                        <livewire:async-select name="roles" wire:model="role" :options="$this->roleNames"
+                            placeholder="Select role..." />
+                        @error('role') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
                     </div>
 
                     {{-- Permissions --}}
-                    <div class="col-12" wire:ignore>
+                    <div class="col-12">
                         <label class="form-label"> Direct Permissions </label>
-                        <select id="permissions-select" multiple class="js-example-placeholder-multiple form-control">
-                            @foreach($this->permissionNames as $permission)
-                                <option value="{{ $permission->name }}"> {{ $permission->name }} </option>
-                            @endforeach
-                        </select>
-                        @error('direct_permissions') <small class="text-danger">{{ $message }}</small> @enderror
+                        <livewire:async-select name="direct_permissions[]" wire:model="direct_permissions"
+                            :options="$this->permissionNames" :multiple="true" placeholder="Select permission..." />
+                        @error('direct_permissions') <small class="text-danger d-block mt-1">{{ $message }}</small>
+                        @enderror
                     </div>
+
                 </div>
 
-                {{-- Updated Action Bar --}}
+                {{-- Action Bar --}}
                 <div class="action-bar d-flex justify-content-between align-items-center mt-4">
                     <a href="{{ route('users.index') }}" class="btn btn-outline-dark">
                         <i class="fa fa-arrow-left me-1"></i> Back to Users
@@ -188,11 +185,9 @@
                             <i class="fa fa-save me-1"></i> Save User
                         </button>
                     </div>
-
-
+                </div>
 
             </form>
-
 
         </div>
 
@@ -201,20 +196,5 @@
 </div>
 
 @push('scripts')
-    <script src="{{ asset('./assets/js/select2/select2.full.min.js') }}"></script>
-    <script src="{{ asset('./assets/js/select2/select2-custom.js') }}"></script>
-    <script>
-        document.addEventListener('livewire:initialized', () => {
-            // Sync Select2 role changes with Livewire
-            $('#role-select').on('change', function (e) {
-                @this.set('role', e.target.value);
-            });
 
-            // Sync Select2 permissions changes with Livewire
-            $('#permissions-select').on('change', function (e) {
-                let values = $(this).val();
-                @this.set('direct_permissions', values || []);
-            });
-        });
-    </script>
 @endpush

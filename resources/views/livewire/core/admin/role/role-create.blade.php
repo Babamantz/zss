@@ -1,5 +1,7 @@
 @push('css')
-    <link rel="stylesheet" type="text/css" href="{{ asset('./assets/css/select2.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/async-select/async-select.css') }}">
+    <!-- Optional: include when using Bootstrap 4 theme styling -->
+    <link rel="stylesheet" href="{{ asset('vendor/async-select/async-select-bootstrap-v4.css') }}">
 @endpush
 
 <div class="container-fluid">
@@ -21,29 +23,18 @@
                             {{-- Role Selection --}}
                             <div class="col-12" wire:ignore>
                                 <label class="form-label fw-medium">Role Name</label>
-                                <select class="js-example-basic-single form-control" id="role-select" {{ $isEdit ? 'disabled' : '' }}>
-                                    <option value="">--select role--</option>
-                                    @forelse ($this->roles as $roleItem)
-                                        <option value="{{ $roleItem->name }}">{{ $roleItem->name }}</option>
-                                    @empty
-                                        <option disabled>No role found</option>
-                                    @endforelse
-                                </select>
+                                <livewire:async-select name="roles" wire:model="role" :options="$this->roles"
+                                    placeholder="Select country..." />
                                 @error('role') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
                             </div>
 
                             {{-- Permissions Multi-Selection --}}
                             <div class="col-12" wire:ignore>
                                 <label class="form-label fw-medium">Assigned Permissions</label>
-                                <select class="js-example-placeholder-multiple form-control" multiple="multiple"
-                                    id="permissions-select">
-                                    @forelse ($this->permissionNames as $permission)
-                                        <option value="{{ $permission->name }}">{{ $permission->name }}</option>
-                                    @empty
-                                        <option disabled>No permissions found</option>
-                                    @endforelse
-                                </select>
-                                @error('permission') <small class="text-danger d-block mt-1">{{ $message }}</small>
+                                <livewire:async-select name="permissions[]" wire:model="permissions" :options="$this->permissionNames" :multiple="true"
+                                    placeholder="Select permisssions..." />
+
+                                @error('permissions') <small class="text-danger d-block mt-1">{{ $message }}</small>
                                 @enderror
                             </div>
                         </div>
@@ -68,55 +59,5 @@
 </div>
 
 @push('scripts')
-    <script src="{{ asset('./assets/js/select2/select2.full.min.js') }}"></script>
-    <script src="{{ asset('./assets/js/select2/select2-custom.js') }}"></script>
-    <script>
-        document.addEventListener('livewire:initialized', () => {
-            const elPermission = $("#permissions-select");
-            const elRole = $("#role-select");
 
-            function initSelect2() {
-                elRole.select2({
-                    placeholder: "-- Select Role --",
-                    allowClear: !{{ $isEdit ? 'true' : 'false' }},
-                    width: '100%'
-                });
-
-                elPermission.select2({
-                    placeholder: "-- Select Permissions --",
-                    allowClear: true,
-                    closeOnSelect: false,
-                    width: '100%'
-                });
-            }
-
-            // Initialize Plugin Elements
-            initSelect2();
-
-            // Sync local changes upstream cleanly with Livewire core state engine
-            elRole.on('change', function () {
-                @this.set('role', $(this).val());
-            });
-
-            elPermission.on('change', function () {
-                @this.set('permissions', $(this).val());
-            });
-
-            // Listen for customized component-emitted state reset hooks
-            Livewire.on('resetSelectedPermissions', (event) => {
-                const values = Array.isArray(event) ? event : (event.values || []);
-                elPermission.val(values).trigger('change.select2');
-            });
-
-            Livewire.on('resetRoleName', (event) => {
-                const values = Array.isArray(event) ? event : (event.values || '');
-                elRole.val(values).trigger('change.select2');
-            });
-
-            // CRITICAL: Reinitialize Select2 after any Livewire morph DOM update cycles
-            Livewire.hook('morph.updated', () => {
-                initSelect2();
-            });
-        }); 
-    </script>
 @endpush
