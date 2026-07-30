@@ -2,10 +2,13 @@
 
 namespace Modules\HRM\Models;
 
+use App\Models\Designation;
 use App\Models\EmployeeCertificate;
 use App\Models\EmployeeIdentification;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Traits\FilterByTenant;
+use App\Traits\FilterEmployeeByTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -24,7 +27,7 @@ use Modules\PAYROLL\Models\PayrollEntry;
 
 class Employee extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes,FilterEmployeeByTenant;
 
 
 
@@ -33,8 +36,10 @@ class Employee extends Model
      */
 
     protected $casts = [
-        'contacts' => 'array'
+        'contacts' => 'array',
     ];
+
+
 
     public function employmentType()
     {
@@ -124,11 +129,15 @@ class Employee extends Model
         return $this->hasMany(EmployeeIdentification::class);
     }
 
-    public function department()
+    public function division()
     {
-        return $this->belongsTo(Department::class);
+        return $this->belongsTo(Division::class);
     }
 
+    public function employed_education_level()
+    {
+        return $this->belongsTo(EducationLevel::class,'education_level_id');
+    }
     public function education_levels()
     {
         return $this->hasMany(EmployeeEducationLevel::class);
@@ -142,6 +151,10 @@ class Employee extends Model
     public function unit()
     {
         return $this->belongsTo(Unit::class, 'unit_id');
+    }
+    public function designation()
+    {
+        return $this->belongsTo(Designation::class,'designation_id');
     }
 
     public function bankAccount()

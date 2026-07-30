@@ -16,20 +16,18 @@ class UnitSeeder extends Seeder
         // $this->call([]);
 
         $units = [
-            ['name' => 'Auditor', 'slug' => 'auditor', 'department_slug' => ''],
-            ['name' => 'Public Relations', 'slug' => 'pr', 'department_slug' => ''],
-            ['name' => 'Legal Unit', 'slug' => 'legal', 'department_slug' => ''],
-            ['name' => 'Information and Communication Technology', 'slug' => 'ict', 'department_slug' => ''],
+            ['name' => 'Auditor', 'slug' => 'auditor'],
+            ['name' => 'Public Relations', 'slug' => 'pr'],
+            ['name' => 'Legal Unit', 'slug' => 'legal'],
+            ['name' => 'Information and Communication Technology', 'slug' => 'ict'],
         ];
 
         foreach ($units as $unit) {
-            $department = Department::where('slug', $unit['department_slug'])->first();
 
             Unit::updateOrCreate(
                 ['slug' => $unit['slug']],
                 [
                     'name' => $unit['name'],
-                    'department_id' => $department ? $department->id : null, // Corrected logic
                 ]
             );
         }

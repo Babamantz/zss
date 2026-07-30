@@ -14,4 +14,9 @@ class EmployeeIdentification extends Model
     {
         return $this->belongsTo(Employee::class);
     }
+
+    public function identification()
+    {
+        return $this->belongsTo(Identification::class);
+    }
 }

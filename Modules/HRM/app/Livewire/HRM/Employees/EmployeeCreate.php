@@ -8,6 +8,7 @@ use App\Models\EducationLevel;
 use App\Models\Identification;
 use App\Models\User;
 use Exception;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -18,6 +19,7 @@ use Modules\HRM\Enums\Gender;
 use Modules\HRM\Enums\MaritalStatus;
 use Modules\HRM\Models\Bank;
 use Modules\HRM\Models\Department;
+use Modules\HRM\Models\Division;
 use Modules\HRM\Models\Employee;
 use Modules\HRM\Models\EmploymentType;
 use Modules\HRM\Models\Unit;
@@ -32,6 +34,8 @@ class EmployeeCreate extends Component
     public $mode;
     public $employee;
     public $employee_bank_id;
+
+    public $divisionId;
 
     public int $currentStep = 1;
 
@@ -89,6 +93,12 @@ class EmployeeCreate extends Component
     public bool $isViewMode = false;
 
     protected $listeners = ['user-selected' => 'selectUser'];
+
+    // How long lookup/reference-table data (departments, banks, designations,
+    // etc.) is cached for. These tables barely ever change, but this component
+    // re-renders on every select2 click, so without caching we were re-running
+    // ~9 queries per click. Bump/lower as your data-freshness needs require.
+    protected const LOOKUP_CACHE_TTL = 300; // 5 minutes
 
     // =========================================================================
     // MOUNT
@@ -188,7 +198,7 @@ class EmployeeCreate extends Component
             'employment_type_id' => $emp->employment_type_id,
             'designation_id'  => $emp->designation_id,
             'unit'            => $emp->unit_id,
-            'department'      => $emp->department_id,
+            'divisionId'      => $emp->division_id,
         ]);
 
         // Existing files
@@ -287,7 +297,7 @@ class EmployeeCreate extends Component
             $this->dispatch('eventEmail', [
                 'employee_id'     => $this->employee->user->id,
                 'unit_id'         => $this->employee->unit_id,
-                'department_id'   => $this->employee->department_id,
+                'division_id'   => $this->employee->division_id,
                 'employment_type_id' => $this->employee->employment_type_id,
                 'education_level_id' => $this->employee->education_level_id,
             ]);
@@ -321,7 +331,8 @@ class EmployeeCreate extends Component
             'opf_number'                => 'nullable|string|max:50',
             'designation_id'            => 'required|exists:designations,id',
             'unit'                      => 'nullable|exists:units,id',
-            'department'                => 'nullable|exists:departments,id',
+            // 'department'                => 'nullable|exists:departments,id',
+            'divisionId'                => 'nullable|exists:divisions,id',
             'file_number'               => 'nullable|string|max:50',
             'employee_bank_id'          => 'nullable|exists:banks,id',
             'employee_bank_account_no'  => 'nullable|string|max:50',
@@ -388,7 +399,7 @@ class EmployeeCreate extends Component
                 'opf_number',
                 'designation_id',
                 'unit',
-                'department',
+                'divisionId',
                 'file_number',
                 'employee_bank_id',
                 'employee_bank_account_no',
@@ -503,7 +514,7 @@ class EmployeeCreate extends Component
             'is_hr_registered' => true,
             'designation_id'  => $this->designation_id,
             'unit_id'         => $this->unit,
-            'department_id'   => $this->department,
+            'division_id'   => $this->divisionId,
             'user_id'         => $this->userId,
             // FIX: guard against non-array / malformed entries so a stray
             // null (or anything not shaped like ['phone_number' => ...])
@@ -752,7 +763,7 @@ class EmployeeCreate extends Component
             'opf_number',
             'designation_id',
             'unit',
-            'department',
+            'divisionId',
             'file_number',
             'photo_file',
             'existing_photo_file',
@@ -792,15 +803,24 @@ class EmployeeCreate extends Component
     public function render()
     {
         return view('hrm::livewire.h-r-m.employees.employee-create', [
-            'departments'         => Department::pluck('name', 'id'),
-            'units'               => Unit::pluck('name', 'id'),
-            'banks'               => Bank::pluck('name', 'id'),
+            // PERF: these are near-static reference/lookup tables, but
+            // render() used to run all of them fresh on every single
+            // interaction (each select2 click == one full network
+            // round-trip == one full re-render). Caching them for
+            // LOOKUP_CACHE_TTL removes ~9 avoidable queries per click.
+            // If any of these tables need to reflect changes instantly,
+            // bust the relevant key from that model's saved/deleted
+            // observer instead of lowering the TTL globally.
+            'departments'         => Cache::remember('hrm.lookup.departments', self::LOOKUP_CACHE_TTL, fn() => Department::pluck('name', 'id')),
+            'units'               => Cache::remember('hrm.lookup.units', self::LOOKUP_CACHE_TTL, fn() => Unit::pluck('name', 'id')),
+            'divisions'           => Cache::remember('hrm.lookup.divisions', self::LOOKUP_CACHE_TTL, fn() => Division::pluck('name', 'id')),
+            'banks'               => Cache::remember('hrm.lookup.banks', self::LOOKUP_CACHE_TTL, fn() => Bank::pluck('name', 'id')),
             'emails'              => $this->getAvailableEmails(),
-            'educationLevels'     => EducationLevel::pluck('name', 'id'),
-            'employmentTypes'     => EmploymentType::pluck('name', 'id'),
-            'designations'        => Designation::pluck('designation_name', 'id'),
-            'identificationTypes' => Identification::pluck('identification_name', 'id'),
-            'certificateTypes'    => Certificate::pluck('certificate_name', 'id'),
+            'educationLevels'     => Cache::remember('hrm.lookup.education_levels', self::LOOKUP_CACHE_TTL, fn() => EducationLevel::pluck('name', 'id')),
+            'employmentTypes'     => Cache::remember('hrm.lookup.employment_types', self::LOOKUP_CACHE_TTL, fn() => EmploymentType::pluck('name', 'id')),
+            'designations'        => Cache::remember('hrm.lookup.designations', self::LOOKUP_CACHE_TTL, fn() => Designation::pluck('designation_name', 'id')),
+            'identificationTypes' => Cache::remember('hrm.lookup.identification_types', self::LOOKUP_CACHE_TTL, fn() => Identification::pluck('identification_name', 'id')),
+            'certificateTypes'    => Cache::remember('hrm.lookup.certificate_types', self::LOOKUP_CACHE_TTL, fn() => Certificate::pluck('certificate_name', 'id')),
             'isEditMode'          => $this->isEditMode,
             'isViewMode'          => $this->isViewMode,
         ]);
@@ -808,18 +828,26 @@ class EmployeeCreate extends Component
 
     protected function getAvailableEmails(): \Illuminate\Support\Collection
     {
-        return User::query()
-            ->when(
-                $this->employeeId,
-                // Edit mode: allow the currently-assigned user to still show up,
-                // even though they now "have" an employee record.
-                fn($q) => $q->where(function ($q2) {
-                    $q2->doesntHave('employee')
-                        ->orWhere('id', $this->userId);
-                }),
-                fn($q) => $q->doesntHave('employee')
-            )
-            ->orderByDesc('created_at')
-            ->pluck('email', 'id');
+        // PERF: cache keyed by employeeId/userId since the "available" set
+        // depends on which user is currently assigned in edit mode. Short
+        // TTL because this one is more likely to go stale as users get
+        // assigned to other employees elsewhere in the app.
+        $cacheKey = 'hrm.lookup.available_emails.' . ($this->employeeId ?? 'new') . '.' . ($this->userId ?? '0');
+
+        return Cache::remember($cacheKey, 60, function () {
+            return User::query()
+                ->when(
+                    $this->employeeId,
+                    // Edit mode: allow the currently-assigned user to still show up,
+                    // even though they now "have" an employee record.
+                    fn($q) => $q->where(function ($q2) {
+                        $q2->doesntHave('employee')
+                            ->orWhere('id', $this->userId);
+                    }),
+                    fn($q) => $q->doesntHave('employee')
+                )
+                ->orderByDesc('created_at')
+                ->pluck('email', 'id');
+        });
     }
 }

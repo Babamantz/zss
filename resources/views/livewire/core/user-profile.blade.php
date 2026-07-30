@@ -8,7 +8,7 @@
                         src="{{ $employee && $employee->photo_file ? asset('storage/' . $employee->photo_file) : asset('assets/images/dashboard/1.png') }}"
                         alt="">
                     <h5 class="mb-0 text-white">{{ $user->first_name }} {{ $user->last_name }}</h5>
-                    <p class="text-white-50 small">{{ $employee->designation ?? 'Role Not Set' }}</p>
+                    <p class="text-white-50 small">{{ $employee->designation?->designation_name ?? 'Role Not Set' }}</p>
                 </div>
                 <div class="card-body p-0">
                     <ul class="list-group list-group-flush">
@@ -20,7 +20,7 @@
                         </li>
                         <li class="list-group-item d-flex justify-content-between">
                             <span class="text-muted">Department</span>
-                            <span>{{ $employee->department->name ?? 'N/A' }}</span>
+                            <span>{{ $employee->division?->department->name ?? 'N/A' }}</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between">
                             <span class="text-muted">Tenant</span>

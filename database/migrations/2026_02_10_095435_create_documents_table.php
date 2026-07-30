@@ -13,8 +13,13 @@ return new class extends Migration
     {
         Schema::create('documents', function (Blueprint $table) {
             $table->id();
-            $table->string('name',100);
-            $table->string('document_path',100);
+            $table->string('name', 100);
+            $table->string('document_path', 100);
+            $table->foreignId('unit_id')->nullable()->constrained('units')->onDelete('set null');
+            $table->foreignId('division_id')->nullable()->constrained('units')->onDelete('set null');
+            $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('tenant_id')->nullable()->constrained('tenants')->onDelete('set null');
             $table->timestamps();
         });
     }

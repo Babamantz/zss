@@ -73,7 +73,7 @@
             <div class="row g-2 align-items-center">
 
                 {{-- Search --}}
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="input-group input-group-sm">
                         <span class="input-group-text bg-transparent border-end-0">
                             <i class="fa fa-search text-muted" style="font-size:12px;"></i>
@@ -106,13 +106,23 @@
                     </select>
                 </div>
 
-                {{-- Unit (filtered by dept) --}}
+                {{-- Division (scoped to selected department) --}}
+                <div class="col-md-2">
+                    <select wire:model.live="filterDivision"
+                        class="form-select form-select-sm">
+                        <option value="">All Divisions</option>
+                        @foreach ($divisions as $division)
+                            <option value="{{ $division->id }}">{{ $division->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- Unit --}}
                 <div class="col-md-2">
                     <select wire:model.live="filterUnit"
-                        class="form-select form-select-sm"
-                        {{ !$filterDept ? 'disabled' : '' }}>
+                        class="form-select form-select-sm">
                         <option value="">
-                            {{ $filterDept ? 'All Units' : 'Select dept first' }}
+                             All Units
                         </option>
                         @foreach ($units as $unit)
                             <option value="{{ $unit->id }}">{{ $unit->name }}</option>
@@ -141,21 +151,23 @@
                     </select>
                 </div>
 
+            </div>
+
+            <div class="row g-2 align-items-center mt-1">
                 {{-- Clear --}}
-                <div class="col-md-1 text-end">
-                    @if ($search || $filterGender || $filterDept || $filterUnit)
+                <div class="col-md-2 offset-md-10 text-end">
+                    @if ($search || $filterGender || $filterDept || $filterDivision || $filterUnit)
                         <button class="btn btn-sm btn-outline-secondary w-100"
                             wire:click="clearFilters"
                             title="Clear filters">
-                            <i class="fa fa-times"></i>
+                            <i class="fa fa-times me-1"></i> Clear filters
                         </button>
                     @endif
                 </div>
-
             </div>
 
             {{-- Active filter chips --}}
-            @if ($search || $filterGender || $filterDept || $filterUnit)
+            @if ($search || $filterGender || $filterDept || $filterDivision || $filterUnit)
                 <div class="d-flex flex-wrap gap-1 mt-2">
                     <small class="text-muted me-1 align-self-center">Active:</small>
 
@@ -181,6 +193,14 @@
                             <a href="javascript:void(0)"
                                 wire:click="$set('filterDept', '')"
                                 class="ms-1 text-warning text-decoration-none">×</a>
+                        </span>
+                    @endif
+                    @if ($filterDivision)
+                        <span class="badge bg-dark-subtle text-dark">
+                            {{ $divisions->find($filterDivision)?->name }}
+                            <a href="javascript:void(0)"
+                                wire:click="$set('filterDivision', '')"
+                                class="ms-1 text-dark text-decoration-none">×</a>
                         </span>
                     @endif
                     @if ($filterUnit)
@@ -244,6 +264,21 @@
                                     Department
                                     <span class="text-muted" style="font-size:10px;">
                                         @if ($sortField === 'department_id')
+                                            <i class="fa fa-sort-{{ $sortDir === 'asc' ? 'up' : 'down' }}"></i>
+                                        @else
+                                            <i class="fa fa-sort opacity-30"></i>
+                                        @endif
+                                    </span>
+                                </button>
+                            </th>
+
+                            {{-- Division --}}
+                            <th>
+                                <button class="sort-btn d-flex align-items-center gap-1"
+                                    wire:click="sortBy('division_id')">
+                                    Division
+                                    <span class="text-muted" style="font-size:10px;">
+                                        @if ($sortField === 'division_id')
                                             <i class="fa fa-sort-{{ $sortDir === 'asc' ? 'up' : 'down' }}"></i>
                                         @else
                                             <i class="fa fa-sort opacity-30"></i>
@@ -319,9 +354,20 @@
 
                                 {{-- Department --}}
                                 <td>
-                                    @if ($emp->department)
+                                    @if ($emp->division?->department)
                                         <span class="badge bg-primary-subtle text-primary">
-                                            {{ $emp->department->name }}
+                                            {{ $emp->division->department->name }}
+                                        </span>
+                                    @else
+                                        <span class="text-muted small">N/A</span>
+                                    @endif
+                                </td>
+
+                                {{-- Division --}}
+                                <td>
+                                    @if ($emp->division)
+                                        <span class="badge bg-info-subtle text-info">
+                                            {{ $emp->division->name }}
                                         </span>
                                     @else
                                         <span class="text-muted small">N/A</span>
@@ -365,10 +411,10 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="text-center text-muted py-5">
+                                <td colspan="9" class="text-center text-muted py-5">
                                     <i class="fa fa-users fa-2x d-block mb-2 opacity-25"></i>
                                     No employees found
-                                    @if ($search || $filterGender || $filterDept || $filterUnit)
+                                    @if ($search || $filterGender || $filterDept || $filterDivision || $filterUnit)
                                         for the current filters.
                                         <a href="javascript:void(0)"
                                             wire:click="clearFilters"

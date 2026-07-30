@@ -135,7 +135,7 @@ class EmployeeIndex extends Component
                 'user.roles',
                 'user.permissions',
                 'user.tenant',
-                'department',
+                'division.department',
                 'unit',
             ])
             ->where('is_hr_registered', true)

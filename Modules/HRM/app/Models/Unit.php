@@ -16,10 +16,7 @@ class Unit extends Model
     protected $guarded = false;
 
 
-    public function department()
-    {
-        return $this->belongsTo(Department::class);
-    }
+    
 
     public function employees()
     {

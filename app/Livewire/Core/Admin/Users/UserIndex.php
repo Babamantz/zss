@@ -2,61 +2,105 @@
 
 namespace App\Livewire\Core\Admin\Users;
 
-use Throwable;
-use App\Models\User;
 use App\Models\Tenant;
-use Livewire\Component;
-use Livewire\Attributes\Computed;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
-use function PHPUnit\Framework\throwException;
+use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Log;
+use Livewire\Attributes\Computed;
+use Livewire\Component;
+use Livewire\WithPagination;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Throwable;
+
+use function PHPUnit\Framework\throwException;
+
 
 class UserIndex extends Component
 {
+    use WithPagination;
 
-    public $search = '';
-    public bool $open = false;
+    protected $paginationTheme = 'bootstrap';
 
+    public string $search       = '';
+    public string $filterRole   = '';
+    public ?int $filterStatus = null;
+    public string $filterTenant = '';
+    public string $sortField    = 'first_name';
+    public string $sortDir      = 'asc';
+    public int    $perPage      = 15;
 
-
-
-    #[Computed]
-    public function roleNames()
+    public function updatingSearch(): void
     {
-        return Role::select(['id', 'name'])
-            ->orderBy('name')
-            ->get();
+        $this->resetPage();
+    }
+    public function updatingFilterRole(): void
+    {
+        $this->resetPage();
+    }
+    public function updatingFilterTenant(): void
+    {
+        $this->resetPage();
+    }
+    public function updatingPerPage(): void
+    {
+        $this->resetPage();
+    }
+    public function updatedFilterStatus(): void
+    {
+        $this->resetPage();
     }
 
-    #[Computed]
-    public function permissionNames()
+    public function sortBy(string $field): void
     {
-        return Permission::select(['id', 'name'])
-            ->orderBy('name')
-            ->get();
+        if ($this->sortField === $field) {
+            $this->sortDir = $this->sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortField = $field;
+            $this->sortDir   = 'asc';
+        }
+        $this->resetPage();
     }
 
-    #[Computed]
-    public function locations()
+    public function clearFilters(): void
     {
-        return Tenant::select(['id', 'name'])
-            ->orderBy('name')
-            ->get();
+        $this->reset(['search', 'filterRole', 'filterTenant']);
+        $this->resetPage();
     }
-
-    public function deleteUser(?int $id) {}
-
 
     public function render()
     {
-        $users = User::query()
-            ->with(['roles', 'permissions', 'tenant'])
-            ->when($this->search, function ($query) {
-                $query->where('name', 'like', '%' . $this->search . '%')
-                    ->orWhere('email', 'like', '%' . $this->search . '%');
-            })
-            ->get();
+        Log::info( $this->filterStatus);
+
+        $users = User::with(['tenant', 'roles', 'permissions', 'employee'])
+            ->when(
+                $this->search,
+                fn($q) =>
+                $q->where('first_name', 'like', "%{$this->search}%")
+                    ->orWhere('last_name',  'like', "%{$this->search}%")
+                    ->orWhere('email',      'like', "%{$this->search}%")
+            )
+            ->when(
+                $this->filterRole,
+                fn($q) =>
+                $q->whereHas(
+                    'roles',
+                    fn($r) =>
+                    $r->where('name', $this->filterRole)
+                )
+            )
+            ->when(
+                $this->filterTenant,
+                fn($q) =>
+                $q->where('tenant_id', $this->filterTenant)
+            )
+            ->when(
+                $this->filterStatus,
+                fn($q) =>
+                $q->where('is_active',(int) $this->filterStatus)
+            )
+            ->orderBy($this->sortField, $this->sortDir)
+            ->paginate($this->perPage);
 
         return view('livewire.core.admin.users.user-index', [
             'users' => $users

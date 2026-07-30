@@ -7,6 +7,7 @@ use App\Models\Designation;
 use App\Models\EducationLevel;
 use App\Models\Identification;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -18,6 +19,7 @@ use Modules\HRM\Enums\Gender;
 use Modules\HRM\Enums\MaritalStatus;
 use Modules\HRM\Models\Bank;
 use Modules\HRM\Models\Department;
+use Modules\HRM\Models\Division;
 use Modules\HRM\Models\Employee;
 use Modules\HRM\Models\EmploymentType;
 use Modules\HRM\Models\Unit;
@@ -33,7 +35,6 @@ class EmployeeEdit extends Component
     public ?Employee $employee = null;
 
     public int $currentStep = 1;
-    public bool $isViewMode = false;
 
     // ── Step 1: Basic Information ─────────────────────────────────────────────
     // FIX: this is the property the "Email" Select2 actually writes to
@@ -50,6 +51,8 @@ class EmployeeEdit extends Component
 
     // public $email;
     public $hired_date;
+
+    public $divisionId;
     public $retiring_date;
     public $education_level_id;
     public $marital_status;
@@ -96,6 +99,11 @@ class EmployeeEdit extends Component
 
     protected $listeners = ['user-selected' => 'selectUser'];
 
+    public bool $isEditMode = false;
+    public bool $isViewMode = false;
+
+
+    protected const LOOKUP_CACHE_TTL = 300; // 5 minutes
     // =========================================================================
     // MOUNT
     // =========================================================================
@@ -103,8 +111,8 @@ class EmployeeEdit extends Component
     public function mount($employeeId, $mode = null): void
     {
         $this->employeeId = $employeeId;
+        $this->isEditMode = !is_null($employeeId);
         $this->isViewMode = $mode === 'view';
-
         $this->loadEmployee();
     }
 
@@ -149,7 +157,7 @@ class EmployeeEdit extends Component
             'employment_type_id' => $emp->employment_type_id,
             'designation_id'     => $emp->designation_id,
             'unit'               => $emp->unit_id,
-            'department'         => $emp->department_id,
+            'divisionId'         => $emp->division_id,
         ]);
 
         // Existing files
@@ -230,7 +238,7 @@ class EmployeeEdit extends Component
                 'existing_file'         => null,
             ]];
 
-        $this->loadEmail();
+        // $this->loadEmail();
     }
 
     #[On('user-selected')]
@@ -243,18 +251,18 @@ class EmployeeEdit extends Component
         // doesn't error if it fires.
     }
 
-    public function loadEmail(): void
-    {
-        $this->dispatch('eventEmail', [
-            'employee_id'         => $this->employee->user->id,
-            'education_level_id'  => $this->employee->education_level_id,
-            'employment_type_id'  => $this->employee->employment_type_id,
-            'designation_id'      => $this->employee->designation_id,
-            'unit_id'             => $this->employee->unit_id,
-            'department_id'       => $this->employee->department_id,
-            'employee_bank_id'    => $this->employee->bankAccount?->bank_id,
-        ]);
-    }
+    // public function loadEmail(): void
+    // {
+    //     $this->dispatch('eventEmail', [
+    //         'employee_id'         => $this->employee->user->id,
+    //         'education_level_id'  => $this->employee->education_level_id,
+    //         'employment_type_id'  => $this->employee->employment_type_id,
+    //         'designation_id'      => $this->employee->designation_id,
+    //         'unit_id'             => $this->employee->unit_id,
+    //         'divisionId'       => $this->employee->division_id,
+    //         'employee_bank_id'    => $this->employee->bankAccount?->bank_id,
+    //     ]);
+    // }
 
     // =========================================================================
     // VALIDATION
@@ -283,7 +291,7 @@ class EmployeeEdit extends Component
             'opf_number'                => 'nullable|string|max:50',
             'designation_id'            => 'required|exists:designations,id',
             'unit'                      => 'nullable|exists:units,id',
-            'department'                => 'nullable|exists:departments,id',
+            'divisionId'                => 'nullable|exists:divisions,id',
             'file_number'               => 'nullable|string|max:50',
             'employee_bank_id'          => 'nullable|exists:banks,id',
             'employee_bank_account_no'  => 'nullable|string|max:50',
@@ -349,7 +357,7 @@ class EmployeeEdit extends Component
                 'opf_number',
                 'designation_id',
                 'unit',
-                'department',
+                'divisionId',
                 'file_number',
                 'employee_bank_id',
                 'employee_bank_account_no',
@@ -477,6 +485,7 @@ class EmployeeEdit extends Component
 
     protected function saveEmployee(): Employee
     {
+        // dd($this->employment_type_id,$this->divisionId);
         $data = [
             'dob'                 => $this->dob,
             'hired_date'          => $this->hired_date,
@@ -490,7 +499,7 @@ class EmployeeEdit extends Component
             'employment_type_id'  => $this->employment_type_id,
             'designation_id'      => $this->designation_id,
             'unit_id'             => $this->unit,
-            'department_id'       => $this->department,
+            'division_id'       => $this->divisionId,
             'updated_by'          => auth()->id(),
             // FIX: guard against non-array / malformed entries, same as
             // EmployeeCreate, so a stray null row can't throw here.
@@ -706,18 +715,17 @@ class EmployeeEdit extends Component
     public function render()
     {
         return view('hrm::livewire.h-r-m.employees.employee-edit', [
-            'departments'         => Department::pluck('name', 'id'),
-            'units'               => Unit::pluck('name', 'id'),
-            'banks'               => Bank::pluck('name', 'id'),
-            // FIX: this was completely missing, which throws an undefined
-            // variable error the moment the blade tries to loop over it.
+            'departments'         => Cache::remember('hrm.lookup.departments', self::LOOKUP_CACHE_TTL, fn() => Department::pluck('name', 'id')),
+            'units'               => Cache::remember('hrm.lookup.units', self::LOOKUP_CACHE_TTL, fn() => Unit::pluck('name', 'id')),
+            'divisions'           => Cache::remember('hrm.lookup.divisions', self::LOOKUP_CACHE_TTL, fn() => Division::pluck('name', 'id')),
+            'banks'               => Cache::remember('hrm.lookup.banks', self::LOOKUP_CACHE_TTL, fn() => Bank::pluck('name', 'id')),
             'emails'              => $this->getAvailableEmails(),
-            'educationLevels'     => EducationLevel::pluck('name', 'id'),
-            'employmentTypes'     => EmploymentType::pluck('name', 'id'),
-            'designations'        => Designation::pluck('designation_name', 'id'),
-            'identificationTypes' => Identification::pluck('identification_name', 'id'),
-            'certificateTypes'    => Certificate::pluck('certificate_name', 'id'),
-            'isViewMode'          => $this->isViewMode,
+            'educationLevels'     => Cache::remember('hrm.lookup.education_levels', self::LOOKUP_CACHE_TTL, fn() => EducationLevel::pluck('name', 'id')),
+            'employmentTypes'     => Cache::remember('hrm.lookup.employment_types', self::LOOKUP_CACHE_TTL, fn() => EmploymentType::pluck('name', 'id')),
+            'designations'        => Cache::remember('hrm.lookup.designations', self::LOOKUP_CACHE_TTL, fn() => Designation::pluck('designation_name', 'id')),
+            'identificationTypes' => Cache::remember('hrm.lookup.identification_types', self::LOOKUP_CACHE_TTL, fn() => Identification::pluck('identification_name', 'id')),
+            'certificateTypes'    => Cache::remember('hrm.lookup.certificate_types', self::LOOKUP_CACHE_TTL, fn() => Certificate::pluck('certificate_name', 'id')),
+            'isEditMode'          => $this->isEditMode,
         ]);
     }
 

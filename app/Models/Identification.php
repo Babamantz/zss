@@ -10,5 +10,10 @@ class Identification extends Model
     //
     protected $guarded = false;
 
+    public function identificationTypes() 
+    {
+        return $this->hasMany(EmployeeIdentification::class);
+    }
+
   
 }

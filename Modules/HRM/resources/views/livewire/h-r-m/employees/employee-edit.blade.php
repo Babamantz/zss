@@ -256,191 +256,206 @@
                             {{-- ══════════════════════════════════════════════════════
                             STEP 2 — Employment Details
                             ══════════════════════════════════════════════════════ --}}
-                            <div @if($currentStep != 2) style="display:none;" @endif>
-                                <h5 class="mb-3">Employment Details</h5>
+                               <div @if($currentStep != 2) style="display:none;" @endif>
+                            <h5 class="mb-3">Employment Details</h5>
 
-                                {{-- OPF Number + Designation --}}
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>Payroll (OPF) Number:</label>
-                                            <input class="form-control" type="text" wire:model.defer="opf_number" {{ $disabledAttr }}>
-                                            @error('opf_number') <small class="text-danger">{{ $message }}</small>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div wire:ignore class="form-group">
-                                            <label>Designation: <span class="text-danger">*</span></label>
-                                            <select id="select-designation" class="js-example-basic-single form-control"
-                                                {{ $disabledAttr }}>
-                                                <option value="">-- Select Designation --</option>
-                                                @foreach ($designations as $id => $name)
-                                                    <option value="{{ $id }}" {{ (string) $designation_id === (string) $id ? 'selected' : '' }}>
-                                                        {{ $name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            @error('designation_id') <small class="text-danger">{{ $message }}</small>
-                                            @enderror
-                                        </div>
+                            {{-- OPF Number + Designation --}}
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Payroll (OPF) Number:</label>
+                                        <input class="form-control" type="text" wire:model.defer="opf_number">
+                                        @error('opf_number') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
                                 </div>
-
-                                {{-- Unit + Department --}}
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <div wire:ignore class="form-group">
-                                            <label>Unit:</label>
-                                            <select id="select-unit" class="js-example-basic-single form-control" {{ $disabledAttr }}>
-                                                <option value="">-- Select Unit --</option>
-                                                @foreach ($units as $id => $unitName)
-                                                    <option value="{{ $id }}" {{ (string) $unit === (string) $id ? 'selected' : '' }}>
-                                                        {{ $unitName }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            @error('unit') <small class="text-danger">{{ $message }}</small> @enderror
-                                        </div>
+                        
+                                <div class="col-md-6">
+                                    <div wire:ignore class="form-group">
+                                        <label>Designation: <span class="text-danger">*</span></label>
+                                        <select id="select-designation" class="js-example-basic-single form-control">
+                                            <option value="">-- Select Designation --</option>
+                                            @foreach ($designations as $id => $name)
+                                                <option value="{{ $id }}" {{ (string)$designation_id === (string)$id ? 'selected' : '' }}>
+                                                    {{ $name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('designation_id') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
-                                    <div class="col-md-6">
-                                        <div wire:ignore class="form-group">
-                                            <label>Department:</label>
-                                            <select id="select-department" class="js-example-basic-single form-control"
-                                                {{ $disabledAttr }}>
-                                                <option value="">-- Select Department --</option>
-                                                @foreach ($departments as $id => $deptName)
-                                                    <option value="{{ $id }}" {{ (string) $department === (string) $id ? 'selected' : '' }}>
-                                                        {{ $deptName }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            @error('department') <small class="text-danger">{{ $message }}</small>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {{-- Bank + Bank Account No --}}
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <div wire:ignore class="form-group">
-                                            <label>Bank:</label>
-                                            <select id="select-bank-name" class="js-example-basic-single form-control"
-                                                {{ $disabledAttr }}>
-                                                <option value="">-- Select Bank --</option>
-                                                @foreach ($banks as $id => $name)
-                                                    <option value="{{ $id }}" {{ (string) $employee_bank_id === (string) $id ? 'selected' : '' }}>
-                                                        {{ $name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            @error('employee_bank_id') <small class="text-danger">{{ $message }}</small>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>Bank Account No:</label>
-                                            <input class="form-control" type="text"
-                                                wire:model.defer="employee_bank_account_no" {{ $disabledAttr }}>
-                                            @error('employee_bank_account_no') <small
-                                            class="text-danger">{{ $message }}</small> @enderror
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {{-- File Number + Photo --}}
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>File Number:</label>
-                                            <input class="form-control" type="text" wire:model.defer="file_number" {{ $disabledAttr }}>
-                                            @error('file_number') <small class="text-danger">{{ $message }}</small>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        @unless ($isViewMode)
-                                            <div class="form-group">
-                                                <label>Photo:</label>
-                                                <input class="form-control" type="file" wire:model="photo_file"
-                                                    accept="image/jpg,image/jpeg,image/png">
-                                                @error('photo_file') <small class="text-danger">{{ $message }}</small>
-                                                @enderror
-                                                <div wire:loading wire:target="photo_file" class="text-primary mt-1">
-                                                    <small>Uploading...</small>
-                                                </div>
-                                            </div>
-                                        @endunless
-                                        @if ($existing_photo_file)
-                                            <div class="mt-2">
-                                                <small class="text-muted">Current photo:</small><br>
-                                                <img src="{{ Storage::disk('public')->url($existing_photo_file) }}"
-                                                    class="mt-1 rounded" style="width:60px;height:60px;object-fit:cover;">
-                                            </div>
-                                        @endif
-                                    </div>
-                                </div>
-
-                                {{-- Birth Certificate + Employment Contract --}}
-                                <div class="row mb-3">
-                                    <div class="col-md-6"
-                                        x-data="{ url: '{{ $existing_birth_certificate_file ? Storage::disk('public')->url($existing_birth_certificate_file) : '' }}' }">
-                                        <div class="form-group">
-                                            <label>Birth Certificate:</label>
-                                            @unless ($isViewMode)
-                                                <input class="form-control" type="file" wire:model="birth_certificate_file"
-                                                    accept="application/pdf,image/jpeg,image/png">
-                                                @error('birth_certificate_file')
-                                                    <small class="text-danger">{{ $message }}</small>
-                                                @enderror
-                                                <div wire:loading wire:target="birth_certificate_file"
-                                                    class="text-primary mt-1">
-                                                    <small>Uploading...</small>
-                                                </div>
-                                            @endunless
-                                            <template x-if="url">
-                                                <button type="button" class="btn btn-sm btn-outline-primary mt-2"
-                                                    @click="window.open(url, '_blank')">
-                                                    Preview existing
-                                                </button>
-                                            </template>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-6"
-                                        x-data="{ url: '{{ $existing_employment_contract_file ? Storage::disk('public')->url($existing_employment_contract_file) : '' }}' }">
-                                        <div class="form-group">
-                                            <label>Employment Contract:</label>
-                                            @unless ($isViewMode)
-                                                <input class="form-control" type="file"
-                                                    wire:model="employment_contract_file"
-                                                    accept="application/pdf,image/jpeg,image/png">
-                                                @error('employment_contract_file')
-                                                    <small class="text-danger">{{ $message }}</small>
-                                                @enderror
-                                                <div wire:loading wire:target="employment_contract_file"
-                                                    class="text-primary mt-1">
-                                                    <small>Uploading...</small>
-                                                </div>
-                                            @endunless
-                                            <template x-if="url">
-                                                <button type="button" class="btn btn-sm btn-outline-primary mt-2"
-                                                    @click="window.open(url, '_blank')">
-                                                    Preview existing
-                                                </button>
-                                            </template>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="mt-4">
-                                    <button type="button" class="btn btn-secondary"
-                                        wire:click="previousStep">Back</button>
-                                    <button type="button" class="btn btn-primary" wire:click="nextStep">Next</button>
                                 </div>
                             </div>
+
+                            {{-- Unit + Department --}}
+                            <div class="row mb-3">
+                                
+                                <div class="col-md-6">
+                                    <div wire:ignore class="form-group">
+                                        <label>Department:</label>
+                                        <select id="select-department" class="js-example-basic-single form-control">
+                                            <option value="">-- Select Department --</option>
+                                            @foreach ($departments as $id => $deptName)
+                                                <option value="{{ $id }}" {{ (string)$department === (string)$id ? 'selected' : '' }}>
+                                                    {{ $deptName }}
+                                                </option>
+                                             @endforeach
+                                        </select>
+                                        @error('department') <small class="text-danger">{{ $message }}</small> @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div wire:ignore class="form-group">
+                                        <label>Unit:</label>
+                                        <select id="select-unit" class="js-example-basic-single form-control">
+                                            <option value="">-- Select Unit --</option>
+                                            @foreach ($units as $id => $unitName)
+                                                <option value="{{ $id }}" {{ (string)$unit === (string)$id ? 'selected' : '' }}>
+                                                    {{ $unitName }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('unit') <small class="text-danger">{{ $message }}</small> @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div wire:ignore class="form-group">
+                                        <label>Division:</label>
+                                        <select id="select-division" class="js-example-basic-single form-control">
+                                            <option value="">-- Select Division --</option>
+                                            @foreach ($divisions as $id => $divisionName)
+                                                <option value="{{ $id }}">
+                                                    {{ $divisionName }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('divisionName') <small class="text-danger">{{ $message }}</small> @enderror
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Is Officer --}}
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    
+                                    <div class="form-group">
+                                        <label>Bank:</label>
+                                        <select id="select-bank-name" class="js-example-basic-single form-control">
+                                            <option value="">-- Select Bank --</option>
+                                            @foreach ($banks as $id => $name)
+                                                <option value="{{ $id }}" {{ (string)$employee_bank_id === (string)$id ? 'selected' : '' }}>
+                                                    {{ $name}}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        
+                                        @error('opf_number') <small class="text-danger">{{ $message }}</small> @enderror
+                                    </div>
+                                </div>
+                                    
+
+                                {{-- Photo --}}
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Bank Account No:</label>
+                                         <input class="form-control" type="text" wire:model.defer="employee_bank_account_no">
+                                        @error('bank_account_no') <small class="text-danger">{{ $message }}</small> @enderror
+                                       
+                                    </div>
+                                    @if ($existing_photo_file)
+                                        <div class="mt-2">
+                                            <small class="text-muted">Current photo:</small><br>
+                                            <img src="{{ Storage::disk('public')->url($existing_photo_file) }}"
+                                                class="mt-1 rounded"
+                                                style="width:60px;height:60px;object-fit:cover;">
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    
+                                    <div class="form-group">
+                                        <label>File Number:</label>
+                                        <input class="form-control" type="text" wire:model.defer="file_number">
+                                        @error('opf_number') <small class="text-danger">{{ $message }}</small> @enderror
+                                    </div>
+                                </div>
+                                    
+
+                                {{-- Photo --}}
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Photo:</label>
+                                        <input class="form-control" type="file" wire:model="photo_file"
+                                            accept="image/jpg,image/jpeg,image/png">
+                                        @error('photo_file') <small class="text-danger">{{ $message }}</small> @enderror
+                                        <div wire:loading wire:target="photo_file" class="text-primary mt-1">
+                                            <small>Uploading...</small>
+                                        </div>
+                                    </div>
+                                    @if ($existing_photo_file)
+                                        <div class="mt-2">
+                                            <small class="text-muted">Current photo:</small><br>
+                                            <img src="{{ Storage::disk('public')->url($existing_photo_file) }}"
+                                                class="mt-1 rounded"
+                                                style="width:60px;height:60px;object-fit:cover;">
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+
+                            {{-- Birth Certificate + Employment Contract --}}
+                            <div class="row mb-3">
+                                <div class="col-md-6"
+                                     x-data="{ url: '{{ $existing_birth_certificate_file ? Storage::disk('public')->url($existing_birth_certificate_file) : '' }}' }">
+                                    <div class="form-group">
+                                        <label>Birth Certificate:</label>
+                                        <input class="form-control" type="file"
+                                            wire:model="birth_certificate_file"
+                                            accept="application/pdf,image/jpeg,image/png">
+                                        @error('birth_certificate_file')
+                                            <small class="text-danger">{{ $message }}</small>
+                                        @enderror
+                                        <div wire:loading wire:target="birth_certificate_file" class="text-primary mt-1">
+                                            <small>Uploading...</small>
+                                        </div>
+                                        <template x-if="url">
+                                            <button type="button" class="btn btn-sm btn-outline-primary mt-2"
+                                                @click="window.open(url, '_blank')">
+                                                Preview existing
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6"
+                                     x-data="{ url: '{{ $existing_employment_contract_file ? Storage::disk('public')->url($existing_employment_contract_file) : '' }}' }">
+                                    <div class="form-group">
+                                        <label>Employment Contract:</label>
+                                        <input class="form-control" type="file"
+                                            wire:model="employment_contract_file"
+                                            accept="application/pdf,image/jpeg,image/png">
+                                        @error('employment_contract_file')
+                                            <small class="text-danger">{{ $message }}</small>
+                                        @enderror
+                                        <div wire:loading wire:target="employment_contract_file" class="text-primary mt-1">
+                                            <small>Uploading...</small>
+                                        </div>
+                                        <template x-if="url">
+                                            <button type="button" class="btn btn-sm btn-outline-primary mt-2"
+                                                @click="window.open(url, '_blank')">
+                                                Preview existing
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <button type="button" class="btn btn-secondary" wire:click="previousStep">Back</button>
+                                <button type="button" class="btn btn-primary" wire:click="nextStep">Next</button>
+                            </div>
+                        </div>
+                           
 
                             {{-- ══════════════════════════════════════════════════════
                             STEP 3 — Identifications
@@ -725,140 +740,157 @@
     <script src="{{ asset('./assets/js/select2/select2-custom.js') }}"></script>
 
     @script
-    <script>
-        const initSelect2Fields = () => {
-            const selects = [
-                { id: '#select-education', field: 'education_level_id' }, // Double check if your backend property is $education or $education_level_id
-                { id: '#select-designation', field: 'designation_id' },
-                { id: '#select-unit', field: 'unit' },
-                { id: '#select-department', field: 'department' },
-                { id: '#select-employment-type', field: 'employment_type_id' },
-                { id: '#select-bank-name', field: 'employee_bank_id' },
-            ];
+<script>
+document.addEventListener('livewire:initialized', () => {
+    const SELECTS = [
+        { id: '#select-education', field: 'education_level_id' },
+        { id: '#select-designation', field: 'designation_id' },
+        { id: '#select-unit', field: 'unit' },
+        { id: '#select-division', field: 'divisionId' },
+        { id: '#select-department', field: 'department' },
+        { id: '#select-employment-type', field: 'employment_type_id' },
+        { id: '#select-bank-name', field: 'employee_bank_id' },
+    ];
 
-            selects.forEach(({ id, field }) => {
+    const initSelect2Fields = () => {
+        SELECTS.forEach(({ id, field, event, live }) => {
+            const $el = $(id);
+            if (!$el.length) return;
+
+            // 1. Initialize only if it hasn't been turned into a Select2 yet
+            if (!$el.hasClass('select2-hidden-accessible')) {
+                $el.select2({ width: '100%' });
+            }
+
+            // 2. CRITICAL FIX: Always unbind and re-bind the change listener.
+            // Livewire often clears out these listeners during DOM updates.
+            $el.off('change.livewire').on('change.livewire', function () {
+                $wire.set(field, this.value, live ?? false);
+                if (event) $wire.dispatch(event);
+            });
+        });
+    };
+
+    // Run on initial page load
+    initSelect2Fields();
+
+    // 3. FIX FOR INCONSISTENCY: Catch any data syncs from Livewire back to Select2.
+    // This updates the visual Select2 UI whenever the backend variables change.
+    Livewire.hook('request.respond', () => {
+        SELECTS.forEach(({ id, field }) => {
+            const $el = $(id);
+            if (!$el.length) return;
+            
+            let backendValue = $wire.get(field);
+            if ($el.val() !== backendValue) {
+                $el.val(backendValue).trigger('change.select2');
+            }
+        });
+    });
+
+    // 4. FIX FOR CONDITIONAL FIELDS (e.g., fields hidden/shown inside if-statements)
+    Livewire.hook('element.init', () => {
+        initSelect2Fields();
+    });
+
+    // Listen to the backend dispatch event safely
+    Livewire.on('eventEmail', (data) => {
+        const row = Array.isArray(data) ? data[0] : data;
+        const $el = $('#select-user');
+        if (!$el.length) return;
+        
+        $el.val(row.employee_id).trigger('change.select2');
+    });
+
+    Livewire.on('resetFileState', () => {
+        document.querySelectorAll('input[type="file"]').forEach(el => el.value = '');
+    });
+});
+</script>
+@endscript
+
+
+    {{-- @script
+    <script>
+         document.addEventListener('livewire:initialized', () => {
+
+        const SELECTS = [
+            // { id: '#select-user',            field: 'email',event: 'user-selected', live: true },
+            { id: '#select-education',       field: 'education_level_id' },
+            { id: '#select-designation',     field: 'designation_id' },
+            { id: '#select-unit',            field: 'unit' },
+            { id: '#select-division',        field: 'divisionId' },
+            { id: '#select-department',      field: 'department' },
+            { id: '#select-employment-type', field: 'employment_type_id' },
+            { id: '#select-bank-name',       field: 'employee_bank_id' },
+        ];
+
+
+
+
+
+         const initSelect2Fields = () => {
+            SELECTS.forEach(({ id, field, event, live }) => {
                 const $el = $(id);
                 if (!$el.length) return;
-                $el.select2();
-                $el.off('change').on('change', function () {
-                    $wire.set(field, this.value);
+
+                // Skip anything already turned into a select2 widget.
+                // These all live inside wire:ignore wrappers, so there's
+                // nothing to resync — destroying/rebuilding on every morph
+                // was the source of the freeze.
+                if ($el.hasClass('select2-hidden-accessible')) return;
+
+                $el.select2({ width: '100%' });
+
+                $el.on('change', function () {
+                    // live=false defers the property to the next request
+                    // instead of firing a network round trip on every click
+                    // (matches how the plain text inputs use wire:model.defer).
+                    // Only 'email' needs to go live immediately, since
+                    // selectUser() has to run right away to populate name fields.
+                    $wire.set(field, this.value, live ?? false);
+                    if (event) $wire.dispatch(event);
                 });
             });
-
-            // $('#select-user').select2();
         };
 
+        // const initSelect2Fields = () => {
+        //     const selects = [
+        //         { id: '#select-education', field: 'education_level_id' }, // Double check if your backend property is $education or $education_level_id
+        //         { id: '#select-designation', field: 'designation_id' },
+        //         { id: '#select-unit', field: 'unit' },
+        //         { id: '#select-department', field: 'department' },
+        //         { id: '#select-employment-type', field: 'employment_type_id' },
+        //         { id: '#select-bank-name', field: 'employee_bank_id' },
+        //     ];
+
+        //     selects.forEach(({ id, field }) => {
+        //         const $el = $(id);
+        //         if (!$el.length) return;
+        //         $el.select2();
+        //         $el.off('change').on('change', function () {
+        //             $wire.set(field, this.value);
+        //         });
+        //     });
+
+        //     // $('#select-user').select2();
+        // };
+
         initSelect2Fields();
-        Livewire.hook('morph.updated', () => initSelect2Fields());
+        // Livewire.hook('morph.updated', () => initSelect2Fields());
 
         // Listen to the backend dispatch event safely
-        Livewire.on('eventEmail', (eventData) => {
-            // Handle Livewire v3 array wrapping format safely
-            const data = Array.isArray(eventData) ? (eventData[0] || {}) : eventData;
-            const row = data.detail ? data.detail : data;
-
-            // Sync values to Select2 dropdown nodes
-            // $('#select-user').val(row.employee_id).trigger('change');
-            $('#select-unit').val(row.unit_id).trigger('change');
-            $('#select-department').val(row.department_id).trigger('change');
-            $('#select-employment-type').val(row.employment_type_id).trigger('change'); // Added missing '_id'
-            $('#select-education').val(row.education_level_id).trigger('change'); // Added missing execution line
-        });
-
-        Livewire.on('resetFileState', () => {
-            document.querySelectorAll('input[type="file"]').forEach(el => el.value = '');
-        });
-    </script>
-
-    {{--
-    <script>
-        const initSelect2Fields = () => {
-            const selects = [
-                { id: '#select-education', field: 'education_level_id' },
-                { id: '#select-designation', field: 'designation_id' },
-                { id: '#select-unit', field: 'unit' },
-                { id: '#select-department', field: 'department' },
-                { id: '#select-employment-type', field: 'employment_type_id' },
-                { id: '#select-bank-name', field: 'employee_bank_id' },
-            ];
-
-            selects.forEach(({ id, field }) => {
-                const $el = $(id);
-                if (!$el.length) return;
-                $el.select2();
-                $el.off('change').on('change', function () {
-                    $wire.set(field, this.value);
-                });
-            });
-
-            $('#select-user').select2();
-        };
-
-        initSelect2Fields();
-        Livewire.hook('morph.updated', () => initSelect2Fields());
-
-        Livewire.on('eventEmail', (data) => {
+          Livewire.on('eventEmail', (data) => {
             const row = Array.isArray(data) ? data[0] : data;
-            $('#select-user').val(row.employee_id).trigger('change');
-            $('#select-unit').val(row.unit_id).trigger('change');
-            $('#select-department').val(row.department_id).trigger('change');
-            $('#select-employment-type').val(row.employment_type).trigger('change');
+            const $el = $('#select-user');
+            $el.off('change.sync').one('change.sync', () => {}); // no-op guard slot
+            $el.val(row.employee_id).trigger({ type: 'change', suppressWire: true });
         });
-
+       
         Livewire.on('resetFileState', () => {
             document.querySelectorAll('input[type="file"]').forEach(el => el.value = '');
         });
-    </script> --}}
-    {{--
-    <script>
-        document.addEventListener('livewire:initialized', () => {
-
-            const initSelect2Fields = () => {
-                const selects = [
-                    { id: '#select-education', field: 'education' },
-                    { id: '#select-designation', field: 'designation_id' },
-                    { id: '#select-unit', field: 'unit' },
-                    { id: '#select-department', field: 'department' },
-                    { id: '#select-employment-type', field: 'employment_type' },
-                    { id: '#select-bank-name', field: 'employee_bank_id' },
-                ];
-
-                selects.forEach(({ id, field }) => {
-                    const $el = $(id);
-                    if (!$el.length) return;
-                    $el.select2();
-                    $el.off('change').on('change', function () {
-                        $wire.set(field, this.value);
-                    });
-                });
-
-                // Email select is always locked on edit; still initialise so it renders consistently
-                const $email = $('#select-user');
-                if ($email.length) {
-                    $email.select2();
-                }
-            };
-
-            initSelect2Fields();
-
-            // Re-init after every Livewire DOM morph (step changes)
-            Livewire.hook('morph.updated', () => initSelect2Fields());
-
-            // Sync Select2 visuals with loaded employee data
-            Livewire.on('eventEmail', (data) => {
-                const row = Array.isArray(data) ? data[0] : data;
-
-                $('#select-user').val(row.employee_id).trigger('change');
-                $('#select-unit').val(row.unit_id).trigger('change');
-                $('#select-department').val(row.department_id).trigger('change');
-                $('#select-employment-type').val(row.employment_type).trigger('change');
-            });
-
-            // Clear file inputs after successful update
-            Livewire.on('resetFileState', () => {
-                document.querySelectorAll('input[type="file"]').forEach(el => el.value = '');
-            });
-        });
-    </script> --}}
-    @endscript
+         });
+    </script>
+    @endscript --}}
 @endpush

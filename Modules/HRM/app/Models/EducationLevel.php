@@ -16,6 +16,16 @@ class EducationLevel extends Model
     protected $guarded = false;
 
 
+    public function employee_employed_education()
+    {
+        return $this->hasOne(Employee::class, 'education_level_id');
+    }
+    public function level_names()
+    {
+        return $this->hasMany(EmployeeEducationLevel::class, 'certificate_name_id');
+    }
+
+
 
     // protected static function newFactory(): EducationLevelFactory
     // {

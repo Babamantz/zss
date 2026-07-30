@@ -5,6 +5,7 @@ namespace App\Livewire\Core\Admin\Users;
 use Throwable;
 use App\Models\User;
 use App\Models\Tenant;
+use Livewire\Component;
 use Livewire\Attributes\Computed;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
@@ -12,42 +13,37 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Livewire\Component;
 
 class UserEdit extends Component
 {
+    public ?int $userId = null;
+
+    // Form Inputs
     public string $first_name = '';
     public string $middle_name = '';
     public string $last_name = '';
-    public ?string $mode = null;
     public string $email = '';
-
+    public int $is_officer = 0;
+    public int $is_active = 1;
     public int|string|null $location = null;
-
-    public array $role = [];
-    public array $roles = [];
-    public array $permissions = [];
+    public string $role = '';
     public array $direct_permissions = [];
-    public ?int $userId = null;
 
-
-
-    protected function rules()
+    protected function rules(): array
     {
         return [
-            'first_name' => 'required|string|min:2|max:50',
-            'middle_name' => 'nullable|string|max:50',
-            'last_name' => 'required|string|min:2|max:50',
-            'email' => 'required|email|unique:users,email',
-            'location' => 'required|numeric|exists:tenants,id',
-            'role' => 'required|numeric|exists:roles,id',
-            'direct_permissions' => 'nullable|array',
-            'direct_permissions.*' => 'numeric|exists:permissions,id',
+            'first_name' => ['required', 'string', 'min:2', 'max:50'],
+            'middle_name' => ['nullable', 'string', 'max:50'],
+            'last_name' => ['required', 'string', 'min:2', 'max:50'],
+            'email' => ['required', 'email', 'unique:users,email,' . $this->userId],
+            'is_officer' => ['required', 'boolean'],
+            'is_active' => ['required', 'boolean'],
+            'location' => ['required', 'integer', 'exists:tenants,id'],
+            'role' => ['required', 'string', 'exists:roles,name'],
+            'direct_permissions' => ['nullable', 'array'],
+            'direct_permissions.*' => ['string', 'exists:permissions,name'],
         ];
     }
-
-
-
 
     protected $messages = [
         'first_name.required' => 'First name is required',
@@ -60,52 +56,37 @@ class UserEdit extends Component
         'role.required' => 'Please select a role',
     ];
 
-    public function mount(?int $id = null, ?string $mode = null)
+    public function mount(?int $id = null): void
     {
         $this->userId = $id;
-        $this->mode = $mode;
-
-
-        logger($mode);
 
         if ($this->userId) {
-
             try {
                 $user = User::findOrFail($this->userId);
-                // $this->fillFromUser($user);
+
                 $this->fill([
-                    'first_name'  => $user->first_name,
-                    'middle_name' => $user->middle_name,
-                    'last_name'   => $user->last_name,
-                    'email'       => $user->email,
-                    'location'    => $user->tenant_id,
-                    'role'        => $user->getRoleNames()->toArray(),
+                    'first_name' => $user->first_name,
+                    'middle_name' => $user->middle_name ?? '',
+                    'last_name' => $user->last_name,
+                    'email' => $user->email,
+                    'is_officer' => (int) $user->is_officer,
+                    'is_active' => (int) $user->is_active,
+                    'location' => $user->tenant_id,
+                    'role' => $user->getRoleNames()->first() ?? '',
                     'direct_permissions' => $user->getDirectPermissions()->pluck('name')->toArray(),
                 ]);
+            } catch (ModelNotFoundException $e) {
+                $this->dispatch('toastMagic', status: 'error', title: 'Finding Error', message: 'User not found');
+                $this->redirect(route('users.index'), navigate: true);
             } catch (Throwable $e) {
-
-                if ($e instanceof ModelNotFoundException) {
-                    $this->dispatch(
-                        'toastMagic',
-                        status: 'error',
-                        title: 'Finding Error',
-                        message: 'User not found'
-                    );
-
-                    return;
-                }
-
-                // Re-throw anything else (VERY important)
+                Log::error('User mount failed', ['user_id' => $id, 'error' => $e->getMessage()]);
                 throw $e;
             }
         }
-
-
-        $this->permissions = [];
-        $this->roles = [];
     }
 
-    public function getIsEditProperty(): bool
+    #[Computed]
+    public function isEdit(): bool
     {
         return filled($this->userId);
     }
@@ -113,109 +94,106 @@ class UserEdit extends Component
     #[Computed]
     public function roleNames()
     {
-        return Role::select(['id', 'name'])
-            ->orderBy('name')
-            ->get();
+        return Role::select(['id', 'name'])->orderBy('name')->get();
     }
 
     #[Computed]
     public function permissionNames()
     {
-        return Permission::select(['id', 'name'])
-            ->orderBy('name')
-            ->get();
+        return Permission::select(['id', 'name'])->orderBy('name')->get();
     }
 
     #[Computed]
     public function locations()
     {
-        return Tenant::select(['id', 'name'])
-            ->orderBy('name')
-            ->get();
+        return Tenant::select(['id', 'name'])->orderBy('name')->get();
     }
 
-    public function edit($id, string $mode = 'view') {}
+    public function updatedIsOfficer($value)
+    {
+        $this->is_officer = (int) $value;
+    }
+
+    public function updatedIsActive($value)
+    {
+        $this->is_active = (int) $value;
+    }
 
     public function save()
     {
+        // $this->validate();
+
+        // dd('nafika');
+        // dd($this->role,$this->direct_permissions);
+
         try {
             DB::transaction(function () {
-
-                if ($this->mode === 'edit') {
-                    // Find the user first, then update
-                    $user = User::findOrFail($this->userId);
-
-                    $user->update([
-                        'first_name' => $this->first_name,
-                        'middle_name' => $this->middle_name,
-                        'last_name' => $this->last_name,
-                        'email' => $this->email,
-                        'tenant_id' => $this->location,
-                        'password' => Hash::make($this->last_name)
-                    ]);
-
-                    $this->assignRole($user);
-                    $this->assignPermissions($user);
-
-                    $this->dispatch('toastMagic', [
-                        'type' => 'success',
-                        'message' => 'User updated successfully!',
-                    ]);
-
-                    return; // Important: Exit after edit
-                }
-
-                // Create new user (only runs if mode is NOT 'edit')
-                $user = User::create([
+                $payload = [
                     'first_name' => $this->first_name,
                     'middle_name' => $this->middle_name,
                     'last_name' => $this->last_name,
                     'email' => $this->email,
+                    'is_officer' => $this->is_officer,
+                    'is_active' => $this->is_active,
                     'tenant_id' => $this->location,
-                    'password' => Hash::make($this->last_name)
-                ]);
+                ];
 
+                if ($this->isEdit) {
+                    $user = User::findOrFail($this->userId);
+                    $user->update($payload);
+
+                    // dd($payload);
+
+                    $this->assignRole($user);
+                    $this->assignPermissions($user);
+
+                    $this->dispatch('toastMagic', type: 'success', message: 'User updated successfully!');
+                    // $this->redirect(route('users.create'), navigate: true);
+                    return;
+                }
+
+                // Append lowercase default secure password on create
+                $payload['password'] = Hash::make(strtolower(trim($this->last_name)));
+
+                // dd($payload);
+
+                $user = User::create($payload);
                 $this->assignRole($user);
                 $this->assignPermissions($user);
 
-                $this->dispatch('toastMagic', [
-                    'type' => 'success',
-                    'message' => 'User created successfully!',
-                ]);
-
-                $this->reset(['first_name', 'middle_name', 'last_name', 'email', 'location', 'role']);
+                $this->dispatch('toastMagic', type: 'success', message: 'User created successfully!');
+                $this->reset(['first_name', 'middle_name', 'last_name', 'email', 'is_officer', 'is_active', 'location', 'role', 'direct_permissions']);
             });
         } catch (\Exception $e) {
             Log::error('User save failed', [
-                'mode' => $this->mode,
-                'user_id' => $this->userId ?? null,
+                'is_edit' => $this->isEdit,
+                'user_id' => $this->userId,
                 'email' => $this->email,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
             ]);
-
-            $this->dispatch('toastMagic', [
-                'type' => 'error',
-                'message' => 'Failed to save user. Please try again.',
-            ]);
+            $this->dispatch('toastMagic', type: 'error', message: 'Failed to save user. Please try again.');
         }
     }
 
     protected function assignRole(User $user): void
     {
-        if ($this->role) {
-            $user->assignRole($this->role);
+        if (filled($this->role)) {
+            $user->syncRoles($this->role);
         }
     }
 
     protected function assignPermissions(User $user): void
     {
-        if (!empty($this->direct_permissions)) {
-            $user->givePermissionTo($this->direct_permissions);
-        }
+        $user->syncPermissions($this->direct_permissions ?? []);
     }
+
     public function render()
     {
+        $this->dispatch(
+            'refreshSelect2',
+            role: $this->role,
+            permissions: $this->direct_permissions
+        );
         return view('livewire.core.admin.users.user-edit');
     }
 }

@@ -275,7 +275,22 @@
 
                             {{-- Unit + Department --}}
                             <div class="row mb-3">
+                                
                                 <div class="col-md-6">
+                                    <div wire:ignore class="form-group">
+                                        <label>Department:</label>
+                                        <select id="select-department" class="js-example-basic-single form-control">
+                                            <option value="">-- Select Department --</option>
+                                            @foreach ($departments as $id => $deptName)
+                                                <option value="{{ $id }}" {{ (string)$department === (string)$id ? 'selected' : '' }}>
+                                                    {{ $deptName }}
+                                                </option>
+                                             @endforeach
+                                        </select>
+                                        @error('department') <small class="text-danger">{{ $message }}</small> @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
                                     <div wire:ignore class="form-group">
                                         <label>Unit:</label>
                                         <select id="select-unit" class="js-example-basic-single form-control">
@@ -289,18 +304,18 @@
                                         @error('unit') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-3">
                                     <div wire:ignore class="form-group">
-                                        <label>Department:</label>
-                                        <select id="select-department" class="js-example-basic-single form-control">
-                                            <option value="">-- Select Department --</option>
-                                            @foreach ($departments as $id => $deptName)
-                                                <option value="{{ $id }}" {{ (string)$department === (string)$id ? 'selected' : '' }}>
-                                                    {{ $deptName }}
+                                        <label>Division:</label>
+                                        <select id="select-division" class="js-example-basic-single form-control">
+                                            <option value="">-- Select Division --</option>
+                                            @foreach ($divisions as $id => $divisionName)
+                                                <option value="{{ $id }}">
+                                                    {{ $divisionName }}
                                                 </option>
-                                             @endforeach
+                                            @endforeach
                                         </select>
-                                        @error('department') <small class="text-danger">{{ $message }}</small> @enderror
+                                        @error('divisionName') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
                                 </div>
                             </div>
@@ -676,60 +691,69 @@
     </div>
 </div>
 
+
 @push('scripts')
-    <script src="{{ asset('./assets/js/select2/select2.full.min.js') }}"></script>
-    <script src="{{ asset('./assets/js/select2/select2-custom.js') }}"></script>
 
-    @script
-    <script>
-        document.addEventListener('livewire:initialized', () => {
+<script src="{{ asset('./assets/js/select2/select2.full.min.js') }}"></script>
+<script src="{{ asset('./assets/js/select2/select2-custom.js') }}"></script>
 
-            const initSelect2Fields = () => {
-                const selects = [
-                    { id: '#select-user',        field: 'email',          event: 'user-selected' },
-                    { id: '#select-education',   field: 'education_level_id' },
-                    { id: '#select-designation', field: 'designation_id' },
-                    { id: '#select-unit',        field: 'unit' },
-                    { id: '#select-department',  field: 'department' },
-                    { id: '#select-employment-type',  field: 'employment_type_id' },
-                    { id: '#select-bank-name',  field: 'employee_bank_id' },
-                ];
+@script
+<script>
+    document.addEventListener('livewire:initialized', () => {
 
-                selects.forEach(({ id, field, event }) => {
-                    const $el = $(id);
-                    if (!$el.length) return;
-                    $el.select2();
-                    $el.off('change').on('change', function () {
-                        $wire.set(field, this.value);
-                        if (event) $wire.dispatch(event);
-                    });
+        const SELECTS = [
+            { id: '#select-user',            field: 'email',event: 'user-selected', live: true },
+            { id: '#select-education',       field: 'education_level_id' },
+            { id: '#select-designation',     field: 'designation_id' },
+            { id: '#select-unit',            field: 'unit' },
+            { id: '#select-division',        field: 'divisionId' },
+            { id: '#select-department',      field: 'department' },
+            { id: '#select-employment-type', field: 'employment_type_id' },
+            { id: '#select-bank-name',       field: 'employee_bank_id' },
+        ];
+
+        const initSelect2Fields = () => {
+            SELECTS.forEach(({ id, field, event, live }) => {
+                const $el = $(id);
+                if (!$el.length) return;
+
+                // Skip anything already turned into a select2 widget.
+                // These all live inside wire:ignore wrappers, so there's
+                // nothing to resync — destroying/rebuilding on every morph
+                // was the source of the freeze.
+                if ($el.hasClass('select2-hidden-accessible')) return;
+
+                $el.select2({ width: '100%' });
+
+                $el.on('change', function () {
+                    // live=false defers the property to the next request
+                    // instead of firing a network round trip on every click
+                    // (matches how the plain text inputs use wire:model.defer).
+                    // Only 'email' needs to go live immediately, since
+                    // selectUser() has to run right away to populate name fields.
+                    $wire.set(field, this.value, live ?? false);
+                    if (event) $wire.dispatch(event);
                 });
-            };
-
-            initSelect2Fields();
-
-            // Re-init after every Livewire DOM morph (step changes, edit load)
-            Livewire.hook('morph.updated', () => initSelect2Fields());
-
-            // Sync Select2 visuals when edit data is dispatched
-            Livewire.on('eventEmail', (data) => {
-                const row = Array.isArray(data) ? data[0] : data;
-                console.log(row);
-                //Loading user data via user id
-                $('#select-user').val(row.employee_id).trigger('change');
-                $('#select-unit').val(row.unit_id).trigger('change');
-                $('#select-department').val(row.department_id).trigger('change');
-                console.log(row.employment_type);
-                
-                // $('#select-employment-type').val(row.employment_type_id).trigger('change');
-                // $('#select-employment-type').val(row.employment_type_id).trigger('change');
             });
+        };
 
-            // Clear file inputs after successful create
-            Livewire.on('resetFileState', () => {
-                document.querySelectorAll('input[type="file"]').forEach(el => el.value = '');
-            });
+        initSelect2Fields();
+        // NOTE: no more Livewire.hook('morph.updated', initSelect2Fields)
+
+        // Sync the email widget's visual state on edit-mode load only,
+        // without re-firing our own change handler (which would trigger
+        // another needless $wire.set/network call).
+        Livewire.on('eventEmail', (data) => {
+            const row = Array.isArray(data) ? data[0] : data;
+            const $el = $('#select-user');
+            $el.off('change.sync').one('change.sync', () => {}); // no-op guard slot
+            $el.val(row.employee_id).trigger({ type: 'change', suppressWire: true });
         });
-    </script>
-    @endscript
+
+        Livewire.on('resetFileState', () => {
+            document.querySelectorAll('input[type="file"]').forEach(el => el.value = '');
+        });
+    });
+</script>
+@endscript
 @endpush

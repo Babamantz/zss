@@ -19,9 +19,9 @@ class Department extends Model
         return $this->hasMany(Employee::class);
     }
 
-    public function units()
+    public function divisions()
     {
-        return $this->hasMany(Unit::class);
+        return $this->hasMany(Division::class);
     }
 
     // protected static function newFactory(): DepartmentFactory
