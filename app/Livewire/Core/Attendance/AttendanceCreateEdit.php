@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Core\Attendance;
 
-use Livewire\Component;
 use App\Models\Attendance;
+use Livewire\Component;
 
 class AttendanceCreateEdit extends Component
 {
@@ -11,18 +11,37 @@ class AttendanceCreateEdit extends Component
     public $title = '';
     public $heading = '';
     public $number_of_rows = 10;
-    public $language = 'en'; // FIX: Tracks selected language code ('en' or 'sw')
+
+    public bool $isSwahili = false;
+
     public $isEditMode = false;
     public $isViewMode = false;
 
     // Fixed column references
-    public $englishColumns = ['No.', 'Name', 'Position', 'From', 'Signature'];
-    public $swahiliColumns = ['No.', 'Jina', 'Cheo', 'Unapotoka', 'Saini'];
+    public $englishColumns = [
+        'No.',
+        'Name',
+        'Position',
+        'From',
+        'Signature',
+    ];
 
-    // Dynamic getter for columns based on current state
+    public $swahiliColumns = [
+        'No.',
+        'Jina',
+        'Cheo',
+        'Unapotoka',
+        'Saini',
+    ];
+
+    /**
+     * Get columns according to selected language.
+     */
     public function getColumnsProperty()
     {
-        return $this->language === 'sw' ? $this->swahiliColumns : $this->englishColumns;
+        return $this->isSwahili
+            ? $this->swahiliColumns
+            : $this->englishColumns;
     }
 
     protected function rules()
@@ -31,7 +50,7 @@ class AttendanceCreateEdit extends Component
             'title' => 'required|string|max:255',
             'heading' => 'required|string',
             'number_of_rows' => 'required|integer|min:1|max:100',
-            'language' => 'required|in:en,sw', // FIX: Validates state values
+            'isSwahili' => 'required|boolean',
         ];
     }
 
@@ -46,8 +65,10 @@ class AttendanceCreateEdit extends Component
     public function mount($attendanceId = null, $mode = null)
     {
         $this->attendanceId = $attendanceId;
+
         $this->isEditMode = !is_null($attendanceId);
         $this->isViewMode = ($mode === 'view');
+
         if ($attendanceId) {
             $this->loadAttendance();
         }
@@ -55,46 +76,63 @@ class AttendanceCreateEdit extends Component
 
     public function loadAttendance()
     {
-        $attendance = Attendance::where('user_id', auth()->id())->findOrFail($this->attendanceId);
+        $attendance = Attendance::where('user_id', auth()->id())
+            ->findOrFail($this->attendanceId);
+
         $this->title = $attendance->title;
         $this->heading = $attendance->heading;
         $this->number_of_rows = $attendance->number_of_rows;
 
-        // FIX: Map database boolean column back into language select status code string
-        $this->language = $attendance->is_swahili ? 'sw' : 'en';
+        // Database value is boolean.
+        $this->isSwahili = (bool) $attendance->is_swahili;
     }
 
     public function submitForm()
     {
+        // dd($this->isSwahili);
         $this->validate();
+
         try {
             $data = [
                 'user_id' => auth()->id(),
                 'title' => $this->title,
                 'heading' => $this->heading,
                 'number_of_rows' => $this->number_of_rows,
-                'is_swahili' => $this->language === 'sw', // FIX: Transverts string back into DB boolean structure
+                'is_swahili' => (bool) $this->isSwahili,
             ];
+
             if ($this->isEditMode) {
-                $attendance = Attendance::where('user_id', auth()->id())->findOrFail($this->attendanceId);
+                $attendance = Attendance::where('user_id', auth()->id())
+                    ->findOrFail($this->attendanceId);
+
                 $attendance->update($data);
-                session()->flash('message', 'Attendance form template updated successfully.');
+
+                session()->flash(
+                    'message',
+                    'Attendance form template updated successfully.'
+                );
             } else {
                 Attendance::create($data);
-                session()->flash('message', 'Attendance form template created successfully.');
+
+                session()->flash(
+                    'message',
+                    'Attendance form template created successfully.'
+                );
             }
+
             return redirect()->route('attendance.index');
         } catch (\Exception $e) {
-            session()->flash('error', 'An error occurred: ' . $e->getMessage());
+            session()->flash(
+                'error',
+                'An error occurred: ' . $e->getMessage()
+            );
         }
     }
 
     public function render()
     {
         return view('livewire.core.attendance.attendance-create-edit', [
-            'columns' => $this->columns // FIX: Passes computed language headers directly to layout loop
+            'columns' => $this->columns,
         ]);
     }
 }
-
-

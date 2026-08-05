@@ -18,9 +18,12 @@ class AttendanceController extends Controller
         // Define your standard column arrays
         $englishColumns = ['No.', 'Name', 'Position', 'From', 'Signature'];
         $swahiliColumns = ['No.', 'Jina', 'Cheo', 'Unapotoka', 'Saini'];
+        dd($attendance);
 
         // FIX: Pick the array dynamically based on the database column value
-        $columns = $attendance->is_swahili ? $swahiliColumns : $englishColumns;
+        $columns = $attendance->is_swahili === true ? $swahiliColumns : $englishColumns;
+
+        dd($columns);
 
         $data = [
             'attendance' => $attendance,
@@ -28,6 +31,7 @@ class AttendanceController extends Controller
             'heading' => $attendance->heading,
             'columns' => $columns, // FIX: Pass the dynamic language column choices array
             'rows' => $attendance->number_of_rows,
+            'isSwahili' => $attendance->is_swahili
         ];
 
         $pdf = Pdf::loadView('attendance.preview', $data)

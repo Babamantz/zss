@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -796,6 +797,113 @@ class EmployeeCreate extends Component
         $this->initializeCertificateItems();
     }
 
+    /**
+     * Shared helper to fetch and format lookups efficiently.
+     */
+    private function formatLookup(string $modelClass, string $labelColumn = 'name'): array
+    {
+        return $modelClass::select(['id', $labelColumn])
+            ->get()
+            ->map(fn($model) => [
+                'value' => $model->id,
+                'label' => $model->$labelColumn,
+            ])
+            ->toArray();
+    }
+
+    #[Computed]
+    public function departments(): array
+    {
+        return $this->formatLookup(Department::class);
+    }
+
+    #[Computed]
+    public function units(): array
+    {
+        return $this->formatLookup(Unit::class);
+    }
+
+    #[Computed]
+    public function divisions(): array
+    {
+        return $this->formatLookup(Division::class);
+    }
+
+    #[Computed]
+    public function banks(): array
+    {
+        return $this->formatLookup(Bank::class);
+    }
+
+    #[Computed]
+    public function educationLevels(): array
+    {
+        return $this->formatLookup(EducationLevel::class);
+    }
+
+    #[Computed]
+    public function employmentTypes(): array
+    {
+        return $this->formatLookup(EmploymentType::class);
+    }
+
+    #[Computed]
+    public function designations(): array
+    {
+        return $this->formatLookup(Designation::class, 'designation_name');
+    }
+
+    #[Computed]
+    public function identificationTypes(): array
+    {
+        return $this->formatLookup(Identification::class, 'identification_name');
+    }
+
+    #[Computed]
+    public function certificateTypes(): array
+    {
+        return $this->formatLookup(Certificate::class, 'certificate_name');
+    }
+
+    #[Computed]
+    public function emails(): array
+    {
+        return $this->getAvailableEmails();
+    }
+
+    public function updatedEmail(): void
+    {
+
+        $this->selectUser();
+    }
+    protected function getAvailableEmails(): array
+    {
+        return User::query()
+            ->select(['id', 'email'])
+            ->where('is_active', 'active')
+            ->orWhereDoesntHave('employee') // Select only what we need
+            ->when(
+                $this->employeeId,
+                // Edit mode: allow the currently-assigned user to show up
+                fn($q) => $q->where(function ($q2) {
+                    $q2->doesntHave('employee')
+                        ->orWhere('id', $this->userId);
+                }),
+                // Create mode: only show users without an employee record
+                fn($q) => $q->doesntHave('employee')
+            )
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn($user) => [
+                'value' => $user->id,
+                'label' => $user->email,
+            ])
+            ->toArray();
+    }
+
+
+
+
     // =========================================================================
     // RENDER
     // =========================================================================
@@ -803,51 +911,9 @@ class EmployeeCreate extends Component
     public function render()
     {
         return view('hrm::livewire.h-r-m.employees.employee-create', [
-            // PERF: these are near-static reference/lookup tables, but
-            // render() used to run all of them fresh on every single
-            // interaction (each select2 click == one full network
-            // round-trip == one full re-render). Caching them for
-            // LOOKUP_CACHE_TTL removes ~9 avoidable queries per click.
-            // If any of these tables need to reflect changes instantly,
-            // bust the relevant key from that model's saved/deleted
-            // observer instead of lowering the TTL globally.
-            'departments'         => Cache::remember('hrm.lookup.departments', self::LOOKUP_CACHE_TTL, fn() => Department::pluck('name', 'id')),
-            'units'               => Cache::remember('hrm.lookup.units', self::LOOKUP_CACHE_TTL, fn() => Unit::pluck('name', 'id')),
-            'divisions'           => Cache::remember('hrm.lookup.divisions', self::LOOKUP_CACHE_TTL, fn() => Division::pluck('name', 'id')),
-            'banks'               => Cache::remember('hrm.lookup.banks', self::LOOKUP_CACHE_TTL, fn() => Bank::pluck('name', 'id')),
-            'emails'              => $this->getAvailableEmails(),
-            'educationLevels'     => Cache::remember('hrm.lookup.education_levels', self::LOOKUP_CACHE_TTL, fn() => EducationLevel::pluck('name', 'id')),
-            'employmentTypes'     => Cache::remember('hrm.lookup.employment_types', self::LOOKUP_CACHE_TTL, fn() => EmploymentType::pluck('name', 'id')),
-            'designations'        => Cache::remember('hrm.lookup.designations', self::LOOKUP_CACHE_TTL, fn() => Designation::pluck('designation_name', 'id')),
-            'identificationTypes' => Cache::remember('hrm.lookup.identification_types', self::LOOKUP_CACHE_TTL, fn() => Identification::pluck('identification_name', 'id')),
-            'certificateTypes'    => Cache::remember('hrm.lookup.certificate_types', self::LOOKUP_CACHE_TTL, fn() => Certificate::pluck('certificate_name', 'id')),
+
             'isEditMode'          => $this->isEditMode,
             'isViewMode'          => $this->isViewMode,
         ]);
-    }
-
-    protected function getAvailableEmails(): \Illuminate\Support\Collection
-    {
-        // PERF: cache keyed by employeeId/userId since the "available" set
-        // depends on which user is currently assigned in edit mode. Short
-        // TTL because this one is more likely to go stale as users get
-        // assigned to other employees elsewhere in the app.
-        $cacheKey = 'hrm.lookup.available_emails.' . ($this->employeeId ?? 'new') . '.' . ($this->userId ?? '0');
-
-        return Cache::remember($cacheKey, 60, function () {
-            return User::query()
-                ->when(
-                    $this->employeeId,
-                    // Edit mode: allow the currently-assigned user to still show up,
-                    // even though they now "have" an employee record.
-                    fn($q) => $q->where(function ($q2) {
-                        $q2->doesntHave('employee')
-                            ->orWhere('id', $this->userId);
-                    }),
-                    fn($q) => $q->doesntHave('employee')
-                )
-                ->orderByDesc('created_at')
-                ->pluck('email', 'id');
-        });
     }
 }

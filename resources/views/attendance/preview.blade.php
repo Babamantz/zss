@@ -1,11 +1,13 @@
-
 {{-- resources/views/attendance/preview.blade.php --}}
+
 <!DOCTYPE html>
 <html>
 
 <head>
     <meta charset="utf-8">
+
     <title>{{ $title }}</title>
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,21 +15,30 @@
             padding: 20px;
         }
 
+        .logo-container {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .logo-container img {
+            max-height: 60px;
+            width: auto;
+            display: inline-block;
+        }
+
         .header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 0;
         }
 
         .header h1 {
-            margin: 0 0 10px 0;
+            margin: 0;
             font-size: 22px;
         }
 
         .heading-content {
-            margin: 15px 0 20px 0;
+            margin: 0 0 20px 0;
             padding: 12px;
-            background: #f9f9f9;
-            border-left: 4px solid #007bff;
         }
 
         table {
@@ -54,34 +65,75 @@
 </head>
 
 <body>
-    <div class="header">
-        <h1>{{ $title }}</h1>
+
+    {{-- Logo Section --}}
+    <div class="logo-container">
+        <img src="{{ public_path('assets/img/zhc_logo.png') }}" alt="zhc_logo">
     </div>
 
+    {{-- Organization Header --}}
+    <div class="header">
+
+        @if (!$isSwahili)
+            <h1>ZANZIBAR HOUSING CORPORATION</h1>
+        @else
+            <h1>SHIRIKA LA NYUMBA ZANZIBAR</h1>
+        @endif
+
+    </div>
+
+    {{-- Heading --}}
     <div class="heading-content">
         {!! $heading !!}
     </div>
 
+    {{-- Attendance Table --}}
     <table>
+
         <thead>
             <tr>
+
                 @foreach ($columns as $column)
                     <th>{{ $column }}</th>
                 @endforeach
+
             </tr>
         </thead>
+
         <tbody>
+
             @for ($i = 1; $i <= $rows; $i++)
+
                 <tr>
-                    <td style="width: 5%; text-align: center;">{{ $i }}</td>
-                    <td style="width: 25%;"></td>
-                    <td style="width: 20%;"></td>
-                    <td style="width: 25%;"></td>
-                    <td style="width: 25%;" class="signature-cell"></td>
+
+                    @foreach ($columns as $index => $column)
+
+                        @if ($index === 0)
+
+                            <td style="width: 5%; text-align: center;">
+                                {{ $i }}
+                            </td>
+
+                        @elseif ($index === count($columns) - 1)
+
+                            <td style="width: {{ 95 / max(count($columns) - 1, 1) }}%;" class="signature-cell"></td>
+
+                        @else
+
+                            <td style="width: {{ 95 / max(count($columns) - 1, 1) }}%;"></td>
+
+                        @endif
+
+                    @endforeach
+
                 </tr>
+
             @endfor
+
         </tbody>
+
     </table>
+
 </body>
 
 </html>

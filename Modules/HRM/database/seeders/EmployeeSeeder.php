@@ -18,7 +18,6 @@ class EmployeeSeeder extends Seeder
             [
                 'opf_number'     => 'OPF-2024-001',
                 'is_disable' =>  false,
-                'is_active'      => 'active',
                 'gender'         => 'male',
                 'marital_status' => 'married',
                 'contacts'   => json_encode(['phone' => null, 'alt_phone' => null, 'address' => null]),
@@ -38,7 +37,6 @@ class EmployeeSeeder extends Seeder
             [
                 'opf_number'     => 'OPF-2024-002',
                 'is_disable'   =>  false,
-                'is_active'      => 'active',
                 'gender'         => 'female',
                 'marital_status' => 'single',
                 'contacts'   => json_encode(['phone' => null, 'alt_phone' => null, 'address' => null]),
@@ -58,7 +56,6 @@ class EmployeeSeeder extends Seeder
             [
                 'opf_number'     => 'OPF-2024-003',
                 'is_disable'     => false,
-                'is_active'      => 'active',
                 'gender'         => 'male',
                 'marital_status' => 'married',
                 'contacts'   => json_encode(['phone' => null, 'alt_phone' => null, 'address' => null]),
@@ -78,7 +75,6 @@ class EmployeeSeeder extends Seeder
             [
                 'opf_number'     => 'OPF-2024-004',
                 'is_disable'     => false,
-                'is_active'      => 'active',
                 'gender'         => 'female',
                 'marital_status' => 'divorced',
                 'contacts'   => json_encode(['phone' => null, 'alt_phone' => null, 'address' => null]),
@@ -98,7 +94,6 @@ class EmployeeSeeder extends Seeder
             [
                 'opf_number'     => 'OPF-2024-005',
                 'is_disable'     => false,
-                'is_active'      => 'in-active',
                 'gender'         => 'male',
                 'marital_status' => 'married',
                 'contacts'   => json_encode(['phone' => null, 'alt_phone' => null, 'address' => null]),

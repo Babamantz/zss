@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Attendance extends Model
 {
-    use HasFactory,FilterByTenant;
+    use HasFactory, FilterByTenant;
 
     protected $fillable = [
         'user_id',
@@ -17,6 +17,9 @@ class Attendance extends Model
         'heading',
         'number_of_rows',
         'attendance_path',
+    ];
+    protected $casts = [
+        'isSwahili' => 'boolean'
     ];
 
     public function user(): BelongsTo

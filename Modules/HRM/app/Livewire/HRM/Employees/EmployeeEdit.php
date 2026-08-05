@@ -7,11 +7,11 @@ use App\Models\Designation;
 use App\Models\EducationLevel;
 use App\Models\Identification;
 use App\Models\User;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -102,8 +102,12 @@ class EmployeeEdit extends Component
     public bool $isEditMode = false;
     public bool $isViewMode = false;
 
-
+    // NOTE: kept for parity with EmployeeCreate, which also declares this
+    // constant without using it anywhere (formatLookup() is uncached in
+    // both components as of this refactor). Flagging rather than silently
+    // dropping it — let me know if you'd rather remove it outright.
     protected const LOOKUP_CACHE_TTL = 300; // 5 minutes
+
     // =========================================================================
     // MOUNT
     // =========================================================================
@@ -387,25 +391,40 @@ class EmployeeEdit extends Component
     // STEP NAVIGATION
     // =========================================================================
 
+    // public function nextStep(): void
+    // {
+    //     if ($this->isViewMode) {
+    //         $this->currentStep++;
+    //         return;
+    //     }
+
+    //     try {
+    //         $this->validate($this->getStepRules($this->currentStep));
+    //     } catch (ValidationException $e) {
+    //         // FIX: the step-1 validation error most commonly hit here is
+    //         // 'selectedUserId' (no visible field for it in older markup).
+    //         // Surface a flash message in addition to the field-level errors
+    //         // so the user always sees *something* even if a given step's
+    //         // partial view doesn't render every @error() tag.
+    //         session()->flash('error', 'Please fix the highlighted fields before continuing: ' .
+    //             collect($e->validator->errors()->all())->implode(' '));
+    //         throw $e;
+    //     }
+
+    //     $this->currentStep++;
+    // }
+
     public function nextStep(): void
     {
         if ($this->isViewMode) {
             $this->currentStep++;
+
             return;
         }
 
-        try {
-            $this->validate($this->getStepRules($this->currentStep));
-        } catch (ValidationException $e) {
-            // FIX: the step-1 validation error most commonly hit here is
-            // 'selectedUserId' (no visible field for it in older markup).
-            // Surface a flash message in addition to the field-level errors
-            // so the user always sees *something* even if a given step's
-            // partial view doesn't render every @error() tag.
-            session()->flash('error', 'Please fix the highlighted fields before continuing: ' .
-                collect($e->validator->errors()->all())->implode(' '));
-            throw $e;
-        }
+        $this->validate(
+            $this->getStepRules($this->currentStep)
+        );
 
         $this->currentStep++;
     }
@@ -423,7 +442,6 @@ class EmployeeEdit extends Component
 
     public function submitForm()
     {
-        // dd('nafika');
         if ($this->isViewMode) {
             return;
         }
@@ -485,7 +503,6 @@ class EmployeeEdit extends Component
 
     protected function saveEmployee(): Employee
     {
-        // dd($this->employment_type_id,$this->divisionId);
         $data = [
             'dob'                 => $this->dob,
             'hired_date'          => $this->hired_date,
@@ -709,31 +726,85 @@ class EmployeeEdit extends Component
     }
 
     // =========================================================================
-    // RENDER
+    // LOOKUPS
     // =========================================================================
 
-    public function render()
+    /**
+     * Shared helper to fetch and format lookups efficiently.
+     * Mirrors EmployeeCreate::formatLookup() exactly.
+     */
+    private function formatLookup(string $modelClass, string $labelColumn = 'name'): array
     {
-        return view('hrm::livewire.h-r-m.employees.employee-edit', [
-            'departments'         => Cache::remember('hrm.lookup.departments', self::LOOKUP_CACHE_TTL, fn() => Department::pluck('name', 'id')),
-            'units'               => Cache::remember('hrm.lookup.units', self::LOOKUP_CACHE_TTL, fn() => Unit::pluck('name', 'id')),
-            'divisions'           => Cache::remember('hrm.lookup.divisions', self::LOOKUP_CACHE_TTL, fn() => Division::pluck('name', 'id')),
-            'banks'               => Cache::remember('hrm.lookup.banks', self::LOOKUP_CACHE_TTL, fn() => Bank::pluck('name', 'id')),
-            'emails'              => $this->getAvailableEmails(),
-            'educationLevels'     => Cache::remember('hrm.lookup.education_levels', self::LOOKUP_CACHE_TTL, fn() => EducationLevel::pluck('name', 'id')),
-            'employmentTypes'     => Cache::remember('hrm.lookup.employment_types', self::LOOKUP_CACHE_TTL, fn() => EmploymentType::pluck('name', 'id')),
-            'designations'        => Cache::remember('hrm.lookup.designations', self::LOOKUP_CACHE_TTL, fn() => Designation::pluck('designation_name', 'id')),
-            'identificationTypes' => Cache::remember('hrm.lookup.identification_types', self::LOOKUP_CACHE_TTL, fn() => Identification::pluck('identification_name', 'id')),
-            'certificateTypes'    => Cache::remember('hrm.lookup.certificate_types', self::LOOKUP_CACHE_TTL, fn() => Certificate::pluck('certificate_name', 'id')),
-            'isEditMode'          => $this->isEditMode,
-        ]);
+        return $modelClass::select(['id', $labelColumn])
+            ->get()
+            ->map(fn($model) => [
+                'value' => $model->id,
+                'label' => $model->$labelColumn,
+            ])
+            ->toArray();
     }
 
+    #[Computed]
+    public function departments(): array
+    {
+        return $this->formatLookup(Department::class);
+    }
+
+    #[Computed]
+    public function units(): array
+    {
+        return $this->formatLookup(Unit::class);
+    }
+
+    #[Computed]
+    public function divisions(): array
+    {
+        return $this->formatLookup(Division::class);
+    }
+
+    #[Computed]
+    public function banks(): array
+    {
+        return $this->formatLookup(Bank::class);
+    }
+
+    #[Computed]
+    public function educationLevels(): array
+    {
+        return $this->formatLookup(EducationLevel::class);
+    }
+
+    #[Computed]
+    public function employmentTypes(): array
+    {
+        return $this->formatLookup(EmploymentType::class);
+    }
+
+    #[Computed]
+    public function designations(): array
+    {
+        return $this->formatLookup(Designation::class, 'designation_name');
+    }
+
+    #[Computed]
+    public function identificationTypes(): array
+    {
+        return $this->formatLookup(Identification::class, 'identification_name');
+    }
+
+    #[Computed]
+    public function certificateTypes(): array
+    {
+        return $this->formatLookup(Certificate::class, 'certificate_name');
+    }
+
+    // NOTE: left as a plain method (not #[Computed]) deliberately, unlike
+    // Create's `emails()`. Edit doesn't support reassigning the employee's
+    // user, so this stays a one-time read-only lookup for display rather
+    // than a live-searchable select fed by a computed property. Say the
+    // word if you actually want reassignment enabled here.
     protected function getAvailableEmails(): \Illuminate\Support\Collection
     {
-        // FIX: same helper EmployeeCreate uses — includes users who don't
-        // yet have an employee record, plus the user already tied to this
-        // employee (so the dropdown always has an option to render).
         return User::query()
             ->where(function ($q) {
                 $q->doesntHave('employee')
@@ -741,5 +812,18 @@ class EmployeeEdit extends Component
             })
             ->orderByDesc('created_at')
             ->pluck('email', 'id');
+    }
+
+    // =========================================================================
+    // RENDER
+    // =========================================================================
+
+    public function render()
+    {
+        return view('hrm::livewire.h-r-m.employees.employee-edit', [
+            'emails'     => $this->getAvailableEmails(),
+            'isEditMode' => $this->isEditMode,
+            'isViewMode' => $this->isViewMode,
+        ]);
     }
 }

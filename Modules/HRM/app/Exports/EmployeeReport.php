@@ -34,7 +34,9 @@ class EmployeeReport implements FromQuery, WithHeadings, WithMapping
             $query->where('gender', $this->filters['gender']);
         }
         if (!empty($this->filters['is_active'])) {
-            $query->where('is_active', $this->filters['is_active']);
+            $query->whereHas('user', function ($u) {
+                $u->where('is_active', $this->filters['is_active']);
+            });
         }
         if (!empty($this->filters['search'])) {
             $query->whereHas('user', function ($u) {
@@ -72,11 +74,11 @@ class EmployeeReport implements FromQuery, WithHeadings, WithMapping
             $employee->division?->department?->name ?? 'N/A',
             $employee->division?->name ?? 'N/A',
             $employee->unit?->name ?? 'N/A',
-            $employee->identifications->identificationnida_no,
+            // $employee->identifications->identificationnida_no,
             $employee->file_number,
             $employee->opf_number,
             $employee->hired_date,
-            $employee->is_active === 'active' ? 'Active' : 'Inactive',
+            $employee->user?->is_active === 'active' ? 'Active' : 'Inactive',
         ];
     }
 }

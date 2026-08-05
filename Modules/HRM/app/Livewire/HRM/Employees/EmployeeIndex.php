@@ -11,16 +11,17 @@ use Modules\HRM\Models\Unit;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use App\Models\Tenant;
+use App\Models\User;
 
 class EmployeeIndex extends Component
 {
     use WithPagination;
 
     // ── Filters ───────────────────────────────────────────────────────────────
-    public string $search          = '';
+    public string $search           = '';
     public string $filterDepartment = '';
     public string $filterUnit       = '';
-    public string $filterStatus     = '';  // 'active' | 'in-active' | ''
+    public bool $filterStatus       = true;  // true = active, false = in-active
     public string $filterGender     = '';  // 'male' | 'female' | ''
 
     // ── Sorting ───────────────────────────────────────────────────────────────
@@ -129,6 +130,8 @@ class EmployeeIndex extends Component
     // ── Render ────────────────────────────────────────────────────────────────
     public function render()
     {
+        $statusValue = $this->filterStatus ? 'active' : 'in-active';
+
         $employees = Employee::query()
             ->with([
                 'user',
@@ -153,11 +156,11 @@ class EmployeeIndex extends Component
                 )
             )
 
-            // Department filter
+            // Department filter (resolved via division, no direct department_id on employees)
             ->when(
                 $this->filterDepartment,
                 fn($q) =>
-                $q->where('department_id', $this->filterDepartment)
+                $q->whereHas('division', fn($d) => $d->where('department_id', $this->filterDepartment))
             )
 
             // Unit filter
@@ -167,11 +170,10 @@ class EmployeeIndex extends Component
                 $q->where('unit_id', $this->filterUnit)
             )
 
-            // Status filter
-            ->when(
-                $this->filterStatus,
-                fn($q) =>
-                $q->where('is_active', $this->filterStatus)
+            // Status filter (is_active now lives on users)
+            ->whereHas(
+                'user',
+                fn($u) => $u->where('is_active', $statusValue)
             )
 
             // Gender filter
@@ -183,14 +185,21 @@ class EmployeeIndex extends Component
 
             // Sorting
             ->when(
-                in_array($this->sortField, ['created_at', 'opf_number', 'gender', 'is_active']),
+                in_array($this->sortField, ['created_at', 'opf_number', 'gender']),
                 fn($q) => $q->orderBy($this->sortField, $this->sortDir),
-                // Sort by related user name
-                fn($q) => $q->orderBy(
-                    \App\Models\User::select('first_name')
-                        ->whereColumn('id', 'employees.user_id')
-                        ->limit(1),
-                    $this->sortDir
+                fn($q) => $q->when(
+                    $this->sortField === 'is_active',
+                    // Sort by related user's status via join
+                    fn($q2) => $q2->leftJoin('users', 'users.id', '=', 'employees.user_id')
+                        ->select('employees.*')
+                        ->orderBy('users.is_active', $this->sortDir),
+                    // Sort by related user name
+                    fn($q2) => $q2->orderBy(
+                        User::select('first_name')
+                            ->whereColumn('id', 'employees.user_id')
+                            ->limit(1),
+                        $this->sortDir
+                    )
                 )
             )
 
@@ -199,8 +208,12 @@ class EmployeeIndex extends Component
         // Summary counts (unfiltered for stat cards)
         $counts = [
             'total'    => Employee::where('is_hr_registered', true)->count(),
-            'active'   => Employee::where('is_hr_registered', true)->where('is_active', 'active')->count(),
-            'inactive' => Employee::where('is_hr_registered', true)->where('is_active', 'in-active')->count(),
+            'active'   => Employee::where('is_hr_registered', true)
+                ->whereHas('user', fn($u) => $u->where('is_active', 'active'))
+                ->count(),
+            'inactive' => Employee::where('is_hr_registered', true)
+                ->whereHas('user', fn($u) => $u->where('is_active', 'in-active'))
+                ->count(),
             'male'     => Employee::where('is_hr_registered', true)->where('gender', 'male')->count(),
             'female'   => Employee::where('is_hr_registered', true)->where('gender', 'female')->count(),
         ];

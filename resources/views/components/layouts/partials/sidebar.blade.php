@@ -53,7 +53,9 @@
         //     : 0;
 
         // Total active employees in organisation
-        $orgTotal = \Modules\HRM\Models\Employee::where('is_active', 'active')->count();
+        $orgTotal = \Modules\HRM\Models\Employee::with('user', function ($q) {
+            $q->where('active', true);
+        })->count();
     @endphp
 
     <div class="sidebar-user text-center">
@@ -69,7 +71,7 @@
                 src="{{ Storage::disk('public')->url($employee->photo_file) }}" alt="{{ $authUser?->first_name }}">
         @else
             <div class="img-90 rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width:90px;height:90px;background:#E8EAF6;
-                                   font-size:28px;font-weight:700;color:#1a237e;">
+                                           font-size:28px;font-weight:700;color:#1a237e;">
                 {{ $initials }}
             </div>
         @endif

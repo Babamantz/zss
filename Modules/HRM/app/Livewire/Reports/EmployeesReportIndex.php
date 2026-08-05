@@ -20,7 +20,7 @@ class EmployeesReportIndex extends Component
     public string $filterDept     = '';
     public string $filterDivision = '';
     public string $filterUnit     = '';
-    public string $filterStatus   = 'active';
+    public bool $filterStatus   = true;  // true = active, false = in-active
     public string $search         = '';
 
     // ── Sorting ───────────────────────────────────────────────────────────────
@@ -84,7 +84,7 @@ class EmployeesReportIndex extends Component
             'filterUnit',
             'search',
         ]);
-        $this->filterStatus = 'active';
+        $this->filterStatus = true;
         $this->sortField    = 'hired_date';
         $this->sortDir      = 'desc';
         $this->resetPage();
@@ -98,7 +98,7 @@ class EmployeesReportIndex extends Component
             'department_id' => $this->filterDept,
             'division_id'   => $this->filterDivision,
             'unit_id'       => $this->filterUnit,
-            'is_active'     => $this->filterStatus,
+            'is_active'     => $this->filterStatus ? 'active' : 'in-active',
             'search'        => $this->search,
         ];
 
@@ -111,9 +111,11 @@ class EmployeesReportIndex extends Component
     // ── Render ────────────────────────────────────────────────────────────────
     public function render()
     {
+        $statusValue = $this->filterStatus ? 'active' : 'in-active';
+
         $query = Employee::query()
             ->with(['user', 'division.department', 'unit'])
-            ->where('is_active', $this->filterStatus ?: 'active')
+            ->whereHas('user', fn($u) => $u->where('is_active', $statusValue))
             ->when(
                 $this->search,
                 fn($q) =>
@@ -166,12 +168,14 @@ class EmployeesReportIndex extends Component
 
         $employees = $query->paginate($this->perPage);
 
-        // Summary counts (unfiltered)
+        // Summary counts (scoped to active status, unfiltered by the other filters)
         $counts = [
-            'total'  => Employee::where('is_active', 'active')->count(),
-            'male'   => Employee::where('is_active', 'active')->where('gender', 'male')->count(),
-            'female' => Employee::where('is_active', 'active')->where('gender', 'female')->count(),
-            'depts'  => Employee::where('employees.is_active', 'active')
+            'total'  => Employee::whereHas('user', fn($u) => $u->where('is_active', 'active'))->count(),
+            'male'   => Employee::whereHas('user', fn($u) => $u->where('is_active', 'active'))
+                ->where('gender', 'male')->count(),
+            'female' => Employee::whereHas('user', fn($u) => $u->where('is_active', 'active'))
+                ->where('gender', 'female')->count(),
+            'depts'  => Employee::whereHas('user', fn($u) => $u->where('is_active', 'active'))
                 ->join('divisions', 'employees.division_id', '=', 'divisions.id')
                 ->distinct('divisions.department_id')
                 ->count('divisions.department_id'),

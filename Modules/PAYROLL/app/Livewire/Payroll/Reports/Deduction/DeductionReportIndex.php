@@ -251,8 +251,7 @@ class DeductionReportIndex extends Component
 
         // dd($components);
 
-        $employees = Employee::with('user')
-            ->where('is_active', 'active')
+        $employees = Employee::whereHas('user',fn($q)=>$q->where('is_active',true))
             ->get();
 
         $periods = PayPeriod::orderByDesc('start_date')->get();

@@ -27,8 +27,10 @@ use Modules\PAYROLL\Models\PayrollEntry;
 
 class Employee extends Model
 {
-    use HasFactory, SoftDeletes,FilterEmployeeByTenant;
+    use HasFactory, SoftDeletes, FilterEmployeeByTenant;
 
+
+    protected $guarded = false;
 
 
     /**
@@ -37,6 +39,10 @@ class Employee extends Model
 
     protected $casts = [
         'contacts' => 'array',
+        'is_disable' => 'boolean',
+        'is_hr_registered' => 'boolean',
+        'is_officer' => 'boolean'
+
     ];
 
 
@@ -46,7 +52,6 @@ class Employee extends Model
         return $this->belongsTo(ModelsEmploymentType::class);
     }
 
-    protected $guarded = false;
     public static function validEmploymentTypes(): array
     {
         return EmploymentType::ALL;
@@ -93,7 +98,7 @@ class Employee extends Model
     {
         return $this->hasMany(EmployeeComponent::class);
     }
-   
+
     public function financeProfile()
     {
         return $this->hasOne(EmployeeFinanceProfile::class);
@@ -136,7 +141,7 @@ class Employee extends Model
 
     public function employed_education_level()
     {
-        return $this->belongsTo(EducationLevel::class,'education_level_id');
+        return $this->belongsTo(EducationLevel::class, 'education_level_id');
     }
     public function education_levels()
     {
@@ -154,7 +159,7 @@ class Employee extends Model
     }
     public function designation()
     {
-        return $this->belongsTo(Designation::class,'designation_id');
+        return $this->belongsTo(Designation::class, 'designation_id');
     }
 
     public function bankAccount()

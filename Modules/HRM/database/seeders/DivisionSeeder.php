@@ -18,6 +18,8 @@ class DivisionSeeder extends Seeder
 
         $divisions = [
             ['name' => 'Auditor', 'slug' => 'auditor', 'department_slug' => ''],
+            ['name' => 'Consultance', 'slug' => 'auditor', 'department_slug' => 'planning'],
+            ['name' => 'Marketting', 'slug' => 'auditor', 'department_slug' => 'rem'],
             ['name' => 'Public Relations', 'slug' => 'pr', 'department_slug' => ''],
             ['name' => 'Legal Unit', 'slug' => 'legal', 'department_slug' => ''],
             ['name' => 'Information and Communication Technology', 'slug' => 'ict', 'department_slug' => ''],

@@ -204,7 +204,7 @@ class FinanceProfileIndex extends Component
         // Employees who do NOT yet have a profile (for create dropdown)
         // On edit we also include the current employee so it appears selected
         $availableEmployees = Employee::with('user')
-            ->where('is_active', 'active')
+            ->whereHas('user', fn($q) => $q->where('is_active', true))
             ->when(
                 !$this->editId,
                 fn($q) => $q->doesntHave('financeProfile')
@@ -253,7 +253,7 @@ class FinanceProfileIndex extends Component
             'avg_salary' => EmployeeFinanceProfile::avg('base_salary') ?? 0,
             'max_salary' => EmployeeFinanceProfile::max('base_salary') ?? 0,
             'min_salary' => EmployeeFinanceProfile::min('base_salary') ?? 0,
-            'no_profile' => Employee::where('is_active', 'active')
+            'no_profile' => Employee::whereHas('user', fn($q)=>$q->where('is_active',true))
                 ->doesntHave('financeProfile')->count(),
         ];
 
