@@ -93,6 +93,26 @@ class EmployeeIndex extends Component
         session()->flash('success', 'Employee removed.');
     }
 
+    // EmployeeIndex.php
+    public function toggleApproval(int $employeeId): void
+    {
+        if (!auth()->user()->hasRole('director-hr')) {
+            $this->dispatch('toastMagic', type: 'error', message: 'Not authorized to approve.');
+            return;
+        }
+
+        $employee = Employee::findOrFail($employeeId);
+
+        if (!$employee->canBeApprovedBy(auth()->user())) {
+            $this->dispatch('toastMagic', type: 'error', message: 'This employee cannot be approved at this step.');
+            return;
+        }
+
+        $employee->approve();
+
+        $this->dispatch('toastMagic', type: 'success', message: 'Employee approved.');
+    }
+
     // ── Computed: filter options ───────────────────────────────────────────────
     #[Computed]
     public function departments()
@@ -141,7 +161,7 @@ class EmployeeIndex extends Component
                 'division.department',
                 'unit',
             ])
-            ->where('is_hr_registered', true)
+            // ->where('is_hr_registered', true)
 
             // Search across name + email
             ->when(

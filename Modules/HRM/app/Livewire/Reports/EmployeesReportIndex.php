@@ -108,6 +108,26 @@ class EmployeesReportIndex extends Component
         );
     }
 
+    // EmployeeIndex.php
+    public function toggleApproval(int $employeeId): void
+    {
+        if (!auth()->user()->hasRole('director-hr')) {
+            $this->dispatch('toastMagic', type: 'error', message: 'Not authorized to approve.');
+            return;
+        }
+
+        $employee = Employee::findOrFail($employeeId);
+
+        if (!$employee->canBeApprovedBy(auth()->user())) {
+            $this->dispatch('toastMagic', type: 'error', message: 'This employee cannot be approved at this step.');
+            return;
+        }
+
+        $employee->approve();
+
+        $this->dispatch('toastMagic', type: 'success', message: 'Employee approved.');
+    }
+
     // ── Render ────────────────────────────────────────────────────────────────
     public function render()
     {
