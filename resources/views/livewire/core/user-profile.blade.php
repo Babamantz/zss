@@ -1,4 +1,12 @@
 <div class="container-fluid">
+
+    @if (session()->has('message'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('message') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
     <div class="row">
         <!-- Left Sidebar: Profile Summary -->
         <div class="col-xl-4">
@@ -30,10 +38,14 @@
                 </div>
                 <div class="card-footer bg-light border-0">
                     <p class="small mb-1 text-muted">Profile Completion</p>
-                    <div class="progress sm-progress-bar">
+                    <div class="progress sm-progress-bar mb-3">
                         <div class="progress-bar bg-success" role="progressbar" style="width: {{ $completion }}%">
                         </div>
                     </div>
+                    <button type="button" class="btn btn-outline-primary btn-sm w-100"
+                        wire:click="openChangePasswordModal">
+                        <i class="fa fa-lock me-1"></i> Change Password
+                    </button>
                 </div>
             </div>
         </div>
@@ -46,7 +58,7 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="text-muted small">Employee ID (OPF)</label>
-                            <p class="fw-bold">{{ $employee->opf_number?? 'Not Assigned' }}</p>
+                            <p class="fw-bold">{{ $employee->opf_number ?? 'Not Assigned' }}</p>
                         </div>
                         <div class="col-md-6">
                             <label class="text-muted small">Social Security No</label>
@@ -63,28 +75,79 @@
                             </p>
                         </div>
                     </div>
-
-                    <h6 class="fw-bold mt-5 mb-4 border-bottom pb-2">Compliance Documents</h6>
-                    <div class="row text-center">
-                        @php $docs = ['NIDA' => 'nida_file', 'ZAN ID' => 'zan_id_file', 'Contract' => 'employment_contract_file']; @endphp
-                        @foreach ($docs as $label => $field)
-                            <div class="col-md-4">
-                                <div
-                                    class="p-3 border rounded {{ $employee && $employee->$field ? 'border-success bg-light-success' : 'border-dashed' }}">
-                                    <i
-                                        class="icofont {{ $employee && $employee->$field ? 'icofont-check-circled text-success' : 'icofont-warning text-warning' }} fa-2x mb-2"></i>
-                                    <p class="small mb-0 fw-bold">{{ $label }}</p>
-                                    @if ($employee && $employee->$field)
-                                        <a href="#" class="btn btn-xs btn-primary mt-2">View</a>
-                                    @else
-                                        <span class="text-danger small">Missing</span>
-                                    @endif
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    {{-- ── Change Password Modal ───────────────────────────────────────────── --}}
+    @if ($showChangePasswordModal)
+        <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog">
+                <div class="modal-content border-0 shadow">
+                    <form wire:submit.prevent="updatePassword">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Change Password</h5>
+                            <button type="button" class="btn-close" wire:click="closeChangePasswordModal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Current Password</label>
+                                <div class="input-group" x-data="{ show: false }">
+                                    <input :type="show ? 'text' : 'password'" class="form-control"
+                                        wire:model.defer="current_password" autocomplete="current-password">
+                                    <button type="button" class="btn btn-outline-secondary" @click="show = !show"
+                                        tabindex="-1">
+                                        <i class="fa" :class="show ? 'fa-eye-slash' : 'fa-eye'"></i>
+                                    </button>
+                                </div>
+                                @error('current_password')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">New Password</label>
+                                <div class="input-group" x-data="{ show: false }">
+                                    <input :type="show ? 'text' : 'password'" class="form-control"
+                                        wire:model.defer="new_password" autocomplete="new-password">
+                                    <button type="button" class="btn btn-outline-secondary" @click="show = !show"
+                                        tabindex="-1">
+                                        <i class="fa" :class="show ? 'fa-eye-slash' : 'fa-eye'"></i>
+                                    </button>
+                                </div>
+                                @error('new_password')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Confirm New Password</label>
+                                <div class="input-group" x-data="{ show: false }">
+                                    <input :type="show ? 'text' : 'password'" class="form-control"
+                                        wire:model.defer="new_password_confirmation" autocomplete="new-password">
+                                    <button type="button" class="btn btn-outline-secondary" @click="show = !show"
+                                        tabindex="-1">
+                                        <i class="fa" :class="show ? 'fa-eye-slash' : 'fa-eye'"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary"
+                                wire:click="closeChangePasswordModal">Cancel</button>
+                            <button type="submit" class="btn btn-primary" wire:loading.attr="disabled"
+                                wire:target="updatePassword">
+                                <span wire:loading.remove wire:target="updatePassword">
+                                    <i class="fa fa-lock me-1"></i> Update Password
+                                </span>
+                                <span wire:loading wire:target="updatePassword">
+                                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                                    Updating...
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>
