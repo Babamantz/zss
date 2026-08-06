@@ -22,12 +22,15 @@ use Modules\HRM\Models\EmploymentType as ModelsEmploymentType;
 use Modules\PAYROLL\Models\EmployeeComponent;
 use Modules\PAYROLL\Models\EmployeeFinanceProfile;
 use Modules\PAYROLL\Models\PayrollEntry;
+use RingleSoft\LaravelProcessApproval\Contracts\ApprovableModel;
+use RingleSoft\LaravelProcessApproval\Models\ProcessApproval;
+use RingleSoft\LaravelProcessApproval\Traits\Approvable;
 
 // use Modules\HRM\Database\Factories\EmployeeFactory;
 
-class Employee extends Model
+class Employee extends Model implements ApprovableModel
 {
-    use HasFactory, SoftDeletes, FilterEmployeeByTenant;
+    use HasFactory, SoftDeletes, FilterEmployeeByTenant, Approvable;
 
 
     protected $guarded = false;
@@ -45,6 +48,19 @@ class Employee extends Model
 
     ];
 
+
+    // No separate submit step — hr-officer's create IS the submission
+    public function enableAutoSubmit(): bool
+    {
+        return true;
+    }
+
+    public function onApprovalCompleted(ProcessApproval $approval): bool
+    {
+        $this->is_hr_registered = true;
+        $this->save();
+        return true;
+    }
 
 
     public function employmentType()

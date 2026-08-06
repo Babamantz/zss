@@ -26,6 +26,7 @@ return new class extends Migration
             $table->date('dob')->nullable(); // Added nullable()
             $table->date('age')->nullable(); // Added nullable()
             $table->date('hired_date')->nullable(); //add 
+            $table->date('confirmed_at_work_date')->nullable(); //add 
             $table->date('retiring_date')->nullable();
             $table->boolean('is_hr_registered')->default(false);
             $table->boolean('is_officer')->default(true);
