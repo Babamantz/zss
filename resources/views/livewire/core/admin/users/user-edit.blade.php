@@ -1,100 +1,157 @@
 @push('css')
-    <link rel="stylesheet" type="text/css" href="{{ asset('./assets/css/select2.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/async-select/async-select.css') }}">
+    <!-- Optional: include when using Bootstrap 4 theme styling -->
+    <link rel="stylesheet" href="{{ asset('vendor/async-select/async-select-bootstrap-v4.css') }}">
+
 @endpush
+
+
 <div class="container-fluid">
-    {{-- <x-toaster-magic::toaster /> --}}
     <div class="row">
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header pb-0">
-                    <h5>Admin User Create</h5>
-                    <a class="btn btn-primary" href="{{ route('users.index') }}">Back</a>
+                    <h5>{{ $this->isEdit ? 'Admin User Edit' : 'Admin User Create' }}</h5>
                 </div>
                 <div class="card-body">
                     <form wire:submit.prevent='save'>
-                        <div class="tab">
-                            <div class="form-group">
-                                <label for="fname">First Name</label>
+                        <div class="section-title mb-4"> User Information </div>
+
+                        <div class="row g-4">
+                            {{-- First Name --}}
+                            <div class="col-md-4">
+                                <label class="form-label" for="name">First Name</label>
                                 <input class="form-control" id="name" type="text" wire:model="first_name"
-                                    required="required">
-                                @error('first_name')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
+                                    required="required" placeholder="John">
                             </div>
-                            <div class="form-group">
-                                <label for="Mname">Middle Name</label>
-                                <input class="form-control" id="Mname" type="text" wire:model="middle_name">
-                                @error('middle_name')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
+                            @error('first_name') <small class="text-danger d-block mt-1">{{ $message }}</small>
+                            @enderror
+
+                            {{-- Middle Name --}}
+                            <div class="col-md-4">
+                                <label class="form-label" for="Mname">Middle Name</label>
+                                <input class="form-control" id="Mname" type="text" wire:model="middle_name"
+                                    placeholder="Robert">
+
                             </div>
-                            <div class="form-group">
-                                <label for="lname">Last Name</label>
-                                <input class="form-control digits" id="lname" type="text" wire:model="last_name">
-                                @error('last_name')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
+                            @error('middle_name') <small class="text-danger d-block mt-1">{{ $message }}</small>
+                            @enderror
+
+                            {{-- Last Name --}}
+                            <div class="col-md-4">
+                                <label class="form-label" for="lname">Last Name</label>
+                                <input class="form-control" id="lname" type="text" wire:model="last_name"
+                                    placeholder="Doe">
+
                             </div>
-                            <div class="form-group">
-                                <label for="email">Email</label>
-                                <input class="form-control digits" id="email" type="email" wire:model="email">
-                                @error('email')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
+                            @error('last_name') <small class="text-danger d-block mt-1">{{ $message }}</small>
+                            @enderror
+
+                            {{-- Is Officer? --}}
+                            <div class="col-md-6">
+                                <label class="form-label"> Is Officer? </label>
+                                <div class="radio-card d-flex gap-3 p-2 border rounded bg-light">
+                                    <label class="radio-option mb-0 cursor-pointer">
+                                        <div class="form-check mb-0">
+                                            <input class="form-check-input" type="radio" wire:model="is_officer"
+                                                value="1" id="officer_yes">
+                                            <label class="form-check-label ms-1" for="officer_yes"> Yes </label>
+                                        </div>
+                                    </label>
+                                    <label class="radio-option mb-0 cursor-pointer">
+                                        <div class="form-check mb-0">
+                                            <input class="form-check-input" type="radio" wire:model="is_officer"
+                                                value="0" id="officer_no">
+                                            <label class="form-check-label ms-1" for="officer_no"> No </label>
+                                        </div>
+                                    </label>
+                                </div>
+
                             </div>
-                            <div class="form-group">
-                                <div class="mb-2">
-                                    <label class="col-form-label">Location</label>
-                                    <select class="form-control form-control-info btn-square" name="select"
-                                        wire:model="location">
-                                        <option value="">--select location--</option>
-                                        @forelse ($this->locations as $location)
-                                            <option value="{{ $location->id }}">{{ $location->name }}</option>
-                                        @empty
-                                            <option disabled>No location found</option>
-                                        @endforelse
-                                    </select>
-                                    @error('location')
-                                        <span class="text-danger">{{ $message }}</span>
-                                    @enderror
+                            @error('is_officer') <small class="text-danger d-block mt-1">{{ $message }}</small>
+                            @enderror
+
+                            {{-- Is Active? --}}
+                            <div class="col-md-6">
+                                <label class="form-label">Status (Is Active?)</label>
+
+                                <div class="radio-card d-flex gap-3 p-2 border rounded bg-light">
+
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="is_active"
+                                            wire:model.live="is_active" value="1" id="active_yes">
+                                        <label class="form-check-label" for="active_yes">
+                                            Active
+                                        </label>
+                                    </div>
+
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="is_active"
+                                            wire:model.live="is_active" value="0" id="active_no">
+                                        <label class="form-check-label" for="active_no">
+                                            Inactive
+                                        </label>
+                                    </div>
+
                                 </div>
                             </div>
-                            <div class="form-group" wire:ignore>
-                                <label class="col-form-label">Role</label>
-                                <select class="js-example-basic-single col-sm-12" id="role-select"
-                                    wire:model.defer="role">
-                                    <option value="">--select role--</option>
-                                    @forelse ($this->roleNames as $roleItem)
-                                        <option value="{{ $roleItem->name }}">{{ $roleItem->name }}</option>
-                                    @empty
-                                        <option disabled>No roles found</option>
-                                    @endforelse
-                                </select>
-                                @error('role')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-                            <div class="form-group" wire:ignore>
-                                <label class="col-form-label">Direct Permissions</label>
-                                <select class="js-example-placeholder-multiple col-sm-12" multiple="multiple"
-                                    id="permissions-select" wire:model="direct_permissions">
-                                    @forelse ($this->permissionNames as $permission)
-                                        <option value="{{ $permission->name }}">{{ $permission->name }}</option>
-                                    @empty
-                                        <option disabled>No permissions found</option>
-                                    @endforelse
-                                </select>
-                                @error('direct_permissions')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-                        </div>
-                        <div>
-                            <div class="text-end btn-mb">
-                                <button x-show="$wire.mode !== 'view'" type="submit" wire:loading.attr="disabled"
-                                    class="btn btn-primary" type="submit">
-                                    {{ $this->isEdit ? 'Update' : 'Save' }}</button>
 
+
+                            {{-- Email --}}
+                            <div class="col-md-6">
+                                <label class="form-label" for="email">Email Address</label>
+                                <input class="form-control" id="email" type="email" wire:model="email"
+                                    placeholder="john@example.com">
+                            </div>
+                            @error('email') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
+
+
+                            {{-- Location --}}
+                            <div class="col-md-6">
+                                <label class="form-label">Location</label>
+                                <select class="form-select" wire:model="location">
+                                    <option value="">--select location--</option>
+                                    @forelse ($this->locations as $location)
+                                        <option value="{{ $location->id }}">{{ $location->name }}</option>
+                                    @empty
+                                        <option disabled>No location found</option>
+                                    @endforelse
+                                </select>
+
+                            </div>
+                            @error('location') <small class="text-danger d-block mt-1">{{ $message }}</small>
+                            @enderror
+
+                            {{-- Role Dropdown Select --}}
+                            <div class="col-md-6" wire:ignore>
+                                <label class="form-label">Role</label>
+                                <livewire:async-select name="roles" wire:model="role" :options="$this->roleNames"
+                                    placeholder="Select role..." />
+                            </div>
+                            @error('role') <small class="text-danger d-block mt-1">{{ $message }}</small> @enderror
+
+
+                            {{-- Permissions Dropdown Select --}}
+                            <div class="col-12" wire:ignore>
+                                <label class="form-label">Direct Permissions</label>
+                                <livewire:async-select name="direct_permissions[]" wire:model="direct_permissions"
+                                    :options="$this->permissionNames" :multiple="true"
+                                    placeholder="Select permission..." />
+                            </div>
+                            @error('direct_permissions') <small class="text-danger d-block mt-1">{{ $message }}</small>
+                            @enderror
+                        </div>
+
+                        {{-- Action Bar --}}
+                        <div class="action-bar d-flex justify-content-between align-items-center mt-5">
+                            <a href="{{ route('users.index') }}" class="btn btn-outline-dark">
+                                <i class="fa fa-arrow-left me-1"></i> Back to Users
+                            </a>
+                            <div>
+                                <button class="btn btn-outline-secondary me-2" type="reset"> Cancel </button>
+                                <button type="submit" wire:loading.attr="disabled" class="btn btn-primary px-4">
+                                    <i class="fa fa-save me-1"></i> {{ $this->isEdit ? 'Update User' : 'Save User' }}
+                                </button>
                             </div>
                         </div>
                     </form>
@@ -103,21 +160,11 @@
         </div>
     </div>
 </div>
-@push('scripts')
-    <script src="{{ asset('./assets/js/select2/select2.full.min.js') }}"></script>
-    <script src="{{ asset('./assets/js/select2/select2-custom.js') }}"></script>
-    <script>
-        document.addEventListener('livewire:initialized', () => {
-            // Sync Select2 role changes with Livewire
-            $('#role-select').on('change', function(e) {
-                @this.set('role', e.target.value);
-            });
 
-            // Sync Select2 permissions changes with Livewire
-            $('#permissions-select').on('change', function(e) {
-                let values = $(this).val();
-                @this.set('direct_permissions', values || []);
-            });
-        });
-    </script>
+
+
+
+
+@push('scripts')
+
 @endpush

@@ -1,3 +1,4 @@
+
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -17,11 +18,16 @@ return new class extends Migration
         Schema::create('attendances', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade'); // Creator
-            $table->string('title');
-            $table->string('heading');
-            $table->boolean('is_swahili');
+            $table->string('title')->nullable();
+            $table->string('heading')->nullable();
+            $table->boolean('is_swahili')->default(false);
             $table->integer('number_of_rows')->default(10); // Number of attendee rows
             $table->string('attendance_path', 255)->nullable();
+            $table->foreignId('unit_id')->nullable()->constrained('units')->onDelete('set null');
+            $table->foreignId('division_id')->nullable()->constrained('units')->onDelete('set null');
+            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('tenant_id')->nullable()->constrained('tenants')->onDelete('set null');
+
             $table->timestamps();
         });
     }

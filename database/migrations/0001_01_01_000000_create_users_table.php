@@ -17,8 +17,8 @@ return new class extends Migration
             $table->string('middle_name')->nullable();
             $table->string('last_name');
             $table->string('email');
-            $table->string('is_active')->default(true);
-            $table->string('is_officer')->default(true);
+            $table->boolean('is_active')->default(false);
+            $table->boolean('is_officer')->default(true);
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->foreignId('created_by')->nullable()->constrained('users','id')->onDelete('set null');

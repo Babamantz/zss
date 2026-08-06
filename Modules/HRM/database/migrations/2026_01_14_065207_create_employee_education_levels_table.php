@@ -16,7 +16,8 @@ return new class extends Migration
             $table->string('course_name', 60)->nullable();
             $table->string('certificate_name', 60)->nullable();
             $table->string('holder_certificate_no', 60)->nullable();
-            $table->string('certificate_file', 60)->nullable();
+            $table->string('certificate_file', 100)->nullable();
+            $table->string('certificate_name_id')->nullable()->constrained('education_levels')->onDelete('set null');
             $table->foreignId('employee_id')->constrained('employees', 'id')->onDelete('restrict');
             $table->timestamps();
         });

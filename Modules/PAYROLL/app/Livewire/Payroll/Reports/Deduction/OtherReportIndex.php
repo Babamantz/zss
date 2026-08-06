@@ -173,7 +173,7 @@ class OtherReportIndex extends Component
     public function render()
     {
         $periods   = PayPeriod::orderByDesc('start_date')->get();
-        $employees = Employee::with('user')->where('is_active', 'active')->get();
+        $employees = Employee::whereHas('user',fn($q)=>$q->where('is_active',true))->get();
 
         // ── SDL report ────────────────────────────────────────────────────────
         if ($this->reportType === ReportType::SDL) {

@@ -180,7 +180,7 @@
                             </div>
                             <div class="progress" style="height:6px;">
                                 <div class="progress-bar bg-primary" style="width:{{ round(($dept->active_count / $maxDept) * 100) }}%;
-                                               border-radius:4px;">
+                                                   border-radius:4px;">
                                 </div>
                             </div>
                         </div>
@@ -197,6 +197,7 @@
                 <div class="card-header bg-transparent">
                     <h6 class="mb-0">Education Levels</h6>
                 </div>
+
                 <div class="card-body">
                     @php
                         $eduColors = [
@@ -205,33 +206,89 @@
                             'bachelor' => 'info',
                             'advance_diploma' => 'teal',
                             'diploma' => 'success',
-                            'form-iv' => 'warning',
+                            'form_iv' => 'warning',
                             'certificate' => 'secondary',
                         ];
                     @endphp
-                    @forelse ($byEducation as $edu)
-                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="rounded-circle d-inline-block"
-                                    style="width:8px;height:8px;background:var(--bs-{{ $eduColors[$edu->education] ?? 'secondary' }});">
-                                </span>
-                                <span class="small">
-                                    {{ ucfirst(str_replace('_', ' ', $edu->education)) }}
-                                </span>
-                            </div>
-                            <div class="text-end">
-                                <span class="small fw-medium">{{ $edu->total }}</span>
-                                <span class="text-muted small ms-1">
-                                    ({{ $totalActive > 0 ? round(($edu->total / $totalActive) * 100) : 0 }}%)
-                                </span>
-                            </div>
-                        </div>
-                    @empty
-                        <p class="text-muted small text-center py-3">No data.</p>
-                    @endforelse
+
+                    {{-- @dd($byEducation) --}}
+                    @forelse ($byEducation as $edu) 
+    @php 
+        // FIX: Access the relationship directly as an object, NOT as a collection with ->first()
+        $educationName = $edu->employed_education_level->name ?? 'Unknown'; 
+        
+        // Match the snake_case keys in your color configuration map ('advance_diploma')
+        $educationKey = \Illuminate\Support\Str::slug($educationName, '_'); 
+    @endphp 
+
+    <div class="d-flex justify-content-between align-items-center py-2 border-bottom"> 
+        <div class="d-flex align-items-center gap-2"> 
+            <span class="rounded-circle d-inline-block" 
+                  style="width:8px; height:8px; background:var(--bs-{{ $eduColors[$educationKey] ?? 'secondary' }}); flex-shrink: 0;"> 
+            </span> 
+            <span class="small text-dark"> 
+                {{ $educationName }} 
+            </span> 
+        </div> 
+        <div class="text-end"> 
+            <span class="small fw-medium text-dark"> 
+                {{ $edu->total }} 
+            </span> 
+            <span class="text-muted small ms-1"> 
+                ({{ $totalActive > 0 ? round(($edu->total / $totalActive) * 100) : 0 }}%) 
+            </span> 
+        </div> 
+    </div> 
+@empty 
+    <p class="text-muted small text-center py-3">No data.</p> 
+@endforelse
+
+
+                 
                 </div>
             </div>
         </div>
+
+        {{-- <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent">
+                    <h6 class="mb-0">Education Levels</h6>
+                </div>
+                <div class="card-body">
+                    @php
+                    $eduColors = [
+                    'phd' => 'purple',
+                    'master' => 'primary',
+                    'bachelor' => 'info',
+                    'advance_diploma' => 'teal',
+                    'diploma' => 'success',
+                    'form-iv' => 'warning',
+                    'certificate' => 'secondary',
+                    ];
+                    @endphp
+                    @forelse ($byEducation as $edu)
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="rounded-circle d-inline-block"
+                                style="width:8px;height:8px;background:var(--bs-{{ $eduColors[$edu->education] ?? 'secondary' }});">
+                            </span>
+                            <span class="small">
+                                {{ ucfirst(str_replace('_', ' ', $edu->education)) }}
+                            </span>
+                        </div>
+                        <div class="text-end">
+                            <span class="small fw-medium">{{ $edu->total }}</span>
+                            <span class="text-muted small ms-1">
+                                ({{ $totalActive > 0 ? round(($edu->total / $totalActive) * 100) : 0 }}%)
+                            </span>
+                        </div>
+                    </div>
+                    @empty
+                    <p class="text-muted small text-center py-3">No data.</p>
+                    @endforelse
+                </div>
+            </div>
+        </div> --}}
 
         {{-- Disability & Quick Stats --}}
         <div class="col-md-4">
@@ -265,50 +322,15 @@
                 </div>
             </div>
 
-            {{-- New Hires card --}}
-            <div class="card border-0 shadow-sm">
-                <div class="card-body d-flex align-items-center gap-3">
-                    <div class="rounded-circle bg-success-subtle p-3 flex-shrink-0">
-                        <i class="fa fa-user-plus text-success fa-lg"></i>
-                    </div>
-                    <div>
-                        <p class="text-muted small mb-0">New Hires (30 days)</p>
-                        <h3 class="mb-0 fw-bold text-success">
-                            {{ $recentHiresCount }}
-                        </h3>
-                        <small class="text-muted">employees onboarded</small>
-                    </div>
-                </div>
-            </div>
+
         </div>
 
     </div>
 
     {{-- ── Row 3: Hire Trend + Tables ──────────────────────────────────────── --}}
     <div class="row g-4">
-
-        {{-- Hire Trend Chart --}}
-        <div class="col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-transparent d-flex justify-content-between">
-                    <h6 class="mb-0">Monthly Hiring Trend</h6>
-                    <small class="text-muted">Last 6 months</small>
-                </div>
-                <div class="card-body">
-                    @if ($hireTrend->count())
-                        <canvas id="hireTrendChart" height="120"></canvas>
-                    @else
-                        <div class="text-center text-muted py-4">
-                            <i class="fa fa-chart-bar fa-2x d-block mb-2 opacity-25"></i>
-                            No hiring data available.
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </div>
-
         {{-- Upcoming Retirements --}}
-        <div class="col-md-6">
+        <div class="col-md-12">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header bg-transparent d-flex justify-content-between">
                     <h6 class="mb-0">Upcoming Retirements</h6>
@@ -326,8 +348,8 @@
                         @endphp
                         <div class="d-flex align-items-center gap-3 px-3 py-2 border-bottom">
                             <div class="rounded-circle bg-{{ $urgency[0] }}-subtle d-flex
-                                    align-items-center justify-content-center flex-shrink-0" style="width:36px;height:36px;font-size:11px;font-weight:600;
-                                           color:var(--bs-{{ $urgency[0] }});">
+                                        align-items-center justify-content-center flex-shrink-0" style="width:36px;height:36px;font-size:11px;font-weight:600;
+                                               color:var(--bs-{{ $urgency[0] }});">
                                 {{ strtoupper(substr($emp->user?->first_name ?? '?', 0, 1)) }}{{ strtoupper(substr($emp->user?->last_name ?? '', 0, 1)) }}
                             </div>
                             <div class="flex-grow-1 min-w-0">
@@ -336,7 +358,7 @@
                                     {{ $emp->user?->last_name }}
                                 </div>
                                 <small class="text-muted">
-                                    {{ $emp->department?->name ?? '—' }}
+                                    {{ $emp->division?->department?->name ?? '—' }}
                                 </small>
                             </div>
                             <div class="text-end flex-shrink-0">
@@ -358,146 +380,12 @@
             </div>
         </div>
 
-        {{-- Recent Hires --}}
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-transparent d-flex justify-content-between">
-                    <h6 class="mb-0">
-                        Recent Hires
-                        <span class="badge bg-success-subtle text-success ms-1">
-                            Last 30 days
-                        </span>
-                    </h6>
-                    <a href="{{ route('hrm.employees.index') }}"
-                        class="btn btn-sm btn-link p-0 text-decoration-none small">
-                        View all
-                    </a>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover table-sm mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th style="font-size:11px;padding:10px 16px;">Employee</th>
-                                    <th style="font-size:11px;padding:10px 16px;">Department</th>
-                                    <th style="font-size:11px;padding:10px 16px;">Gender</th>
-                                    <th style="font-size:11px;padding:10px 16px;">Hired</th>
-                                    <th style="font-size:11px;padding:10px 16px;">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse ($recentHires as $hire)
-                                                            <tr>
-                                                                <td style="padding:10px 16px;">
-                                                                    <div class="d-flex align-items-center gap-2">
-                                                                        <div class="rounded-circle bg-success-subtle d-flex
-                                                                                align-items-center justify-content-center" style="width:30px;height:30px;font-size:11px;
-                                                                                       font-weight:600;color:#1B5E20;">
-                                                                            {{ strtoupper(substr($hire->user?->first_name ?? '?', 0, 1)) }}{{ strtoupper(substr($hire->user?->last_name ?? '', 0, 1)) }}
-                                                                        </div>
-                                                                        <div>
-                                                                            <div class="fw-medium" style="font-size:13px;">
-                                                                                {{ $hire->user?->first_name }}
-                                                                                {{ $hire->user?->last_name }}
-                                                                            </div>
-                                                                            <div class="text-muted" style="font-size:11px;">
-                                                                                {{ $hire->user?->email }}
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </td>
-                                                                <td style="padding:10px 16px;">
-                                                                    @if ($hire->department)
-                                                                        <span class="badge bg-info-subtle text-info">
-                                                                            {{ $hire->department->name }}
-                                                                        </span>
-                                                                    @else
-                                                                        <span class="text-muted small">—</span>
-                                                                    @endif
-                                                                </td>
-                                                                <td style="padding:10px 16px;">
-                                                                    <span class="badge {{ $hire->gender === 'male'
-                                    ? 'bg-info-subtle text-info'
-                                    : 'bg-warning-subtle text-warning' }}">
-                                                                        {{ ucfirst($hire->gender) }}
-                                                                    </span>
-                                                                </td>
-                                                                <td style="padding:10px 16px;" class="small">
-                                                                    {{ \Carbon\Carbon::parse($hire->hired_date)->format('d M Y') }}
-                                                                    <div class="text-muted" style="font-size:11px;">
-                                                                        {{ \Carbon\Carbon::parse($hire->hired_date)->diffForHumans() }}
-                                                                    </div>
-                                                                </td>
-                                                                <td style="padding:10px 16px;">
-                                                                    <span class="badge bg-success-subtle text-success">
-                                                                        Active
-                                                                    </span>
-                                                                </td>
-                                                            </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="5" class="text-center text-muted py-4">
-                                            No new hires in the last 30 days.
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
+
 
     </div>
 
 </div>
 
 @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script>
-        document.addEventListener('livewire:initialized', () => {
-            const ctx = document.getElementById('hireTrendChart');
-            if (!ctx) return;
 
-            const labels = @json($hireTrend->pluck('month'));
-            const data = @json($hireTrend->pluck('total'));
-
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels,
-                    datasets: [{
-                        label: 'New Hires',
-                        data,
-                        backgroundColor: 'rgba(25,135,84,0.15)',
-                        borderColor: 'rgba(25,135,84,0.9)',
-                        borderWidth: 1.5,
-                        borderRadius: 4,
-                    }],
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: ctx => ctx.raw + ' hire(s)'
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1,
-                                font: { size: 11 },
-                            },
-                            grid: { color: 'rgba(0,0,0,.04)' },
-                        },
-                        x: { grid: { display: false } },
-                    },
-                },
-            });
-        });
-    </script>
 @endpush

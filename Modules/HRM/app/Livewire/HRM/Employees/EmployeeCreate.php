@@ -8,9 +8,11 @@ use App\Models\EducationLevel;
 use App\Models\Identification;
 use App\Models\User;
 use Exception;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -18,6 +20,7 @@ use Modules\HRM\Enums\Gender;
 use Modules\HRM\Enums\MaritalStatus;
 use Modules\HRM\Models\Bank;
 use Modules\HRM\Models\Department;
+use Modules\HRM\Models\Division;
 use Modules\HRM\Models\Employee;
 use Modules\HRM\Models\EmploymentType;
 use Modules\HRM\Models\Unit;
@@ -32,6 +35,8 @@ class EmployeeCreate extends Component
     public $mode;
     public $employee;
     public $employee_bank_id;
+
+    public $divisionId;
 
     public int $currentStep = 1;
 
@@ -89,6 +94,12 @@ class EmployeeCreate extends Component
     public bool $isViewMode = false;
 
     protected $listeners = ['user-selected' => 'selectUser'];
+
+    // How long lookup/reference-table data (departments, banks, designations,
+    // etc.) is cached for. These tables barely ever change, but this component
+    // re-renders on every select2 click, so without caching we were re-running
+    // ~9 queries per click. Bump/lower as your data-freshness needs require.
+    protected const LOOKUP_CACHE_TTL = 300; // 5 minutes
 
     // =========================================================================
     // MOUNT
@@ -188,7 +199,7 @@ class EmployeeCreate extends Component
             'employment_type_id' => $emp->employment_type_id,
             'designation_id'  => $emp->designation_id,
             'unit'            => $emp->unit_id,
-            'department'      => $emp->department_id,
+            'divisionId'      => $emp->division_id,
         ]);
 
         // Existing files
@@ -288,6 +299,8 @@ class EmployeeCreate extends Component
                 'employee_id'     => $this->employee->user->id,
                 'unit_id'         => $this->employee->unit_id,
                 'department_id'   => $this->employee->department_id,
+                'division_id'   => $this->employee->division_id,
+
                 'employment_type_id' => $this->employee->employment_type_id,
                 'education_level_id' => $this->employee->education_level_id,
             ]);
@@ -321,7 +334,8 @@ class EmployeeCreate extends Component
             'opf_number'                => 'nullable|string|max:50',
             'designation_id'            => 'required|exists:designations,id',
             'unit'                      => 'nullable|exists:units,id',
-            'department'                => 'nullable|exists:departments,id',
+            // 'department'                => 'nullable|exists:departments,id',
+            'divisionId'                => 'nullable|exists:divisions,id',
             'file_number'               => 'nullable|string|max:50',
             'employee_bank_id'          => 'nullable|exists:banks,id',
             'employee_bank_account_no'  => 'nullable|string|max:50',
@@ -388,7 +402,7 @@ class EmployeeCreate extends Component
                 'opf_number',
                 'designation_id',
                 'unit',
-                'department',
+                'divisionId',
                 'file_number',
                 'employee_bank_id',
                 'employee_bank_account_no',
@@ -503,7 +517,7 @@ class EmployeeCreate extends Component
             'is_hr_registered' => true,
             'designation_id'  => $this->designation_id,
             'unit_id'         => $this->unit,
-            'department_id'   => $this->department,
+            'division_id'   => $this->divisionId,
             'user_id'         => $this->userId,
             // FIX: guard against non-array / malformed entries so a stray
             // null (or anything not shaped like ['phone_number' => ...])
@@ -752,7 +766,7 @@ class EmployeeCreate extends Component
             'opf_number',
             'designation_id',
             'unit',
-            'department',
+            'divisionId',
             'file_number',
             'photo_file',
             'existing_photo_file',
@@ -785,6 +799,113 @@ class EmployeeCreate extends Component
         $this->initializeCertificateItems();
     }
 
+    /**
+     * Shared helper to fetch and format lookups efficiently.
+     */
+    private function formatLookup(string $modelClass, string $labelColumn = 'name'): array
+    {
+        return $modelClass::select(['id', $labelColumn])
+            ->get()
+            ->map(fn($model) => [
+                'value' => $model->id,
+                'label' => $model->$labelColumn,
+            ])
+            ->toArray();
+    }
+
+    #[Computed]
+    public function departments(): array
+    {
+        return $this->formatLookup(Department::class);
+    }
+
+    #[Computed]
+    public function units(): array
+    {
+        return $this->formatLookup(Unit::class);
+    }
+
+    #[Computed]
+    public function divisions(): array
+    {
+        return $this->formatLookup(Division::class);
+    }
+
+    #[Computed]
+    public function banks(): array
+    {
+        return $this->formatLookup(Bank::class);
+    }
+
+    #[Computed]
+    public function educationLevels(): array
+    {
+        return $this->formatLookup(EducationLevel::class);
+    }
+
+    #[Computed]
+    public function employmentTypes(): array
+    {
+        return $this->formatLookup(EmploymentType::class);
+    }
+
+    #[Computed]
+    public function designations(): array
+    {
+        return $this->formatLookup(Designation::class, 'designation_name');
+    }
+
+    #[Computed]
+    public function identificationTypes(): array
+    {
+        return $this->formatLookup(Identification::class, 'identification_name');
+    }
+
+    #[Computed]
+    public function certificateTypes(): array
+    {
+        return $this->formatLookup(Certificate::class, 'certificate_name');
+    }
+
+    #[Computed]
+    public function emails(): array
+    {
+        return $this->getAvailableEmails();
+    }
+
+    public function updatedEmail(): void
+    {
+
+        $this->selectUser();
+    }
+    protected function getAvailableEmails(): array
+    {
+        return User::query()
+            ->select(['id', 'email'])
+            ->where('is_active', 'active')
+            ->orWhereDoesntHave('employee') // Select only what we need
+            ->when(
+                $this->employeeId,
+                // Edit mode: allow the currently-assigned user to show up
+                fn($q) => $q->where(function ($q2) {
+                    $q2->doesntHave('employee')
+                        ->orWhere('id', $this->userId);
+                }),
+                // Create mode: only show users without an employee record
+                fn($q) => $q->doesntHave('employee')
+            )
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn($user) => [
+                'value' => $user->id,
+                'label' => $user->email,
+            ])
+            ->toArray();
+    }
+
+
+
+
     // =========================================================================
     // RENDER
     // =========================================================================
@@ -792,34 +913,9 @@ class EmployeeCreate extends Component
     public function render()
     {
         return view('hrm::livewire.h-r-m.employees.employee-create', [
-            'departments'         => Department::pluck('name', 'id'),
-            'units'               => Unit::pluck('name', 'id'),
-            'banks'               => Bank::pluck('name', 'id'),
-            'emails'              => $this->getAvailableEmails(),
-            'educationLevels'     => EducationLevel::pluck('name', 'id'),
-            'employmentTypes'     => EmploymentType::pluck('name', 'id'),
-            'designations'        => Designation::pluck('designation_name', 'id'),
-            'identificationTypes' => Identification::pluck('identification_name', 'id'),
-            'certificateTypes'    => Certificate::pluck('certificate_name', 'id'),
+
             'isEditMode'          => $this->isEditMode,
             'isViewMode'          => $this->isViewMode,
         ]);
-    }
-
-    protected function getAvailableEmails(): \Illuminate\Support\Collection
-    {
-        return User::query()
-            ->when(
-                $this->employeeId,
-                // Edit mode: allow the currently-assigned user to still show up,
-                // even though they now "have" an employee record.
-                fn($q) => $q->where(function ($q2) {
-                    $q2->doesntHave('employee')
-                        ->orWhere('id', $this->userId);
-                }),
-                fn($q) => $q->doesntHave('employee')
-            )
-            ->orderByDesc('created_at')
-            ->pluck('email', 'id');
     }
 }

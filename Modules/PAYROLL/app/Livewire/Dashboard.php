@@ -86,7 +86,7 @@ class Dashboard extends Component
 
         // ── Quick counts ──────────────────────────────────────────────────────
         $counts = [
-            'employees'           => Employee::where('is_active', 'active')->count(),
+            'employees'           => Employee::whereHas('user', fn($q)=>$q->where('is_active',true))->count(),
             'salary_components'   => SalaryComponent::count(),
             'pay_periods'         => PayPeriod::count(),
             'locked_periods'      => PayPeriod::where('status', 'Locked_Completed')->count(),

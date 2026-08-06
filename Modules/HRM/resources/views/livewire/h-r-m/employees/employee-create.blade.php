@@ -1,5 +1,8 @@
 @push('css')
     <link rel="stylesheet" type="text/css" href="{{ asset('./assets/css/select2.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/async-select/async-select.css') }}">
+    <!-- Optional: include when using Bootstrap 4 theme styling -->
+    <link rel="stylesheet" href="{{ asset('vendor/async-select/async-select-bootstrap-v4.css') }}">
 @endpush
 
 <div class="container-fluid">
@@ -54,16 +57,14 @@
                             {{-- Email + First Name --}}
                             <div class="row mb-3">
                                 <div class="col-md-6">
-                                    <div wire:ignore class="form-group">
+                                    <div class="form-group">
                                         <label for="select-user">Email: <span class="text-danger">*</span></label>
-                                        <select id="select-user" class="js-example-basic-single form-control">
-                                            <option value="">-- Select Email --</option>
-                                            @foreach ($emails as $id => $emailText)
-                                                <option value="{{ $id }}" {{ (string)$email === (string)$id ? 'selected' : '' }}>
-                                                    {{ $emailText }}
-                                                </option>
-                                            @endforeach
-                                        </select>
+                                        <livewire:async-select
+                                            name="email"
+                                            wire:model.live="email"
+                                            :options="$this->emails"
+                                            placeholder="Select email..."
+                                        />
                                         @error('email')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
@@ -126,13 +127,12 @@
                                 <div class="col-md-6">
                                     <div wire:ignore class="form-group">
                                         <label>Education Level: <span class="text-danger">*</span></label>
-                                        <select id="select-education" class="js-example-basic-single form-control">
-                                            <option value="">-- Select Education Level --</option>
-                                            @foreach ($educationLevels as $id=>$level)
-                                               
-<option value="{{ $id }}" {{ (string)$education_level_id === (string)$id ? 'selected' : '' }}>{{ ucwords(str_replace(['-', '_'], ' ', $level)) }}</option>
-                                            @endforeach
-                                        </select>
+                                        <livewire:async-select
+                                            name="education_level_id"
+                                            wire:model="education_level_id"
+                                            :options="$this->educationLevels"
+                                            placeholder="Select education level..."
+                                        />
                                         @error('education_level_id') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
                                 </div>
@@ -200,7 +200,7 @@
                                 </div>
                             </div>
 
-                            {{-- Disability --}}
+                            {{-- Disability + Employment Type --}}
                             <div class="row mb-3">
                                 <div class="col-md-6">
                                     <div class="form-group">
@@ -220,17 +220,15 @@
                                         @error('is_disable') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
                                 </div>
-                                <div wire:ignore  class="col-md-6">
-                                    <div  class="form-group">
-                                         <label>Employment Type: <span class="text-danger">*</span></label>
-                                        <select id="select-employment-type" class="js-example-basic-single form-control">
-                                            <option value="">-- Employment Type --</option>
-                                             @foreach ( $employmentTypes  as $id =>$type)
-                                               
-<option value="{{ $id }}" {{ (string)$employment_type_id === (string)$id ? 'selected' : '' }}> {{ ucwords(str_replace(['-', '_'], ' ', $type)) }}</option>
-                                            @endforeach
-                                        
-                                        </select>
+                                <div wire:ignore class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Employment Type: <span class="text-danger">*</span></label>
+                                        <livewire:async-select
+                                            name="emplymentType"
+                                            wire:model="employment_type_id"
+                                            :options="$this->employmentTypes"
+                                            placeholder="Select employment type..."
+                                        />
                                         @error('employment_type_id') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
                                 </div>
@@ -256,105 +254,86 @@
                                         @error('opf_number') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
                                 </div>
-                        
                                 <div class="col-md-6">
                                     <div wire:ignore class="form-group">
                                         <label>Designation: <span class="text-danger">*</span></label>
-                                        <select id="select-designation" class="js-example-basic-single form-control">
-                                            <option value="">-- Select Designation --</option>
-                                            @foreach ($designations as $id => $name)
-                                                <option value="{{ $id }}" {{ (string)$designation_id === (string)$id ? 'selected' : '' }}>
-                                                    {{ $name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
+                                        <livewire:async-select
+                                            name="designation_id"
+                                            wire:model="designation_id"
+                                            :options="$this->designations"
+                                            placeholder="Select designations..."
+                                        />
                                         @error('designation_id') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
                                 </div>
                             </div>
 
-                            {{-- Unit + Department --}}
+                            {{-- Department + Unit + Division --}}
                             <div class="row mb-3">
                                 <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Department:</label>
+                                        <input type="text" class="form-control" value="{{ $department }}" readonly placeholder="Auto-filled from Division">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
                                     <div wire:ignore class="form-group">
                                         <label>Unit:</label>
-                                        <select id="select-unit" class="js-example-basic-single form-control">
-                                            <option value="">-- Select Unit --</option>
-                                            @foreach ($units as $id => $unitName)
-                                                <option value="{{ $id }}" {{ (string)$unit === (string)$id ? 'selected' : '' }}>
-                                                    {{ $unitName }}
-                                                </option>
-                                            @endforeach
-                                        </select>
+                                        <livewire:async-select
+                                            name="unit"
+                                            wire:model="unit"
+                                            :options="$this->units"
+                                            placeholder="Select unit..."
+                                        />
                                         @error('unit') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-3">
                                     <div wire:ignore class="form-group">
-                                        <label>Department:</label>
-                                        <select id="select-department" class="js-example-basic-single form-control">
-                                            <option value="">-- Select Department --</option>
-                                            @foreach ($departments as $id => $deptName)
-                                                <option value="{{ $id }}" {{ (string)$department === (string)$id ? 'selected' : '' }}>
-                                                    {{ $deptName }}
-                                                </option>
-                                             @endforeach
-                                        </select>
-                                        @error('department') <small class="text-danger">{{ $message }}</small> @enderror
+                                        <label>Division:</label>
+                                        <livewire:async-select
+                                            name="division"
+                                            wire:model="divisionId"
+                                            :options="$this->divisions"
+                                            placeholder="Select divisions..."
+                                        />
+                                        @error('divisionId') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
                                 </div>
                             </div>
 
-                            {{-- Is Officer --}}
+                            {{-- Bank + Bank Account No --}}
                             <div class="row mb-3">
                                 <div class="col-md-6">
-                                    
-                                    <div class="form-group">
+                                    <div wire:ignore class="form-group">
                                         <label>Bank:</label>
-                                        <select id="select-bank-name" class="js-example-basic-single form-control">
-                                            <option value="">-- Select Bank --</option>
-                                            @foreach ($banks as $id => $name)
-                                                <option value="{{ $id }}" {{ (string)$employee_bank_id === (string)$id ? 'selected' : '' }}>
-                                                    {{ $name}}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        
-                                        @error('opf_number') <small class="text-danger">{{ $message }}</small> @enderror
+                                        <livewire:async-select
+                                            name="banks"
+                                            wire:model="employee_bank_id"
+                                            :options="$this->banks"
+                                            placeholder="Select bank..."
+                                        />
+                                        @error('employee_bank_id') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
                                 </div>
-                                    
-
-                                {{-- Photo --}}
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Bank Account No:</label>
-                                         <input class="form-control" type="text" wire:model.defer="employee_bank_account_no">
-                                        @error('bank_account_no') <small class="text-danger">{{ $message }}</small> @enderror
-                                       
+                                        <input class="form-control" type="text" wire:model.defer="employee_bank_account_no">
+                                        @error('employee_bank_account_no') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
-                                    @if ($existing_photo_file)
-                                        <div class="mt-2">
-                                            <small class="text-muted">Current photo:</small><br>
-                                            <img src="{{ Storage::disk('public')->url($existing_photo_file) }}"
-                                                class="mt-1 rounded"
-                                                style="width:60px;height:60px;object-fit:cover;">
-                                        </div>
-                                    @endif
                                 </div>
                             </div>
+
+                            {{-- File Number + Photo --}}
                             <div class="row mb-3">
                                 <div class="col-md-6">
-                                    
                                     <div class="form-group">
                                         <label>File Number:</label>
                                         <input class="form-control" type="text" wire:model.defer="file_number">
-                                        @error('opf_number') <small class="text-danger">{{ $message }}</small> @enderror
+                                        @error('file_number') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
                                 </div>
-                                    
-
-                                {{-- Photo --}}
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Photo:</label>
@@ -431,161 +410,190 @@
 
                         {{-- ══════════════════════════════════════════════════════
                              STEP 3 — Identifications
+                             Option A: server-rendered repeater. Each row is a real
+                             Blade @foreach iteration, so <livewire:async-select>
+                             gets its own component instance per row, keyed on the
+                             row's stable id. No Alpine x-for / @entangle here —
+                             every add/remove/edit is a normal Livewire round trip.
                         ══════════════════════════════════════════════════════ --}}
                         <div @if($currentStep != 3) style="display:none;" @endif>
-                            <div x-data="{ identificationItems: @entangle('identification_items') }">
+                            <div class="pb-3 d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Identification Documents</h5>
+                                <button type="button" class="btn btn-success btn-sm"
+                                    wire:click="addIdentificationItem">
+                                    <i class="fa fa-plus"></i> Add Identification
+                                </button>
+                            </div>
 
-                                <div class="pb-3 d-flex justify-content-between align-items-center">
-                                    <h5 class="mb-0">Identification Documents</h5>
-                                    <button type="button" class="btn btn-success btn-sm"
-                                        wire:click="addIdentificationItem">
-                                        <i class="fa fa-plus"></i> Add Identification
-                                    </button>
-                                </div>
-
-                                <template x-for="(item, index) in identificationItems" :key="index">
-                                    <div class="card mb-3">
-                                        <div class="card-body">
-                                            <div class="row mb-2">
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label>Identification Type: <span class="text-danger">*</span></label>
-                                                        <select class="form-control" x-model="item.identification_id">
-                                                            <option value="">-- Select Type --</option>
-                                                            @foreach ($identificationTypes as $id => $name)
-                                                                <option value="{{ $id }}">{{ $name }}</option>
-                                                            @endforeach
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label>Identification Number:</label>
-                                                        <input type="text" class="form-control"
-                                                            x-model="item.identification_no">
-                                                    </div>
+                            @foreach ($identification_items as $index => $item)
+                                <div class="card mb-3" wire:key="identification-row-{{ $item['key'] ?? $index }}">
+                                    <div class="card-body">
+                                        <div class="row mb-2">
+                                            <div class="col-md-6">
+                                                <div wire:ignore class="form-group">
+                                                    <label>Identification Type: <span class="text-danger">*</span></label>
+                                                    <livewire:async-select
+                                                        :key="'identification-type-'.($item['key'] ?? $index)"
+                                                        name="identification_items.{{ $index }}.identification_id"
+                                                        wire:model="identification_items.{{ $index }}.identification_id"
+                                                        :options="$this->identificationTypes"
+                                                        :selected="$item['identification_id'] ?? null"
+                                                        placeholder="Select identification type..."
+                                                    />
+                                                    @error('identification_items.'.$index.'.identification_id')
+                                                        <small class="text-danger">{{ $message }}</small>
+                                                    @enderror
                                                 </div>
                                             </div>
-
-                                            <div class="row mb-2">
-                                                <div class="col-md-6"
-                                                     x-data="{ getPdfUrl() { return item.existing_file ? '{{ Storage::disk('public')->url('') }}' + item.existing_file : null } }">
-                                                    <div class="form-group">
-                                                        <label>Identification File:</label>
-                                                        <input type="file" class="form-control"
-                                                            @change="$wire.upload(`identification_upload_files.${index}`, $event.target.files[0])">
-                                                        <template x-if="item.existing_file">
-                                                            <button type="button" class="btn btn-sm btn-outline-primary mt-2"
-                                                                @click="window.open(getPdfUrl(), '_blank')">
-                                                                Preview existing
-                                                            </button>
-                                                        </template>
-                                                        <div wire:loading wire:target="identification_upload_files"
-                                                            class="text-primary mt-1">
-                                                            <small>Uploading...</small>
-                                                        </div>
-                                                    </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Identification Number:</label>
+                                                    <input type="text" class="form-control"
+                                                        wire:model.defer="identification_items.{{ $index }}.identification_no">
+                                                    @error('identification_items.'.$index.'.identification_no')
+                                                        <small class="text-danger">{{ $message }}</small>
+                                                    @enderror
                                                 </div>
                                             </div>
+                                        </div>
 
-                                            <div class="text-end" x-show="identificationItems.length > 1">
+                                        <div class="row mb-2">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Identification File:</label>
+                                                    <input type="file" class="form-control"
+                                                        wire:model="identification_upload_files.{{ $index }}">
+                                                    @if (!empty($item['existing_file']))
+                                                        <a href="{{ Storage::disk('public')->url($item['existing_file']) }}"
+                                                            target="_blank"
+                                                            class="btn btn-sm btn-outline-primary mt-2">
+                                                            Preview existing
+                                                        </a>
+                                                    @endif
+                                                    <div wire:loading wire:target="identification_upload_files.{{ $index }}"
+                                                        class="text-primary mt-1">
+                                                        <small>Uploading...</small>
+                                                    </div>
+                                                    @error('identification_upload_files.'.$index)
+                                                        <small class="text-danger">{{ $message }}</small>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        @if (count($identification_items) > 1)
+                                            <div class="text-end">
                                                 <button type="button" class="btn btn-danger btn-sm"
-                                                    wire:click="removeIdentificationItem(index)">
+                                                    wire:click="removeIdentificationItem({{ $index }})">
                                                     <i class="fa fa-trash"></i> Remove
                                                 </button>
                                             </div>
-                                        </div>
+                                        @endif
                                     </div>
-                                </template>
-
-                                <div class="mt-4">
-                                    <button type="button" class="btn btn-secondary" wire:click="previousStep">Back</button>
-                                    <button type="button" class="btn btn-primary" wire:click="nextStep">Next</button>
                                 </div>
+                            @endforeach
+
+                            <div class="mt-4">
+                                <button type="button" class="btn btn-secondary" wire:click="previousStep">Back</button>
+                                <button type="button" class="btn btn-primary" wire:click="nextStep">Next</button>
                             </div>
                         </div>
 
                         {{-- ══════════════════════════════════════════════════════
                              STEP 4 — Certificates (file-type docs)
+                             Same Option A pattern as Step 3.
                         ══════════════════════════════════════════════════════ --}}
                         <div @if($currentStep != 4) style="display:none;" @endif>
-                            <div x-data="{ certificateItems: @entangle('certificate_items') }">
+                            <div class="pb-3 d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Certificate Documents</h5>
+                                <button type="button" class="btn btn-success btn-sm"
+                                    wire:click="addCertificateItem">
+                                    <i class="fa fa-plus"></i> Add Certificate
+                                </button>
+                            </div>
 
-                                <div class="pb-3 d-flex justify-content-between align-items-center">
-                                    <h5 class="mb-0">Certificate Documents</h5>
-                                    <button type="button" class="btn btn-success btn-sm"
-                                        wire:click="addCertificateItem">
-                                        <i class="fa fa-plus"></i> Add Certificate
-                                    </button>
-                                </div>
-
-                                <template x-for="(item, index) in certificateItems" :key="index">
-                                    <div class="card mb-3">
-                                        <div class="card-body">
-                                            <div class="row mb-2">
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label>Certificate Type: <span class="text-danger">*</span></label>
-                                                        <select class="form-control" x-model="item.certificate_id">
-                                                            <option value="">-- Select Type --</option>
-                                                            @foreach ($certificateTypes as $id => $name)
-                                                                <option value="{{ $id }}">{{ $name }}</option>
-                                                            @endforeach
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label>Certificate Number:</label>
-                                                        <input type="text" class="form-control"
-                                                            x-model="item.certificate_no">
-                                                    </div>
+                            @foreach ($certificate_items as $index => $item)
+                                <div class="card mb-3" wire:key="certificate-row-{{ $item['key'] ?? $index }}">
+                                    <div class="card-body">
+                                        <div class="row mb-2">
+                                            <div class="col-md-6">
+                                                <div wire:ignore class="form-group">
+                                                    <label>Certificate Type: <span class="text-danger">*</span></label>
+                                                    <livewire:async-select
+                                                        :key="'certificate-type-'.($item['key'] ?? $index)"
+                                                        name="certificate_items.{{ $index }}.certificate_id"
+                                                        wire:model="certificate_items.{{ $index }}.certificate_id"
+                                                        :options="$this->certificateTypes"
+                                                        :selected="$item['certificate_id'] ?? null"
+                                                        placeholder="Select certificate type..."
+                                                    />
+                                                    @error('certificate_items.'.$index.'.certificate_id')
+                                                        <small class="text-danger">{{ $message }}</small>
+                                                    @enderror
                                                 </div>
                                             </div>
-
-                                            <div class="row mb-2">
-                                                <div class="col-md-6"
-                                                     x-data="{ getPdfUrl() { return item.existing_file ? '{{ Storage::disk('public')->url('') }}' + item.existing_file : null } }">
-                                                    <div class="form-group">
-                                                        <label>Certificate File:</label>
-                                                        <input type="file" class="form-control"
-                                                            @change="$wire.upload(`certificate_upload_files.${index}`, $event.target.files[0])">
-                                                        <template x-if="item.existing_file">
-                                                            <button type="button" class="btn btn-sm btn-outline-primary mt-2"
-                                                                @click="window.open(getPdfUrl(), '_blank')">
-                                                                Preview existing
-                                                            </button>
-                                                        </template>
-                                                        <div wire:loading wire:target="certificate_upload_files"
-                                                            class="text-primary mt-1">
-                                                            <small>Uploading...</small>
-                                                        </div>
-                                                    </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Certificate Number:</label>
+                                                    <input type="text" class="form-control"
+                                                        wire:model.defer="certificate_items.{{ $index }}.certificate_no">
+                                                    @error('certificate_items.'.$index.'.certificate_no')
+                                                        <small class="text-danger">{{ $message }}</small>
+                                                    @enderror
                                                 </div>
                                             </div>
+                                        </div>
 
-                                            <div class="text-end" x-show="certificateItems.length > 1">
+                                        <div class="row mb-2">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Certificate File:</label>
+                                                    <input type="file" class="form-control"
+                                                        wire:model="certificate_upload_files.{{ $index }}">
+                                                    @if (!empty($item['existing_file']))
+                                                        <a href="{{ Storage::disk('public')->url($item['existing_file']) }}"
+                                                            target="_blank"
+                                                            class="btn btn-sm btn-outline-primary mt-2">
+                                                            Preview existing
+                                                        </a>
+                                                    @endif
+                                                    <div wire:loading wire:target="certificate_upload_files.{{ $index }}"
+                                                        class="text-primary mt-1">
+                                                        <small>Uploading...</small>
+                                                    </div>
+                                                    @error('certificate_upload_files.'.$index)
+                                                        <small class="text-danger">{{ $message }}</small>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        @if (count($certificate_items) > 1)
+                                            <div class="text-end">
                                                 <button type="button" class="btn btn-danger btn-sm"
-                                                    wire:click="removeCertificateItem(index)">
+                                                    wire:click="removeCertificateItem({{ $index }})">
                                                     <i class="fa fa-trash"></i> Remove
                                                 </button>
                                             </div>
-                                        </div>
+                                        @endif
                                     </div>
-                                </template>
-
-                                <div class="mt-4">
-                                    <button type="button" class="btn btn-secondary" wire:click="previousStep">Back</button>
-                                    <button type="button" class="btn btn-primary" wire:click="nextStep">Next</button>
                                 </div>
+                            @endforeach
+
+                            <div class="mt-4">
+                                <button type="button" class="btn btn-secondary" wire:click="previousStep">Back</button>
+                                <button type="button" class="btn btn-primary" wire:click="nextStep">Next</button>
                             </div>
                         </div>
 
                         {{-- ══════════════════════════════════════════════════════
                              STEP 5 — Education Levels
+                             (left as Alpine x-for / @entangle — unaffected by the
+                             async-select-in-a-loop issue since these rows only use
+                             plain inputs and x-model)
                         ══════════════════════════════════════════════════════ --}}
                         <div @if($currentStep != 5) style="display:none;" @endif>
-                            <div x-data="{ educationLevels: @entangle('education_levels') }">
+                            <div x-data="{ educationLevelsRows: @entangle('education_levels') }">
 
                                 <div class="pb-3 d-flex justify-content-between align-items-center">
                                     <h5 class="mb-0">Education Details</h5>
@@ -595,7 +603,7 @@
                                     </button>
                                 </div>
 
-                                <template x-for="(edu, index) in educationLevels" :key="index">
+                                <template x-for="(edu, index) in educationLevelsRows" :key="index">
                                     <div class="card mb-3">
                                         <div class="card-body">
                                             <div class="row mb-2">
@@ -643,7 +651,7 @@
                                                 </div>
                                             </div>
 
-                                            <div class="text-end" x-show="educationLevels.length > 1">
+                                            <div class="text-end" x-show="educationLevelsRows.length > 1">
                                                 <button type="button" class="btn btn-danger btn-sm"
                                                     wire:click="removeEducationLevel(index)">
                                                     <i class="fa fa-trash"></i> Remove
@@ -675,61 +683,3 @@
         </div>
     </div>
 </div>
-
-@push('scripts')
-    <script src="{{ asset('./assets/js/select2/select2.full.min.js') }}"></script>
-    <script src="{{ asset('./assets/js/select2/select2-custom.js') }}"></script>
-
-    @script
-    <script>
-        document.addEventListener('livewire:initialized', () => {
-
-            const initSelect2Fields = () => {
-                const selects = [
-                    { id: '#select-user',        field: 'email',          event: 'user-selected' },
-                    { id: '#select-education',   field: 'education_level_id' },
-                    { id: '#select-designation', field: 'designation_id' },
-                    { id: '#select-unit',        field: 'unit' },
-                    { id: '#select-department',  field: 'department' },
-                    { id: '#select-employment-type',  field: 'employment_type_id' },
-                    { id: '#select-bank-name',  field: 'employee_bank_id' },
-                ];
-
-                selects.forEach(({ id, field, event }) => {
-                    const $el = $(id);
-                    if (!$el.length) return;
-                    $el.select2();
-                    $el.off('change').on('change', function () {
-                        $wire.set(field, this.value);
-                        if (event) $wire.dispatch(event);
-                    });
-                });
-            };
-
-            initSelect2Fields();
-
-            // Re-init after every Livewire DOM morph (step changes, edit load)
-            Livewire.hook('morph.updated', () => initSelect2Fields());
-
-            // Sync Select2 visuals when edit data is dispatched
-            Livewire.on('eventEmail', (data) => {
-                const row = Array.isArray(data) ? data[0] : data;
-                console.log(row);
-                //Loading user data via user id
-                $('#select-user').val(row.employee_id).trigger('change');
-                $('#select-unit').val(row.unit_id).trigger('change');
-                $('#select-department').val(row.department_id).trigger('change');
-                console.log(row.employment_type);
-                
-                // $('#select-employment-type').val(row.employment_type_id).trigger('change');
-                // $('#select-employment-type').val(row.employment_type_id).trigger('change');
-            });
-
-            // Clear file inputs after successful create
-            Livewire.on('resetFileState', () => {
-                document.querySelectorAll('input[type="file"]').forEach(el => el.value = '');
-            });
-        });
-    </script>
-    @endscript
-@endpush

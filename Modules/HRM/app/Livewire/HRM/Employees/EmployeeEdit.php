@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -18,6 +19,7 @@ use Modules\HRM\Enums\Gender;
 use Modules\HRM\Enums\MaritalStatus;
 use Modules\HRM\Models\Bank;
 use Modules\HRM\Models\Department;
+use Modules\HRM\Models\Division;
 use Modules\HRM\Models\Employee;
 use Modules\HRM\Models\EmploymentType;
 use Modules\HRM\Models\Unit;
@@ -33,7 +35,6 @@ class EmployeeEdit extends Component
     public ?Employee $employee = null;
 
     public int $currentStep = 1;
-    public bool $isViewMode = false;
 
     // ── Step 1: Basic Information ─────────────────────────────────────────────
     // FIX: this is the property the "Email" Select2 actually writes to
@@ -50,6 +51,8 @@ class EmployeeEdit extends Component
 
     // public $email;
     public $hired_date;
+
+    public $divisionId;
     public $retiring_date;
     public $education_level_id;
     public $marital_status;
@@ -96,6 +99,15 @@ class EmployeeEdit extends Component
 
     protected $listeners = ['user-selected' => 'selectUser'];
 
+    public bool $isEditMode = false;
+    public bool $isViewMode = false;
+
+    // NOTE: kept for parity with EmployeeCreate, which also declares this
+    // constant without using it anywhere (formatLookup() is uncached in
+    // both components as of this refactor). Flagging rather than silently
+    // dropping it — let me know if you'd rather remove it outright.
+    protected const LOOKUP_CACHE_TTL = 300; // 5 minutes
+
     // =========================================================================
     // MOUNT
     // =========================================================================
@@ -103,8 +115,8 @@ class EmployeeEdit extends Component
     public function mount($employeeId, $mode = null): void
     {
         $this->employeeId = $employeeId;
+        $this->isEditMode = !is_null($employeeId);
         $this->isViewMode = $mode === 'view';
-
         $this->loadEmployee();
     }
 
@@ -149,7 +161,7 @@ class EmployeeEdit extends Component
             'employment_type_id' => $emp->employment_type_id,
             'designation_id'     => $emp->designation_id,
             'unit'               => $emp->unit_id,
-            'department'         => $emp->department_id,
+            'divisionId'         => $emp->division_id,
         ]);
 
         // Existing files
@@ -230,7 +242,7 @@ class EmployeeEdit extends Component
                 'existing_file'         => null,
             ]];
 
-        $this->loadEmail();
+        // $this->loadEmail();
     }
 
     #[On('user-selected')]
@@ -243,18 +255,18 @@ class EmployeeEdit extends Component
         // doesn't error if it fires.
     }
 
-    public function loadEmail(): void
-    {
-        $this->dispatch('eventEmail', [
-            'employee_id'         => $this->employee->user->id,
-            'education_level_id'  => $this->employee->education_level_id,
-            'employment_type_id'  => $this->employee->employment_type_id,
-            'designation_id'      => $this->employee->designation_id,
-            'unit_id'             => $this->employee->unit_id,
-            'department_id'       => $this->employee->department_id,
-            'employee_bank_id'    => $this->employee->bankAccount?->bank_id,
-        ]);
-    }
+    // public function loadEmail(): void
+    // {
+    //     $this->dispatch('eventEmail', [
+    //         'employee_id'         => $this->employee->user->id,
+    //         'education_level_id'  => $this->employee->education_level_id,
+    //         'employment_type_id'  => $this->employee->employment_type_id,
+    //         'designation_id'      => $this->employee->designation_id,
+    //         'unit_id'             => $this->employee->unit_id,
+    //         'divisionId'       => $this->employee->division_id,
+    //         'employee_bank_id'    => $this->employee->bankAccount?->bank_id,
+    //     ]);
+    // }
 
     // =========================================================================
     // VALIDATION
@@ -283,7 +295,7 @@ class EmployeeEdit extends Component
             'opf_number'                => 'nullable|string|max:50',
             'designation_id'            => 'required|exists:designations,id',
             'unit'                      => 'nullable|exists:units,id',
-            'department'                => 'nullable|exists:departments,id',
+            'divisionId'                => 'nullable|exists:divisions,id',
             'file_number'               => 'nullable|string|max:50',
             'employee_bank_id'          => 'nullable|exists:banks,id',
             'employee_bank_account_no'  => 'nullable|string|max:50',
@@ -349,7 +361,7 @@ class EmployeeEdit extends Component
                 'opf_number',
                 'designation_id',
                 'unit',
-                'department',
+                'divisionId',
                 'file_number',
                 'employee_bank_id',
                 'employee_bank_account_no',
@@ -379,25 +391,40 @@ class EmployeeEdit extends Component
     // STEP NAVIGATION
     // =========================================================================
 
+    // public function nextStep(): void
+    // {
+    //     if ($this->isViewMode) {
+    //         $this->currentStep++;
+    //         return;
+    //     }
+
+    //     try {
+    //         $this->validate($this->getStepRules($this->currentStep));
+    //     } catch (ValidationException $e) {
+    //         // FIX: the step-1 validation error most commonly hit here is
+    //         // 'selectedUserId' (no visible field for it in older markup).
+    //         // Surface a flash message in addition to the field-level errors
+    //         // so the user always sees *something* even if a given step's
+    //         // partial view doesn't render every @error() tag.
+    //         session()->flash('error', 'Please fix the highlighted fields before continuing: ' .
+    //             collect($e->validator->errors()->all())->implode(' '));
+    //         throw $e;
+    //     }
+
+    //     $this->currentStep++;
+    // }
+
     public function nextStep(): void
     {
         if ($this->isViewMode) {
             $this->currentStep++;
+
             return;
         }
 
-        try {
-            $this->validate($this->getStepRules($this->currentStep));
-        } catch (ValidationException $e) {
-            // FIX: the step-1 validation error most commonly hit here is
-            // 'selectedUserId' (no visible field for it in older markup).
-            // Surface a flash message in addition to the field-level errors
-            // so the user always sees *something* even if a given step's
-            // partial view doesn't render every @error() tag.
-            session()->flash('error', 'Please fix the highlighted fields before continuing: ' .
-                collect($e->validator->errors()->all())->implode(' '));
-            throw $e;
-        }
+        $this->validate(
+            $this->getStepRules($this->currentStep)
+        );
 
         $this->currentStep++;
     }
@@ -415,7 +442,6 @@ class EmployeeEdit extends Component
 
     public function submitForm()
     {
-        // dd('nafika');
         if ($this->isViewMode) {
             return;
         }
@@ -490,7 +516,7 @@ class EmployeeEdit extends Component
             'employment_type_id'  => $this->employment_type_id,
             'designation_id'      => $this->designation_id,
             'unit_id'             => $this->unit,
-            'department_id'       => $this->department,
+            'division_id'       => $this->divisionId,
             'updated_by'          => auth()->id(),
             // FIX: guard against non-array / malformed entries, same as
             // EmployeeCreate, so a stray null row can't throw here.
@@ -700,32 +726,85 @@ class EmployeeEdit extends Component
     }
 
     // =========================================================================
-    // RENDER
+    // LOOKUPS
     // =========================================================================
 
-    public function render()
+    /**
+     * Shared helper to fetch and format lookups efficiently.
+     * Mirrors EmployeeCreate::formatLookup() exactly.
+     */
+    private function formatLookup(string $modelClass, string $labelColumn = 'name'): array
     {
-        return view('hrm::livewire.h-r-m.employees.employee-edit', [
-            'departments'         => Department::pluck('name', 'id'),
-            'units'               => Unit::pluck('name', 'id'),
-            'banks'               => Bank::pluck('name', 'id'),
-            // FIX: this was completely missing, which throws an undefined
-            // variable error the moment the blade tries to loop over it.
-            'emails'              => $this->getAvailableEmails(),
-            'educationLevels'     => EducationLevel::pluck('name', 'id'),
-            'employmentTypes'     => EmploymentType::pluck('name', 'id'),
-            'designations'        => Designation::pluck('designation_name', 'id'),
-            'identificationTypes' => Identification::pluck('identification_name', 'id'),
-            'certificateTypes'    => Certificate::pluck('certificate_name', 'id'),
-            'isViewMode'          => $this->isViewMode,
-        ]);
+        return $modelClass::select(['id', $labelColumn])
+            ->get()
+            ->map(fn($model) => [
+                'value' => $model->id,
+                'label' => $model->$labelColumn,
+            ])
+            ->toArray();
     }
 
+    #[Computed]
+    public function departments(): array
+    {
+        return $this->formatLookup(Department::class);
+    }
+
+    #[Computed]
+    public function units(): array
+    {
+        return $this->formatLookup(Unit::class);
+    }
+
+    #[Computed]
+    public function divisions(): array
+    {
+        return $this->formatLookup(Division::class);
+    }
+
+    #[Computed]
+    public function banks(): array
+    {
+        return $this->formatLookup(Bank::class);
+    }
+
+    #[Computed]
+    public function educationLevels(): array
+    {
+        return $this->formatLookup(EducationLevel::class);
+    }
+
+    #[Computed]
+    public function employmentTypes(): array
+    {
+        return $this->formatLookup(EmploymentType::class);
+    }
+
+    #[Computed]
+    public function designations(): array
+    {
+        return $this->formatLookup(Designation::class, 'designation_name');
+    }
+
+    #[Computed]
+    public function identificationTypes(): array
+    {
+        return $this->formatLookup(Identification::class, 'identification_name');
+    }
+
+    #[Computed]
+    public function certificateTypes(): array
+    {
+        return $this->formatLookup(Certificate::class, 'certificate_name');
+    }
+
+    // NOTE: left as a plain method (not #[Computed]) deliberately, unlike
+    // Create's `emails()`. Edit doesn't support reassigning the employee's
+    // user, so this stays a one-time read-only lookup for display rather
+    // than a live-searchable select fed by a computed property. Say the
+    // word if you actually want reassignment enabled here.
     protected function getAvailableEmails(): \Illuminate\Support\Collection
     {
-        // FIX: same helper EmployeeCreate uses — includes users who don't
-        // yet have an employee record, plus the user already tied to this
-        // employee (so the dropdown always has an option to render).
         return User::query()
             ->where(function ($q) {
                 $q->doesntHave('employee')
@@ -733,5 +812,18 @@ class EmployeeEdit extends Component
             })
             ->orderByDesc('created_at')
             ->pluck('email', 'id');
+    }
+
+    // =========================================================================
+    // RENDER
+    // =========================================================================
+
+    public function render()
+    {
+        return view('hrm::livewire.h-r-m.employees.employee-edit', [
+            'emails'     => $this->getAvailableEmails(),
+            'isEditMode' => $this->isEditMode,
+            'isViewMode' => $this->isViewMode,
+        ]);
     }
 }

@@ -15,8 +15,6 @@ return new class extends Migration
             $table->id();
             $table->string('name',60);
             $table->string('slug',40);
-            $table->foreignId('department_id')->nullable()->constrained('departments')->onDelete('restrict');
-
             $table->timestamps();
         });
     }

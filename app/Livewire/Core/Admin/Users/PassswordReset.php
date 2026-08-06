@@ -2,14 +2,15 @@
 
 namespace App\Livewire\Core\Admin\Users;
 
-use Throwable;
 use App\Models\User;
-use Livewire\Component;
-use Illuminate\Support\Facades\Hash;
-
-use Symfony\Component\HttpKernel\Log\Logger;
-use function Symfony\Component\Translation\t;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Hash;
+use Livewire\Attributes\Computed;
+use Livewire\Component;
+use Symfony\Component\HttpKernel\Log\Logger;
+use Throwable;
+
+use function Symfony\Component\Translation\t;
 
 class PassswordReset extends Component
 {
@@ -20,11 +21,15 @@ class PassswordReset extends Component
 
     public ?string $password = null;
 
+
     public function getUsersProperty()
     {
 
 
-        return User::select(['id', 'email'])->get();
+        return User::select(['id', 'email'])->get()->map(fn($u)=>[
+            'value' => $u->id,
+            'label' => $u->email
+        ]);
     }
 
 
@@ -33,8 +38,6 @@ class PassswordReset extends Component
         try {
             if ($this->userId) {
                 $user = User::find($this->userId);
-
-                // dd($user);
 
                 if (!$user) {
                     $this->dispatch(
