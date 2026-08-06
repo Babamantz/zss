@@ -12,13 +12,41 @@ class AttendanceIndex extends Component
     use WithPagination;
 
     public $search = '';
+    public $perPage = 15;
+    public $sortField = 'created_at';
+    public $sortDir = 'desc';
+
     public $confirmingDeletion = false;
     public $attendanceToDelete = null;
 
-    protected $queryString = ['search'];
+    protected $queryString = [
+        'search'  => ['except' => ''],
+        'perPage' => ['except' => 15],
+    ];
 
     public function updatingSearch()
     {
+        $this->resetPage();
+    }
+
+    public function updatingPerPage()
+    {
+        $this->resetPage();
+    }
+
+    public function sortBy($field)
+    {
+        if ($this->sortField === $field) {
+            $this->sortDir = $this->sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortField = $field;
+            $this->sortDir = 'asc';
+        }
+    }
+
+    public function clearFilters()
+    {
+        $this->reset('search');
         $this->resetPage();
     }
 
@@ -51,6 +79,7 @@ class AttendanceIndex extends Component
 
         $this->confirmingDeletion = false;
         $this->attendanceToDelete = null;
+        $this->resetPage();
     }
 
     public function render()
@@ -60,11 +89,23 @@ class AttendanceIndex extends Component
             ->when($this->search, function ($query) {
                 $query->where('title', 'like', '%' . $this->search . '%');
             })
-            ->latest()
-            ->paginate(10);
+            ->orderBy($this->sortField, $this->sortDir)
+            ->paginate($this->perPage);
+
+        $userId = auth()->id();
+
+        $stats = [
+            'total_forms'      => Attendance::where('user_id', $userId)->count(),
+            'total_rows'       => Attendance::where('user_id', $userId)->sum('number_of_rows'),
+            'forms_this_month' => Attendance::where('user_id', $userId)
+                ->whereMonth('created_at', now()->month)
+                ->whereYear('created_at', now()->year)
+                ->count(),
+        ];
 
         return view('livewire.core.attendance.attendance-index', [
-            'attendances' => $attendances
+            'attendances' => $attendances,
+            'stats'       => $stats,
         ]);
     }
 }

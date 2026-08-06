@@ -513,7 +513,6 @@ class EmployeeCreate extends Component
             'education_level_id'       => $this->education_level_id,
             'is_disable'      => $this->is_disable,
             'employment_type_id' => $this->employment_type_id,
-            'is_active'       => 'active',
             'is_hr_registered' => true,
             'designation_id'  => $this->designation_id,
             'unit_id'         => $this->unit,
