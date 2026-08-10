@@ -41,14 +41,29 @@ class Login extends Component
             ]);
         }
 
+        $user = Auth::user();
+
+        // ADDED: Block inactive accounts even though credentials matched
+        if (! $user->is_active) {
+            Auth::logout();
+            RateLimiter::hit($this->throttleKey());
+
+            Log::info('Blocked login for inactive user', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+            ]);
+
+            throw ValidationException::withMessages([
+                'email' => 'Your account is inactive. Please contact an administrator.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
         Session::regenerate();
 
         // ADDED: Set tenant context after successful login
-        $user = Auth::user();
-
         if ($user->tenant) {
-            session(['tenant_name' => $user->tenant->name,'module'=>"general"]);
+            session(['tenant_name' => $user->tenant->name, 'module' => "general"]);
             app()->instance('tenant', $user->tenant);
             app()->instance('tenant.id', $user->tenant_id);
 

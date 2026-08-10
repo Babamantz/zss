@@ -139,8 +139,8 @@
                 <div class="col-md-2">
                     <select class="form-select form-select-sm" wire:model.live="filterStatus">
                         <option value="">All Statuses</option>
-                        <option value="active">Active</option>
-                        <option value="in-active">Inactive</option>
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
                     </select>
                 </div>
 

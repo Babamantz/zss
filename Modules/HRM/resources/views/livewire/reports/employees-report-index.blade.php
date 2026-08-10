@@ -130,13 +130,13 @@
                     </select>
                 </div>
 
-                {{-- Status --}}
+                {{-- Status (defaults to All) --}}
                 <div class="col-md-1">
                     <select wire:model.live="filterStatus"
                         class="form-select form-select-sm">
-                        <option value="active">Active</option>
-                        <option value="in-active">Inactive</option>
                         <option value="">All</option>
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
                     </select>
                 </div>
 
@@ -156,7 +156,7 @@
             <div class="row g-2 align-items-center mt-1">
                 {{-- Clear --}}
                 <div class="col-md-2 offset-md-10 text-end">
-                    @if ($search || $filterGender || $filterDept || $filterDivision || $filterUnit)
+                    @if ($search || $filterGender || $filterDept || $filterDivision || $filterUnit || $filterStatus)
                         <button class="btn btn-sm btn-outline-secondary w-100"
                             wire:click="clearFilters"
                             title="Clear filters">
@@ -167,7 +167,7 @@
             </div>
 
             {{-- Active filter chips --}}
-            @if ($search || $filterGender || $filterDept || $filterDivision || $filterUnit)
+            @if ($search || $filterGender || $filterDept || $filterDivision || $filterUnit || $filterStatus)
                 <div class="d-flex flex-wrap gap-1 mt-2">
                     <small class="text-muted me-1 align-self-center">Active:</small>
 
@@ -209,6 +209,14 @@
                             <a href="javascript:void(0)"
                                 wire:click="$set('filterUnit', '')"
                                 class="ms-1 text-secondary text-decoration-none">×</a>
+                        </span>
+                    @endif
+                    @if ($filterStatus !== '')
+                        <span class="badge bg-success-subtle text-success">
+                            {{ $filterStatus === 'true' ? 'Active' : 'Inactive' }}
+                            <a href="javascript:void(0)"
+                                wire:click="$set('filterStatus', '')"
+                                class="ms-1 text-success text-decoration-none">×</a>
                         </span>
                     @endif
                 </div>
@@ -414,7 +422,7 @@
                                 <td colspan="9" class="text-center text-muted py-5">
                                     <i class="fa fa-users fa-2x d-block mb-2 opacity-25"></i>
                                     No employees found
-                                    @if ($search || $filterGender || $filterDept || $filterDivision || $filterUnit)
+                                    @if ($search || $filterGender || $filterDept || $filterDivision || $filterUnit || $filterStatus)
                                         for the current filters.
                                         <a href="javascript:void(0)"
                                             wire:click="clearFilters"
@@ -443,7 +451,7 @@
             <div class="card-footer py-2">
                 <small class="text-muted">
                     {{ $employees->total() }} employee(s) found
-                    @if ($filterStatus === 'active') (active only) @elseif ($filterStatus === 'in-active') (inactive only) @endif
+                    @if ($filterStatus === 'true') (active only) @elseif ($filterStatus === 'false') (inactive only) @endif
                 </small>
             </div>
         @endif

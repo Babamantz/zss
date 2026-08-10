@@ -20,7 +20,7 @@ class EmployeesReportIndex extends Component
     public string $filterDept     = '';
     public string $filterDivision = '';
     public string $filterUnit     = '';
-    public bool $filterStatus   = true;  // true = active, false = in-active
+    public string $filterStatus   = ''; // '' = all (default), 'true' = active, 'false' = in-active
     public string $search         = '';
 
     // ── Sorting ───────────────────────────────────────────────────────────────
@@ -84,7 +84,7 @@ class EmployeesReportIndex extends Component
             'filterUnit',
             'search',
         ]);
-        $this->filterStatus = true;
+        $this->filterStatus = '';
         $this->sortField    = 'hired_date';
         $this->sortDir      = 'desc';
         $this->resetPage();
@@ -98,7 +98,7 @@ class EmployeesReportIndex extends Component
             'department_id' => $this->filterDept,
             'division_id'   => $this->filterDivision,
             'unit_id'       => $this->filterUnit,
-            'is_active'     => $this->filterStatus ? 'active' : 'in-active',
+            'is_active'     => $this->filterStatus === '' ? '' : ($this->filterStatus === 'true' ? 'active' : 'in-active'),
             'search'        => $this->search,
         ];
 
@@ -131,11 +131,17 @@ class EmployeesReportIndex extends Component
     // ── Render ────────────────────────────────────────────────────────────────
     public function render()
     {
-        $statusValue = $this->filterStatus ? 'active' : 'in-active';
-
         $query = Employee::query()
             ->with(['user', 'division.department', 'unit'])
-            ->whereHas('user', fn($u) => $u->where('is_active', $statusValue))
+            // Status filter: '' = All Statuses (no filter), 'true' = active, 'false' = in-active
+            ->when(
+                $this->filterStatus !== '',
+                fn($q) =>
+                $q->whereHas(
+                    'user',
+                    fn($u) => $u->where('is_active', $this->filterStatus === 'true' ? 'active' : 'in-active')
+                )
+            )
             ->when(
                 $this->search,
                 fn($q) =>

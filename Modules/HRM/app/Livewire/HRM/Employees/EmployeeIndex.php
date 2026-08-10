@@ -21,7 +21,7 @@ class EmployeeIndex extends Component
     public string $search           = '';
     public string $filterDepartment = '';
     public string $filterUnit       = '';
-    public bool $filterStatus       = true;  // true = active, false = in-active
+    public string $filterStatus     = ''; // '' = all, 'true' = active, 'false' = in-active
     public string $filterGender     = '';  // 'male' | 'female' | ''
 
     // ── Sorting ───────────────────────────────────────────────────────────────
@@ -150,8 +150,6 @@ class EmployeeIndex extends Component
     // ── Render ────────────────────────────────────────────────────────────────
     public function render()
     {
-        $statusValue = $this->filterStatus ? 'active' : 'in-active';
-
         $employees = Employee::query()
             ->with([
                 'user',
@@ -191,9 +189,14 @@ class EmployeeIndex extends Component
             )
 
             // Status filter (is_active now lives on users)
-            ->whereHas(
-                'user',
-                fn($u) => $u->where('is_active', $statusValue)
+            // '' = All Statuses (no filter), 'true' = active, 'false' = in-active
+            ->when(
+                $this->filterStatus !== '',
+                fn($q) =>
+                $q->whereHas(
+                    'user',
+                    fn($u) => $u->where('is_active', $this->filterStatus === 'true' ? 'active' : 'in-active')
+                )
             )
 
             // Gender filter

@@ -15,6 +15,7 @@
     <title>ZSS - Login</title>
     <!-- Google font-->
     @includeIf('components.layouts.auth-partials.css')
+    @stack('css')
 </head>
 
 <body>

@@ -19,27 +19,27 @@ class EmployeeDashboard extends Component
     public function render()
     {
         // ── Core counts ───────────────────────────────────────────────────────
-        $totalActive   = Employee::whereHas('user', fn($q) => $q->where('is_active', 'active'))->count();
-        $totalInactive = Employee::whereHas('user', fn($q) => $q->where('is_active', 'in-active'))->count();
+        $totalActive   = Employee::whereHas('user', fn($q) => $q->where('is_active', true))->count();
+        $totalInactive = Employee::whereHas('user', fn($q) => $q->where('is_active', false))->count();
         $totalAll      = Employee::count();
 
         // ── Gender breakdown ──────────────────────────────────────────────────
-        $genderRatio = Employee::whereHas('user', fn($q) => $q->where('is_active', 'active'))
+        $genderRatio = Employee::whereHas('user', fn($q) => $q->where('is_active', true))
             ->select('gender', DB::raw('count(*) as total'))
             ->groupBy('gender')
             ->pluck('total', 'gender');
 
         // ── Retirements ───────────────────────────────────────────────────────
-        $retiringWithin6Months = Employee::whereHas('user', fn($q) => $q->where('is_active', 'active'))
+        $retiringWithin6Months = Employee::whereHas('user', fn($q) => $q->where('is_active', true))
             ->whereBetween('retiring_date', [now(), now()->addMonths(6)])
             ->count();
 
-        $retiringWithin1Year = Employee::whereHas('user', fn($q) => $q->where('is_active', 'active'))
+        $retiringWithin1Year = Employee::whereHas('user', fn($q) => $q->where('is_active', true))
             ->whereBetween('retiring_date', [now(), now()->addYear()])
             ->count();
 
         $upcomingRetirements = Employee::with(['user', 'division.department'])
-            ->whereHas('user', fn($q) => $q->where('is_active', 'active'))
+            ->whereHas('user', fn($q) => $q->where('is_active', true))
             ->whereBetween('retiring_date', [now(), now()->addYear()])
             ->orderBy('retiring_date')
             ->take(5)
