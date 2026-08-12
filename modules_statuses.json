@@ -2,5 +2,6 @@
     "HRM": true,
     "PAYROLL": true,
     "PayrollEmployeeFinanceProfileFinanceProfileIndex": true,
-    "PayrollFinanceProfileFinanceProfileIndex": true
+    "PayrollFinanceProfileFinanceProfileIndex": true,
+    "LEAVE": true
 }

@@ -383,10 +383,10 @@
 
                                                     {{-- Status --}}
                                                     <td>
-                                                        <span class="badge {{ $employee->is_active === 'active'
+                                                        <span class="badge {{ $employee->user?->is_active === true
                                 ? 'bg-success-subtle text-success'
                                 : 'bg-secondary-subtle text-secondary' }}">
-                                                            {{ $employee->is_active === 'active' ? 'Active' : 'Inactive' }}
+                                                            {{ $employee->user->is_active === true ? 'Active' : 'Inactive' }}
                                                         </span>
                                                         @if ($employee->is_hr_registered)
                                                             <span class="badge bg-primary-subtle text-primary ms-1">

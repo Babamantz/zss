@@ -20,8 +20,20 @@ class EmployeesReportIndex extends Component
     public string $filterDept     = '';
     public string $filterDivision = '';
     public string $filterUnit     = '';
-    public bool $filterStatus   = true; // '' = all (default), 'true' = active, 'false' = in-active
-    public string $search         = '';
+
+    // FIX: was `public bool $filterStatus = true;`. The <select> in the blade
+    // sends string values ('', 'true', 'false'). Typing this as bool made
+    // Livewire coerce every incoming string via PHP's weak-typing rules —
+    // and since ANY non-empty string (including the literal text "false")
+    // casts to boolean true, selecting "Inactive" and "Active" both ended up
+    // setting this to `true`, and clearFilters()'s `$this->filterStatus = ''`
+    // silently became `false` instead of ''. That broke every strict
+    // comparison below (`!== ''`, `=== 'true'`), which is why the report
+    // and the Excel export kept falling through to 'in-active' regardless
+    // of the selected filter or the users' real is_active value.
+    public string $filterStatus = ''; // '' = all (default), 'true' = active, 'false' = in-active
+
+    public string $search = '';
 
     // ── Sorting ───────────────────────────────────────────────────────────────
     public string $sortField = 'hired_date';
@@ -98,7 +110,11 @@ class EmployeesReportIndex extends Component
             'department_id' => $this->filterDept,
             'division_id'   => $this->filterDivision,
             'unit_id'       => $this->filterUnit,
-            'is_active'     => $this->filterStatus === '' ? '' : ($this->filterStatus === 'true' ? 'active' : 'in-active'),
+            // FIX: the is_active column stores 1/0 (boolean-ish), not the
+            // strings 'active'/'in-active' — a string compared against an
+            // int column gets cast to 0 by MySQL, so 'active' never matched
+            // a real row and this filter silently did nothing.
+            'is_active'     => $this->filterStatus === '' ? '' : ($this->filterStatus === true ? true : false),
             'search'        => $this->search,
         ];
 
@@ -131,17 +147,17 @@ class EmployeesReportIndex extends Component
     // ── Render ────────────────────────────────────────────────────────────────
     public function render()
     {
-        // dd($this->$filterStatus);
-
         $query = Employee::query()
             ->with(['user', 'division.department', 'unit'])
             // Status filter: '' = All Statuses (no filter), 'true' = active, 'false' = in-active
+            // FIX: is_active is stored as 1/0 on the users table, not the
+            // strings 'active'/'in-active' — compare against the real values.
             ->when(
                 $this->filterStatus !== '',
                 fn($q) =>
                 $q->whereHas(
                     'user',
-                    fn($u) => $u->where('is_active', $this->filterStatus === true ? 'active' : 'in-active')
+                    fn($u) => $u->where('is_active', $this->filterStatus === 'true' ? true : false)
                 )
             )
             ->when(
@@ -197,13 +213,15 @@ class EmployeesReportIndex extends Component
         $employees = $query->paginate($this->perPage);
 
         // Summary counts (scoped to active status, unfiltered by the other filters)
+        // FIX: same 1/0-vs-string issue as above — these previously matched
+        // zero rows, since no user actually has is_active = 'active'.
         $counts = [
-            'total'  => Employee::whereHas('user', fn($u) => $u->where('is_active', 'active'))->count(),
-            'male'   => Employee::whereHas('user', fn($u) => $u->where('is_active', 'active'))
+            'total'  => Employee::whereHas('user', fn($u) => $u->where('is_active', true))->count(),
+            'male'   => Employee::whereHas('user', fn($u) => $u->where('is_active', true))
                 ->where('gender', 'male')->count(),
-            'female' => Employee::whereHas('user', fn($u) => $u->where('is_active', 'active'))
+            'female' => Employee::whereHas('user', fn($u) => $u->where('is_active', true))
                 ->where('gender', 'female')->count(),
-            'depts'  => Employee::whereHas('user', fn($u) => $u->where('is_active', 'active'))
+            'depts'  => Employee::whereHas('user', fn($u) => $u->where('is_active', true))
                 ->join('divisions', 'employees.division_id', '=', 'divisions.id')
                 ->distinct('divisions.department_id')
                 ->count('divisions.department_id'),

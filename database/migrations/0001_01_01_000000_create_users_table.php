@@ -24,10 +24,10 @@ return new class extends Migration
             $table->foreignId('created_by')->nullable()->constrained('users','id')->onDelete('set null');
             $table->foreignId('updated_by')->nullable()->constrained('users','id')->onDelete('set null');
             $table->foreignId('tenant_id')->nullable();
+            $table->softDeletes();
             $table->rememberToken();
             $table->timestamps();
-            $table->unique(['email']
-            );
+            $table->unique(['email']);
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

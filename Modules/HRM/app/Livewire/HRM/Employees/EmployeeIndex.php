@@ -188,14 +188,12 @@ class EmployeeIndex extends Component
                 $q->where('unit_id', $this->filterUnit)
             )
 
-            // Status filter (is_active now lives on users)
-            // '' = All Statuses (no filter), 'true' = active, 'false' = in-active
             ->when(
                 $this->filterStatus !== '',
                 fn($q) =>
                 $q->whereHas(
                     'user',
-                    fn($u) => $u->where('is_active', $this->filterStatus === 'true' ? 'active' : 'in-active')
+                    fn($u) => $u->where('is_active', $this->filterStatus === 'true')
                 )
             )
 
@@ -228,14 +226,13 @@ class EmployeeIndex extends Component
 
             ->paginate($this->perPage);
 
-        // Summary counts (unfiltered for stat cards)
         $counts = [
             'total'    => Employee::where('is_hr_registered', true)->count(),
             'active'   => Employee::where('is_hr_registered', true)
-                ->whereHas('user', fn($u) => $u->where('is_active', 'active'))
+                ->whereHas('user', fn($u) => $u->where('is_active', true))
                 ->count(),
             'inactive' => Employee::where('is_hr_registered', true)
-                ->whereHas('user', fn($u) => $u->where('is_active', 'in-active'))
+                ->whereHas('user', fn($u) => $u->where('is_active', false))
                 ->count(),
             'male'     => Employee::where('is_hr_registered', true)->where('gender', 'male')->count(),
             'female'   => Employee::where('is_hr_registered', true)->where('gender', 'female')->count(),

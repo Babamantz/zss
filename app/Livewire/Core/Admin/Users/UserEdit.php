@@ -24,8 +24,8 @@ class UserEdit extends Component
     public string $middle_name = '';
     public string $last_name = '';
     public string $email = '';
-    public int $is_officer = 0;
-    public int $is_active = 1;
+    public  bool $is_officer ;
+    public bool $is_active ;
     public int|string|null $location = null;
     public string $role = '';
     public array $direct_permissions = [];

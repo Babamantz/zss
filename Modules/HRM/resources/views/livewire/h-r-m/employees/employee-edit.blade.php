@@ -102,7 +102,31 @@
                             </div>
 
                             {{-- DOB + Hired Date --}}
+                             {{-- DOB + Hired Date --}}
                             <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Date of Birth: <span class="text-danger">*</span></label>
+                                        <input class="form-control" type="date" wire:model.defer="dob">
+                                        @error('dob') <small class="text-danger">{{ $message }}</small> @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Hired Date: <span class="text-danger">*</span></label>
+                                        <input class="form-control" type="date" wire:model.defer="hired_date">
+                                        @error('hired_date') <small class="text-danger">{{ $message }}</small> @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Work Confirmation Date: <span class="text-danger">*</span></label>
+                                        <input class="form-control" type="date" wire:model.defer="work_confirmation_date">
+                                        @error('work_confirmation_date') <small class="text-danger">{{ $message }}</small> @enderror
+                                    </div>
+                                </div>
+                            </div>
+                            {{-- <div class="row mb-3">
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Date of Birth: <span class="text-danger">*</span></label>
@@ -117,7 +141,7 @@
                                         @error('hired_date') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
                                 </div>
-                            </div>
+                            </div> --}}
 
                             {{-- Retiring Date + Education Level --}}
                             <div class="row mb-3">

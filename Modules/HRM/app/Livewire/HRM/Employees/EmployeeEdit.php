@@ -36,13 +36,8 @@ class EmployeeEdit extends Component
 
     public int $currentStep = 1;
 
-    // ── Step 1: Basic Information ─────────────────────────────────────────────
-    // FIX: this is the property the "Email" Select2 actually writes to
-    // (see the JS: { id: '#select-user', field: 'selectedUserId' }).
-    // It was declared but never populated on load, so it stayed null and
-    // silently failed the 'selectedUserId' => 'required' rule on submit —
-    // with no @error('selectedUserId') anywhere in the blade to surface it.
-    // public $selectedUserId = null;
+    public $work_confirmation_date;
+
 
     public $first_name;
     public $middle_name;
@@ -155,6 +150,7 @@ class EmployeeEdit extends Component
             'marital_status'     => $emp->marital_status,
             'gender'             => $emp->gender,
             'opf_number'         => $emp->opf_number,
+            'work_confirmation_date' => $emp->confirmed_at_work_date,
             'file_number'        => $emp->file_number,
             'education_level_id' => $emp->education_level_id,
             'is_disable'         => (bool) $emp->is_disable,
@@ -281,6 +277,7 @@ class EmployeeEdit extends Component
             'last_name'               => 'required|string|min:2|max:50',
             'dob'                     => 'required|date|before:today',
             'hired_date'              => 'required|date',
+            'work_confirmation_date' => 'nullable|date|after:hired_date',
             'retiring_date'           => 'nullable|date|after:hired_date',
             'education_level_id'      => 'required|integer',
             'marital_status'          => 'required|string|in:' . implode(',', MaritalStatus::ALL),
@@ -506,6 +503,7 @@ class EmployeeEdit extends Component
         $data = [
             'dob'                 => $this->dob,
             'hired_date'          => $this->hired_date,
+            'confirmed_at_work_date' => $this->work_confirmation_date,
             'retiring_date'       => $this->retiring_date,
             'marital_status'      => $this->marital_status,
             'gender'              => $this->gender,

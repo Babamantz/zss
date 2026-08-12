@@ -1,0 +1,11 @@
+{
+    "name": "LEAVE",
+    "alias": "leave",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\LEAVE\\Providers\\LEAVEServiceProvider"
+    ],
+    "files": []
+}

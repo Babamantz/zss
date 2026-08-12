@@ -38,6 +38,8 @@ class EmployeeCreate extends Component
 
     public $divisionId;
 
+    public $work_confirmation_date;
+
     public int $currentStep = 1;
 
     // ── Step 1: Basic Information ─────────────────────────────────────────────
@@ -193,6 +195,7 @@ class EmployeeCreate extends Component
             'marital_status'  => $emp->marital_status,
             'gender'          => $emp->gender,
             'opf_number'      => $emp->opf_number,
+            'work_confirmation_date' => $emp->confirmed_at_work_date,
             'file_number'     => $emp->file_number,
             'education_level_id'       => $emp->education_level_id,
             'is_disable'      => (bool) $emp->is_disable,
@@ -320,6 +323,7 @@ class EmployeeCreate extends Component
             'last_name'               => 'required|string|min:2|max:50',
             'dob'                     => 'required|date|before:today',
             'hired_date'              => 'required|date',
+            'work_confirmation_date' => 'nullable|date|after:hired_date',
             'retiring_date'           => 'nullable|date|after:hired_date',
             'education_level_id'      => 'required|integer',
             'marital_status'          => 'required|string|in:' . implode(',', MaritalStatus::ALL),
@@ -369,6 +373,7 @@ class EmployeeCreate extends Component
             'education.in'                              => 'Please select a valid education level.',
             'marital_status.in'                          => 'Please select a valid marital status.',
             'retiring_date.after'                        => 'Retiring date must be after hired date.',
+            'work_confirmation_date.after'                        => 'Work Confirmation date must be after hired date.',
             'contacts.0.phone_number.required'           => 'Personal phone number is required.',
             'identification_items.*.identification_id.required' => 'Please select an identification type.',
             'certificate_items.*.certificate_id.required'       => 'Please select a certificate type.',
@@ -388,6 +393,7 @@ class EmployeeCreate extends Component
                 'last_name',
                 'dob',
                 'hired_date',
+                'work_confirmation_date',
                 'retiring_date',
                 'education_level_id',
                 'marital_status',
@@ -502,9 +508,11 @@ class EmployeeCreate extends Component
 
     protected function saveEmployee(): Employee
     {
+        $this->work_confirmation_date;
         $data = [
             'dob'             => $this->dob,
             'hired_date'      => $this->hired_date,
+            'confirmed_at_work_date' =>$this->work_confirmation_date,
             'retiring_date'   => $this->retiring_date,
             'marital_status'  => $this->marital_status,
             'gender'          => $this->gender,
@@ -756,6 +764,7 @@ class EmployeeCreate extends Component
             'dob',
             'education_level_id',
             'hired_date',
+            'work_confirmation_date',
             'retiring_date',
             'email',
             'marital_status',

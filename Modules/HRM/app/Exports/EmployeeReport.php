@@ -74,11 +74,12 @@ class EmployeeReport implements FromQuery, WithHeadings, WithMapping
             $employee->division?->department?->name ?? 'N/A',
             $employee->division?->name ?? 'N/A',
             $employee->unit?->name ?? 'N/A',
+            '-',
             // $employee->identifications->identificationnida_no,
             $employee->file_number,
             $employee->opf_number,
             $employee->hired_date,
-            $employee->user?->is_active === 'active' ? 'Active' : 'Inactive',
+            $employee->user?->is_active === true ? 'Active' : 'Inactive',
         ];
     }
 }

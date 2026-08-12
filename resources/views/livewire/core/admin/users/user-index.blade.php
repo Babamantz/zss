@@ -110,7 +110,7 @@
                 <div class="card border-0 shadow-sm">
                     <div class="card-body d-flex align-items-center gap-3">
                         <div class="rounded-circle bg-{{ $card['color'] }}-subtle
-                                    p-3 flex-shrink-0">
+                                                p-3 flex-shrink-0">
                             <i class="fa {{ $card['icon'] }} text-{{ $card['color'] }} fa-lg"></i>
                         </div>
                         <div>
@@ -262,6 +262,7 @@
                             </th>
 
                             <th style="padding:11px 16px;">Location</th>
+                            <th style="padding:11px 16px;">Status</th>
                             <th style="padding:11px 16px;">Role</th>
                             <th style="padding:11px 16px;">Permissions</th>
                             <th style="padding:11px 16px;" class="text-end">Actions</th>
@@ -269,109 +270,117 @@
                     </thead>
                     <tbody>
                         @forelse ($users as $user)
-                            <tr wire:key="user-{{ $user->id }}">
+                                            <tr wire:key="user-{{ $user->id }}">
 
-                                {{-- # --}}
-                                <td class="text-muted small">
-                                    {{ ($users->currentPage() - 1) * $users->perPage() + $loop->iteration }}
-                                </td>
+                                                {{-- # --}}
+                                                <td class="text-muted small">
+                                                    {{ ($users->currentPage() - 1) * $users->perPage() + $loop->iteration }}
+                                                </td>
 
-                                {{-- User (Avatar + Name) --}}
-                                <td>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div class="avatar-circle">
-                                            {{ strtoupper(substr($user->first_name ?? '?', 0, 1)) }}
-                                            {{ strtoupper(substr($user->last_name ?? '', 0, 1)) }}
-                                        </div>
-                                        <div>
-                                            <div class="fw-medium small">
-                                                {{ $user->first_name }}
-                                                {{ $user->middle_name }}
-                                                {{ $user->last_name }}
-                                            </div>
-                                            @if ($user->employee)
-                                                <div class="text-muted" style="font-size:10px;">
-                                                    OPF: {{ $user->employee->opf_number ?? '—' }}
-                                                </div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </td>
+                                                {{-- User (Avatar + Name) --}}
+                                                <td>
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <div class="avatar-circle">
+                                                            {{ strtoupper(substr($user->first_name ?? '?', 0, 1)) }}
+                                                            {{ strtoupper(substr($user->last_name ?? '', 0, 1)) }}
+                                                        </div>
+                                                        <div>
+                                                            <div class="fw-medium small">
+                                                                {{ $user->first_name }}
+                                                                {{ $user->middle_name }}
+                                                                {{ $user->last_name }}
+                                                            </div>
+                                                            @if ($user->employee)
+                                                                <div class="text-muted" style="font-size:10px;">
+                                                                    OPF: {{ $user->employee->opf_number ?? '—' }}
+                                                                </div>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                </td>
 
-                                {{-- Email --}}
-                                <td>
-                                    <a href="mailto:{{ $user->email }}" class="text-muted text-decoration-none small">
-                                        <i class="fa fa-envelope fa-xs me-1"></i>
-                                        {{ $user->email }}
-                                    </a>
-                                </td>
+                                                {{-- Email --}}
+                                                <td>
+                                                    <a href="mailto:{{ $user->email }}" class="text-muted text-decoration-none small">
+                                                        <i class="fa fa-envelope fa-xs me-1"></i>
+                                                        {{ $user->email }}
+                                                    </a>
+                                                </td>
 
-                                {{-- Location --}}
-                                <td>
-                                    @if ($user->tenant)
-                                        <span class="badge bg-success-subtle text-success" style="font-size:10px;">
-                                            <i class="fa fa-location-dot fa-xs me-1"></i>
-                                            {{ $user->tenant->name }}
-                                        </span>
-                                    @else
-                                        <span class="text-muted small">N/A</span>
-                                    @endif
-                                </td>
+                                                {{-- Location --}}
+                                                <td>
+                                                    @if ($user->tenant)
+                                                        <span class="badge bg-success-subtle text-success" style="font-size:10px;">
+                                                            <i class="fa fa-location-dot fa-xs me-1"></i>
+                                                            {{ $user->tenant->name }}
+                                                        </span>
+                                                    @else
+                                                        <span class="text-muted small">N/A</span>
+                                                    @endif
+                                                </td>
+                                                <td class="text-muted small">
+                                                    <span class="badge {{ $user?->is_active === true
+                            ? 'bg-success-subtle text-success'
+                            : 'bg-secondary-subtle text-danger' }}">
+                                                        {{ $user->is_active === true ? 'active' : 'in-active' }}
+                                                    </span>
+                                                </td>
 
-                                {{-- Role --}}
-                                <td>
-                                    @forelse ($user->getRoleNames() as $role)
-                                        <span class="badge bg-info-subtle text-info mb-1" style="font-size:10px;">
-                                            <i class="fa fa-shield-halved fa-xs me-1"></i>
-                                            {{ ucfirst($role) }}
-                                        </span>
-                                    @empty
-                                        <span class="text-muted small">No role</span>
-                                    @endforelse
-                                </td>
+                                                {{-- Role --}}
+                                                <td>
+                                                    @forelse ($user->getRoleNames() as $role)
+                                                        <span class="badge bg-info-subtle text-info mb-1" style="font-size:10px;">
+                                                            <i class="fa fa-shield-halved fa-xs me-1"></i>
+                                                            {{ ucfirst($role) }}
+                                                        </span>
+                                                    @empty
+                                                        <span class="text-muted small">No role</span>
+                                                    @endforelse
+                                                </td>
 
-                                {{-- Permissions --}}
-                                <td>
-                                    @php
-                                        $perms = $user->getAllPermissions()->pluck('name');
-                                    @endphp
-                                    @if ($perms->count())
-                                        <div class="d-flex flex-wrap gap-1">
-                                            @foreach ($perms->take(2) as $perm)
-                                                <span class="badge bg-warning-subtle text-warning" style="font-size:9px;">
-                                                    {{ $perm }}
-                                                </span>
-                                            @endforeach
-                                            @if ($perms->count() > 2)
-                                                <span class="badge bg-secondary-subtle
-                                                                            text-secondary" style="font-size:9px;"
-                                                    title="{{ $perms->skip(2)->implode(', ') }}">
-                                                    +{{ $perms->count() - 2 }} more
-                                                </span>
-                                            @endif
-                                        </div>
-                                    @else
-                                        <span class="text-muted small">—</span>
-                                    @endif
-                                </td>
+                                                {{-- Permissions --}}
+                                                <td>
+                                                    @php
+                                                        $perms = $user->getAllPermissions()->pluck('name');
+                                                    @endphp
+                                                    @if ($perms->count())
+                                                        <div class="d-flex flex-wrap gap-1">
+                                                            @foreach ($perms->take(2) as $perm)
+                                                                <span class="badge bg-warning-subtle text-warning" style="font-size:9px;">
+                                                                    {{ $perm }}
+                                                                </span>
+                                                            @endforeach
+                                                            @if ($perms->count() > 2)
+                                                                <span
+                                                                    class="badge bg-secondary-subtle
+                                                                                                                                                text-secondary"
+                                                                    style="font-size:9px;" title="{{ $perms->skip(2)->implode(', ') }}">
+                                                                    +{{ $perms->count() - 2 }} more
+                                                                </span>
+                                                            @endif
+                                                        </div>
+                                                    @else
+                                                        <span class="text-muted small">—</span>
+                                                    @endif
+                                                </td>
 
-                                {{-- Actions --}}
-                                <td class="text-end">
-                                    <div class="d-flex gap-1 justify-content-end">
-                                        <a class="btn btn-sm btn-outline-info"
-                                            href="{{ route('users.edit', ['id' => $user->id, 'mode' => 'view']) }}"
-                                            wire:navigate title="View">
-                                            <i class="fa fa-eye"></i>
-                                        </a>
-                                        <a class="btn btn-sm btn-outline-secondary"
-                                            href="{{ route('users.edit', ['id' => $user->id, 'mode' => 'edit']) }}"
-                                            wire:navigate title="Edit">
-                                            <i class="fa fa-pencil"></i>
-                                        </a>
-                                    </div>
-                                </td>
+                                                {{-- Actions --}}
+                                                <td class="text-end">
+                                                    <div class="d-flex gap-1 justify-content-end">
+                                                        <a class="btn btn-sm btn-outline-info"
+                                                            href="{{ route('users.edit', ['id' => $user->id, 'mode' => 'view']) }}"
+                                                            wire:navigate title="View">
+                                                            <i class="fa fa-eye"></i>
+                                                        </a>
+                                                        <a class="btn btn-sm btn-outline-secondary"
+                                                            href="{{ route('users.edit', ['id' => $user->id, 'mode' => 'edit']) }}"
+                                                            wire:navigate title="Edit">
+                                                            <i class="fa fa-pencil"></i>
+                                                        </a>
+                                                    </div>
+                                                </td>
 
-                            </tr>
+                                            </tr>
                         @empty
                             <tr>
                                 <td colspan="7" class="text-center text-muted py-5">
@@ -398,7 +407,7 @@
         {{-- Pagination --}}
         @if ($users->hasPages())
             <div class="card-footer d-flex justify-content-between
-                        align-items-center py-2">
+                                    align-items-center py-2">
                 <small class="text-muted">
                     Showing {{ $users->firstItem() }}–{{ $users->lastItem() }}
                     of {{ $users->total() }} users

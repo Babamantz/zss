@@ -17,8 +17,10 @@ return new class extends Migration
             $table->string('photo_file', 100)->nullable();
             $table->string('birth_certificate_file', 100)->nullable();
             $table->string('employment_contract_file', 100)->nullable();
-            $table->string('opf_number', 50)->nullable();
-            $table->string('file_number', 50)->nullable();
+            $table->string('opf_number', 100)->nullable();
+            $table->string('file_number', 100)->nullable();
+            $table->string('social_service_number', 100)->nullable();
+            $table->string('health_insurance_number', 100)->nullable();
             $table->boolean('is_disable')->default(false); //['no', 'yes'])->default('no');
             $table->string('gender', 10)->default('male'); //['male', 'female'])->default('male');
             $table->string('marital_status', 10)->default('single'); // ['married', 'single', 'divorced'])->default('single');
@@ -31,7 +33,6 @@ return new class extends Migration
             $table->boolean('is_hr_registered')->default(false);
             $table->boolean('is_officer')->default(true);
             $table->foreignId('education_level_id')->nullable()->constrained('education_levels')->nullOnDelete();
-            // $table->foreignId('employed_education_level_id')->nullable()->constrained('education_levels')->nullOnDelete();
             $table->foreignId('employment_type_id')->nullable()->constrained('employment_types')->nullOnDelete();
             $table->foreignId('division_id')->nullable()->constrained('divisions')->nullonDelete();
             $table->foreignId('unit_id')->nullable()->constrained('units')->nullOnDelete();

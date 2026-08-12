@@ -2,9 +2,9 @@
     <div class="main-header-right row m-0">
         <div class="main-header-left">
             <div class="logo-wrapper"><a href="{{ route('index') }}"><img class="img-fluid"
-                        src="{{ asset('assets/images/logo/logo.png') }}" alt=""></a></div>
+                        src="{{ asset('assets/img/zhc_logo.png') }}" style="height: 40px" alt=""></a></div>
             <div class="dark-logo-wrapper"><a href="{{ route('index') }}"><img class="img-fluid"
-                        src="{{ asset('assets/images/logo/dark-logo.png') }}" alt=""></a></div>
+                        src="{{ asset('assets/img/zhc_logo.png') }}" style="height: 40px" alt=""></a></div>
             <div class="toggle-sidebar"><i class="status_toggle middle" data-feather="align-center" id="sidebar-toggle">
                 </i></div>
         </div>
@@ -13,7 +13,7 @@
                 <li><a class="text-dark" href="{{ route('index') }}"><i data-feather="home"></i></a></li>
                 <li><a class="text-dark" href="#!" onclick="javascript:toggleFullScreen()"><i
                             data-feather="maximize"></i></a></li>
-                <li class="onhover-dropdown">
+                {{-- <li class="onhover-dropdown">
                     <div class="notification-box"><i data-feather="bell"></i><span class="dot-animated"></span></div>
                     <ul class="notification-dropdown onhover-show-div">
                         <li>
@@ -58,7 +58,7 @@
                             </div>
                         </li>
                     </ul>
-                </li>
+                </li> --}}
                 <li>
                     <div class="mode"><i class="fa fa-moon-o"></i></div>
                 </li>
