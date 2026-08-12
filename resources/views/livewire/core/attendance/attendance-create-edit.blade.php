@@ -107,6 +107,30 @@
 
                                 </div>
 
+                                {{-- Date of the Meeting --}}
+                                <div class="form-group">
+
+                                    <label for="meeting_date">
+                                        Date of the Meeting
+                                        <span class="text-danger">*</span>
+                                    </label>
+
+                                    <input
+                                        class="form-control @error('meeting_date') is-invalid @enderror"
+                                        id="meeting_date"
+                                        type="date"
+                                        wire:model="meeting_date"
+                                        {{ $isViewMode ? 'disabled' : '' }}
+                                    >
+
+                                    @error('meeting_date')
+                                        <div class="invalid-feedback">
+                                            {{ $message }}
+                                        </div>
+                                    @enderror
+
+                                </div>
+
                                 {{-- Heading with CKEditor --}}
                                 <div class="email-wrapper">
 
@@ -172,11 +196,45 @@
 
                                 </div>
 
+                                {{-- Optional Phone Number column --}}
+                                <div class="form-group mb-3">
+
+                                    <label class="d-block">
+                                        Optional Columns
+                                    </label>
+
+                                    <div class="form-check">
+                                        <input
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            id="include_phone_number"
+                                            name="include_phone_number"
+                                            wire:model.live="include_phone_number"
+                                            {{ $isViewMode ? 'disabled' : '' }}
+                                        >
+
+                                        <label class="form-check-label" for="include_phone_number">
+                                            Include Bank Account column
+                                        </label>
+                                    </div>
+
+                                    <small class="text-muted d-block">
+                                        PhoneNumber is always included on the sheet; Bank Account  is optional.
+                                    </small>
+
+                                    @error('include_phone_number')
+                                        <div class="invalid-feedback d-block">
+                                            {{ $message }}
+                                        </div>
+                                    @enderror
+
+                                </div>
+
                                 {{-- Fixed Columns Preview --}}
                                 <div class="form-group">
 
                                     <label class="d-block">
-                                        Table Columns (Fixed) -
+                                        Table Columns -
                                         Preview with {{ $number_of_rows }} rows
                                     </label>
 

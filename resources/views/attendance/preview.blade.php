@@ -36,6 +36,12 @@
             font-size: 22px;
         }
 
+        .header .meeting-date {
+            margin: 4px 0 0 0;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
         .heading-content {
             margin: 0 0 20px 0;
             padding: 12px;
@@ -78,6 +84,12 @@
             <h1>ZANZIBAR HOUSING CORPORATION</h1>
         @else
             <h1>SHIRIKA LA NYUMBA ZANZIBAR</h1>
+        @endif
+
+        @if ($meeting_date)
+            <p class="meeting-date">
+                {{ $isSwahili ? 'Tarehe' : 'Date' }}: {{ $meeting_date }}
+            </p>
         @endif
 
     </div>

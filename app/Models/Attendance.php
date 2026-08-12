@@ -16,6 +16,8 @@ class Attendance extends Model
         'title',
         'heading',
         'is_swahili',
+        'include_phone_number',
+        'meeting_date',
         'unit_id',
         'division_id',
         'number_of_rows',

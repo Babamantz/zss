@@ -20,6 +20,8 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade'); // Creator
             $table->string('title')->nullable();
             $table->string('heading')->nullable();
+            $table->date('meeting_date')->nullable();
+            $table->boolean('include_phone_number')->default(false);
             $table->boolean('is_swahili')->default(false);
             $table->integer('number_of_rows')->default(10); // Number of attendee rows
             $table->string('attendance_path', 255)->nullable();

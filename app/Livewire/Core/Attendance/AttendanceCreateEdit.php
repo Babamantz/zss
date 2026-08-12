@@ -13,52 +13,57 @@ class AttendanceCreateEdit extends Component
     public $title = '';
     public $heading = '';
     public $number_of_rows = 10;
+    public $meeting_date;
 
     public bool $isSwahili = false;
+
+    // Phone number is optional on the printed sheet — Bank Account is
+    // always shown, so it doesn't need its own toggle.
+    public bool $include_phone_number = false;
 
     public $isEditMode = false;
     public $isViewMode = false;
 
-    // Fixed column references
-    public $englishColumns = [
-        'No.',
-        'Name',
-        'Position',
-        'From',
-        'Signature',
-    ];
-
-    public $swahiliColumns = [
-        'No.',
-        'Jina',
-        'Cheo',
-        'Unapotoka',
-        'Saini',
-    ];
-
     /**
-     * Get columns according to selected language.
+     * Get columns according to selected language, always including Bank
+     * Account and optionally including Phone No. based on the creator's
+     * choice.
      */
     public function getColumnsProperty()
     {
-        return $this->isSwahili
-            ? $this->swahiliColumns
-            : $this->englishColumns;
+        $columns = $this->isSwahili
+            ? ['No.', 'Jina', 'Cheo','Unapotoka','Sign']
+            : ['No.', 'Name', 'Position','From','Signature'];
+
+        if ($this->include_phone_number) {
+            $columns[] = $this->isSwahili ? 'Akaunti ya Benki' : 'Bank Account';
+        }
+
+        return array_merge(
+            $columns,
+            $this->isSwahili
+                ? ['Namba ya Simu']
+                : ['Phone No.']
+        );
     }
 
     protected function rules()
     {
         return [
-            'title' => 'required|string|max:255',
-            'heading' => 'required|string',
-            'number_of_rows' => 'required|integer|min:1|max:100',
-            'isSwahili' => 'required|boolean',
+            'title'                 => 'required|string|max:255',
+            'heading'               => 'required|string',
+            'meeting_date'          => 'required|date',
+            'number_of_rows'        => 'required|integer|min:1|max:100',
+            'isSwahili'             => 'required|boolean',
+            'include_phone_number'  => 'boolean',
         ];
     }
 
     protected $messages = [
         'title.required' => 'Title is required',
         'heading.required' => 'Heading is required',
+        'meeting_date.required' => 'Date of the meeting is required',
+        'meeting_date.date' => 'Date of the meeting must be a valid date',
         'number_of_rows.required' => 'Number of rows is required',
         'number_of_rows.min' => 'Number of rows must be at least 1',
         'number_of_rows.max' => 'Number of rows cannot exceed 100',
@@ -84,15 +89,17 @@ class AttendanceCreateEdit extends Component
         $this->title = $attendance->title;
         $this->heading = $attendance->heading;
         $this->number_of_rows = $attendance->number_of_rows;
+        $this->meeting_date = $attendance->meeting_date
+            ? \Carbon\Carbon::parse($attendance->meeting_date)->format('Y-m-d')
+            : null;
 
-        // Database value is boolean.
+        // Database values are boolean.
         $this->isSwahili = (bool) $attendance->is_swahili;
+        $this->include_phone_number = (bool) $attendance->include_phone_number;
     }
 
     public function submitForm(#[CurrentUser] User $user)
     {
-        // dd($this->isSwahili);
-
         $this->validate();
 
         try {
@@ -100,13 +107,14 @@ class AttendanceCreateEdit extends Component
                 'user_id' => auth()->id(),
                 'title' => $this->title,
                 'heading' => $this->heading,
+                'meeting_date' => $this->meeting_date,
                 'number_of_rows' => $this->number_of_rows,
-                'unit_id'=> $user->employee?->unit?->id ?? null,
-                'division_id'=> $user->employee?->division?->id ?? null,
-                'created_by'=> $user->id,
+                'unit_id' => $user->employee?->unit?->id ?? null,
+                'division_id' => $user->employee?->division?->id ?? null,
+                'created_by' => $user->id,
                 'is_swahili' => (bool) $this->isSwahili,
+                'include_phone_number' => (bool) $this->include_phone_number,
             ];
-            // dd($data);
 
             if ($this->isEditMode) {
                 $attendance = Attendance::where('user_id', auth()->id())

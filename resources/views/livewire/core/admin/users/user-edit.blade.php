@@ -49,51 +49,37 @@
 
                             {{-- Is Officer? --}}
                             <div class="col-md-6">
-                                <label class="form-label"> Is Officer? </label>
-                                <div class="radio-card d-flex gap-3 p-2 border rounded bg-light">
-                                    <label class="radio-option mb-0 cursor-pointer">
-                                        <div class="form-check mb-0">
-                                            <input class="form-check-input" type="radio" wire:model="is_officer"
-                                                value="1" id="officer_yes">
-                                            <label class="form-check-label ms-1" for="officer_yes"> Yes </label>
-                                        </div>
-                                    </label>
-                                    <label class="radio-option mb-0 cursor-pointer">
-                                        <div class="form-check mb-0">
-                                            <input class="form-check-input" type="radio" wire:model="is_officer"
-                                                value="0" id="officer_no">
-                                            <label class="form-check-label ms-1" for="officer_no"> No </label>
-                                        </div>
+                                <label class="form-label d-block">Is Officer?</label>
+                                <div class="form-check form-switch form-switch-md p-0 d-flex align-items-center">
+                                    <!-- Hidden input holding the actual binary state for Livewire -->
+                                    <input type="checkbox" class="form-check-input ms-0 me-2" id="is_officer_switch"
+                                        wire:model="is_officer" role="switch" value="1"
+                                        style="width: 2.5rem; height: 1.25rem; cursor: pointer;">
+                                    <label class="form-check-label cursor-pointer select-none" for="is_officer_switch">
+                                        {{ $is_officer ? 'Yes, User is an Officer' : 'No' }}
                                     </label>
                                 </div>
-
+                                @error('is_officer') <small class="text-danger d-block mt-1">{{ $message }}</small>
+                                @enderror
                             </div>
-                            @error('is_officer') <small class="text-danger d-block mt-1">{{ $message }}</small>
-                            @enderror
 
-                            {{-- Is Active? --}}
+                            {{-- Status (Is Active?) --}}
                             <div class="col-md-6">
-                                <label class="form-label">Status (Is Active?)</label>
-
-                                <div class="radio-card d-flex gap-3 p-2 border rounded bg-light">
-
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="is_active"
-                                            wire:model.live="is_active" value="1" id="active_yes">
-                                        <label class="form-check-label" for="active_yes">
-                                            Active
-                                        </label>
-                                    </div>
-
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="is_active"
-                                            wire:model.live="is_active" value="0" id="active_no">
-                                        <label class="form-check-label" for="active_no">
-                                            Inactive
-                                        </label>
-                                    </div>
-
+                                <label class="form-label d-block">Status</label>
+                                <div class="form-check form-switch form-switch-md p-0 d-flex align-items-center">
+                                    <!-- Live tracking switch toggle -->
+                                    <input type="checkbox" class="form-check-input ms-0 me-2" id="is_active_switch"
+                                        wire:model.live="is_active" role="switch" value="1"
+                                        style="width: 2.5rem; height: 1.25rem; cursor: pointer;">
+                                    <label class="form-check-label cursor-pointer select-none" for="is_active_switch">
+                                        <span
+                                            class="badge {{ $is_active ? 'bg-light-success text-success border border-success' : 'bg-light-danger text-danger border border-danger' }} px-2 py-1">
+                                            {{ $is_active ? 'Active' : 'Inactive' }}
+                                        </span>
+                                    </label>
                                 </div>
+                                @error('is_active') <small class="text-danger d-block mt-1">{{ $message }}</small>
+                                @enderror
                             </div>
 
 
