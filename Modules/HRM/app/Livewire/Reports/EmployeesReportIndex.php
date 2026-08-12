@@ -20,7 +20,7 @@ class EmployeesReportIndex extends Component
     public string $filterDept     = '';
     public string $filterDivision = '';
     public string $filterUnit     = '';
-    public string $filterStatus   = ''; // '' = all (default), 'true' = active, 'false' = in-active
+    public bool $filterStatus   = true; // '' = all (default), 'true' = active, 'false' = in-active
     public string $search         = '';
 
     // ── Sorting ───────────────────────────────────────────────────────────────
@@ -131,6 +131,8 @@ class EmployeesReportIndex extends Component
     // ── Render ────────────────────────────────────────────────────────────────
     public function render()
     {
+        // dd($this->$filterStatus);
+
         $query = Employee::query()
             ->with(['user', 'division.department', 'unit'])
             // Status filter: '' = All Statuses (no filter), 'true' = active, 'false' = in-active
@@ -139,7 +141,7 @@ class EmployeesReportIndex extends Component
                 fn($q) =>
                 $q->whereHas(
                     'user',
-                    fn($u) => $u->where('is_active', $this->filterStatus === 'true' ? 'active' : 'in-active')
+                    fn($u) => $u->where('is_active', $this->filterStatus === true ? 'active' : 'in-active')
                 )
             )
             ->when(

@@ -213,7 +213,7 @@
                     @endif
                     @if ($filterStatus !== '')
                         <span class="badge bg-success-subtle text-success">
-                            {{ $filterStatus === 'true' ? 'Active' : 'Inactive' }}
+                            {{ $filterStatus === true ? 'Active' : 'Inactive' }}
                             <a href="javascript:void(0)"
                                 wire:click="$set('filterStatus', '')"
                                 class="ms-1 text-success text-decoration-none">×</a>

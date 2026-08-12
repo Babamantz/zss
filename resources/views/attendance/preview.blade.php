@@ -99,6 +99,8 @@
         {!! $heading !!}
     </div>
 
+    
+
     {{-- Attendance Table --}}
     <table>
 
