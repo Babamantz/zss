@@ -12,11 +12,11 @@ class EmployeeIdentification extends Model
 
     public function employeeIdentifications()
     {
-        return $this->belongsTo(Employee::class);
+        return $this->belongsTo(Employee::class,'employee_id');
     }
 
     public function identification()
     {
-        return $this->belongsTo(Identification::class);
+        return $this->belongsTo(Identification::class,'identification_id');
     }
 }

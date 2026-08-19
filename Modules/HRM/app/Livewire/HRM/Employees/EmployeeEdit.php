@@ -4,6 +4,7 @@ namespace Modules\HRM\Livewire\HRM\Employees;
 
 use App\Models\Certificate;
 use App\Models\Designation;
+use App\Models\DisabilityType;
 use App\Models\EducationLevel;
 use App\Models\Identification;
 use App\Models\User;
@@ -43,6 +44,12 @@ class EmployeeEdit extends Component
     public $middle_name;
     public $last_name;
     public $dob;
+
+    public $age;
+
+    public array $disable_types = [];
+
+
 
     // public $email;
     public $hired_date;
@@ -194,6 +201,12 @@ class EmployeeEdit extends Component
             ['type' => 'personal',    'phone_number' => $personal['phone_number']  ?? ''],
             ['type' => 'next_of_kin', 'phone_number' => $nextOfKin['phone_number'] ?? ''],
         ];
+        // Disability types (stored as JSON array of names on employees.disability_types)
+        $saved_disability_types = $emp->disability_types;
+        if (is_string($saved_disability_types)) {
+            $saved_disability_types = json_decode($saved_disability_types, true) ?? [];
+        }
+        $this->disable_types = is_array($saved_disability_types) ? $saved_disability_types : [];
 
         // Bank details
         $this->employee_bank_id         = $emp->bankAccount?->bank_id;
@@ -241,33 +254,7 @@ class EmployeeEdit extends Component
         // $this->loadEmail();
     }
 
-    #[On('user-selected')]
-    public function selectUser(): void
-    {
-        // Reassigning the employee to a different user record is intentionally
-        // not supported on edit — selectedUserId stays pinned to the employee's
-        // existing user via populateEmployeeData(). Kept as a listener no-op so
-        // the shared '#select-user' JS (used by both create & edit blades)
-        // doesn't error if it fires.
-    }
-
-    // public function loadEmail(): void
-    // {
-    //     $this->dispatch('eventEmail', [
-    //         'employee_id'         => $this->employee->user->id,
-    //         'education_level_id'  => $this->employee->education_level_id,
-    //         'employment_type_id'  => $this->employee->employment_type_id,
-    //         'designation_id'      => $this->employee->designation_id,
-    //         'unit_id'             => $this->employee->unit_id,
-    //         'divisionId'       => $this->employee->division_id,
-    //         'employee_bank_id'    => $this->employee->bankAccount?->bank_id,
-    //     ]);
-    // }
-
-    // =========================================================================
-    // VALIDATION
-    // =========================================================================
-
+  
     public function rules(): array
     {
         return [
@@ -446,10 +433,7 @@ class EmployeeEdit extends Component
         try {
             $this->validate();
         } catch (ValidationException $e) {
-            // FIX: this used to fail silently on 'selectedUserId' with no
-            // @error() tag anywhere near it. Now we always flash a summary
-            // and jump back to step 1 (where that field lives) so the user
-            // can actually see and fix it.
+         
             $this->currentStep = 1;
             session()->flash('error', 'Could not save changes — please fix: ' .
                 collect($e->validator->errors()->all())->implode(' '));
@@ -473,10 +457,7 @@ class EmployeeEdit extends Component
 
             return $this->redirectRoute('hrm.employees.index');
         } catch (Throwable $e) {
-            // FIX: was `catch (Exception $e)`, which misses Error/TypeError
-            // (e.g. a malformed repeater row throwing "access array offset
-            // on null"). Catching Throwable means those failures are now
-            // logged and reported instead of producing a blank/broken page.
+        
             DB::rollBack();
 
             Log::error('Employee Edit Submission Error', [
@@ -500,6 +481,7 @@ class EmployeeEdit extends Component
 
     protected function saveEmployee(): Employee
     {
+        // dd($this->disable_types);
         $data = [
             'dob'                 => $this->dob,
             'hired_date'          => $this->hired_date,
@@ -512,12 +494,12 @@ class EmployeeEdit extends Component
             'education_level_id'  => $this->education_level_id,
             'is_disable'          => $this->is_disable,
             'employment_type_id'  => $this->employment_type_id,
+            'disability_types'   => $this->disable_types,
             'designation_id'      => $this->designation_id,
             'unit_id'             => $this->unit,
             'division_id'       => $this->divisionId,
             'updated_by'          => auth()->id(),
-            // FIX: guard against non-array / malformed entries, same as
-            // EmployeeCreate, so a stray null row can't throw here.
+            
             'contacts' => json_encode(
                 array_values(array_filter(
                     $this->contacts,
@@ -578,7 +560,7 @@ class EmployeeEdit extends Component
         $employee->education_levels()->delete();
 
         foreach ($this->education_levels as $index => $edu) {
-            // FIX: skip malformed/empty rows instead of throwing.
+
             if (!is_array($edu) || blank($edu['course_name'] ?? null)) {
                 continue;
             }
@@ -588,6 +570,7 @@ class EmployeeEdit extends Component
                 'certificate_name'      => $edu['certificate_name'] ?? null,
                 'holder_certificate_no' => $edu['holder_certificate_no'] ?? null,
             ];
+
 
             if (
                 !empty($this->certificate_files[$index])
@@ -599,6 +582,8 @@ class EmployeeEdit extends Component
             }
 
             $employee->education_levels()->create($row);
+
+
         }
     }
 
@@ -636,6 +621,7 @@ class EmployeeEdit extends Component
         $employee->certificates()->delete();
 
         foreach ($this->certificate_items as $index => $item) {
+
             // FIX: same defensive guard as education levels.
             if (!is_array($item) || blank($item['certificate_id'] ?? null)) {
                 continue;
@@ -738,6 +724,18 @@ class EmployeeEdit extends Component
             ->map(fn($model) => [
                 'value' => $model->id,
                 'label' => $model->$labelColumn,
+            ])
+            ->toArray();
+    }
+
+    #[Computed]
+    public function disabilityTypes(): array
+    {
+        return DisabilityType::select(['id', 'name'])
+            ->get()
+            ->map(fn($model) => [
+                'value' => $model->name,
+                'label' => $model->name,
             ])
             ->toArray();
     }

@@ -11,6 +11,7 @@ use Modules\HRM\Database\Seeders\BankSeeder;
 use Modules\HRM\Database\Seeders\CertificateSeeder;
 use Modules\HRM\Database\Seeders\DepartmentSeeder;
 use Modules\HRM\Database\Seeders\DesignationSeeder;
+use Modules\HRM\Database\Seeders\DisabilityTypeSeeder;
 use Modules\HRM\Database\Seeders\DivisionSeeder;
 use Modules\HRM\Database\Seeders\EducationLevelSeeder;
 use Modules\HRM\Database\Seeders\EmployeeBankAccountSeeder;
@@ -84,6 +85,7 @@ class DatabaseSeeder extends Seeder
             EmployeeCertificateSeeder::class,
             EmployeeIdentificationSeeder::class,
             ComponentSeeder::class,
+            DisabilityTypeSeeder::class,
             // SalaryComponentSeeder::class,
             // EmployeeComponentSeeder::class,
             // EmployeeFinanceProfileSeeder::class,

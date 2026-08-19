@@ -101,24 +101,34 @@
                                 </div>
                             </div>
 
-                            {{-- DOB + Hired Date --}}
-                             {{-- DOB + Hired Date --}}
+                            {{-- DOB + Age --}}
                             <div class="row mb-3">
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Date of Birth: <span class="text-danger">*</span></label>
                                         <input class="form-control" type="date" wire:model.defer="dob">
                                         @error('dob') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Age: <span class="text-danger">*</span></label>
+                                        <input class="form-control" type="text" wire:model.defer="age">
+                                        @error('hired_date') <small class="text-danger">{{ $message }}</small> @enderror
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Hired Date + Work Confirmation Date --}}
+                            <div class="row mb-3">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Hired Date: <span class="text-danger">*</span></label>
                                         <input class="form-control" type="date" wire:model.defer="hired_date">
                                         @error('hired_date') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Work Confirmation Date: <span class="text-danger">*</span></label>
                                         <input class="form-control" type="date" wire:model.defer="work_confirmation_date">
@@ -126,22 +136,6 @@
                                     </div>
                                 </div>
                             </div>
-                            {{-- <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Date of Birth: <span class="text-danger">*</span></label>
-                                        <input class="form-control" type="date" wire:model.defer="dob" {{ $disabledAttr }}>
-                                        @error('dob') <small class="text-danger">{{ $message }}</small> @enderror
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Hired Date: <span class="text-danger">*</span></label>
-                                        <input class="form-control" type="date" wire:model.defer="hired_date" {{ $disabledAttr }}>
-                                        @error('hired_date') <small class="text-danger">{{ $message }}</small> @enderror
-                                    </div>
-                                </div>
-                            </div> --}}
 
                             {{-- Retiring Date + Education Level --}}
                             <div class="row mb-3">
@@ -229,7 +223,7 @@
                                 </div>
                             </div>
 
-                            {{-- Disability + Employment Type --}}
+                            {{-- Has Disability? + Disability Type --}}
                             <div class="row mb-3">
                                 <div class="col-md-6">
                                     <div class="form-group">
@@ -249,7 +243,25 @@
                                         @error('is_disable') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
                                 </div>
-                                <div  class="col-md-6">
+                                <div class="col-md-6">
+                                    <div wire:ignore class="form-group">
+                                        <label>Disability Type: <span class="text-danger"></span></label>
+                                        <livewire:async-select
+                                                name="disable_types"
+                                                wire:model="disable_types"
+                                                :options="$this->disabilityTypes"
+                                                :selected="$disable_types"
+                                                placeholder="Select Disability Type..."
+                                                multiple="true"
+                                            />
+                                        @error('disable_types') <small class="text-danger">{{ $message }}</small> @enderror
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Employment Type --}}
+                            <div class="row mb-3">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Employment Type: <span class="text-danger">*</span></label>
                                         <livewire:async-select

@@ -99,21 +99,30 @@
 
                             {{-- DOB + Hired Date --}}
                             <div class="row mb-3">
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Date of Birth: <span class="text-danger">*</span></label>
                                         <input class="form-control" type="date" wire:model.defer="dob">
                                         @error('dob') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Age: <span class="text-danger">*</span></label>
+                                        <input class="form-control" type="text" wire:model.defer="age">
+                                        {{-- @error('dob') <small class="text-danger">{{ $message }}</small> @enderror --}}
+                                    </div>
+                                </div>
+                            </div>
+                                <div class="row mb-3">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Hired Date: <span class="text-danger">*</span></label>
                                         <input class="form-control" type="date" wire:model.defer="hired_date">
                                         @error('hired_date') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Work Confirmation Date: <span class="text-danger">*</span></label>
                                         <input class="form-control" type="date" wire:model.defer="work_confirmation_date">
@@ -144,37 +153,14 @@
                                     </div>
                                 </div>
                             </div>
-                            {{-- Retiring Date + Education Level --}}
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Retiring Date:</label>
-                                        <input class="form-control" type="date" wire:model.defer="retiring_date">
-                                        @error('retiring_date') <small class="text-danger">{{ $message }}</small> @enderror
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div wire:ignore class="form-group">
-                                        <label>Education Level: <span class="text-danger">*</span></label>
-                                        <livewire:async-select
-                                            name="education_level_id"
-                                            wire:model="education_level_id"
-                                            :options="$this->educationLevels"
-                                            placeholder="Select education level..."
-                                        />
-                                        @error('education_level_id') <small class="text-danger">{{ $message }}</small> @enderror
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- Contacts --}}
+                              {{-- Contacts --}}
                             <div class="row mb-3">
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Personal Phone: <span class="text-danger">*</span></label>
                                         <input type="tel" class="form-control"
                                             wire:model.defer="contacts.0.phone_number"
-                                            placeholder="+255 7XX XXX XXX">
+                                            placeholder="+255 7XX XXX XXX" 
                                         @error('contacts.0.phone_number')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
@@ -185,13 +171,14 @@
                                         <label>Next of Kin Phone:</label>
                                         <input type="tel" class="form-control"
                                             wire:model.defer="contacts.1.phone_number"
-                                            placeholder="+255 7XX XXX XXX">
+                                            placeholder="+255 7XX XXX XXX"
                                         @error('contacts.1.phone_number')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
                                     </div>
                                 </div>
                             </div>
+                         
 
                             {{-- Marital Status + Gender --}}
                             <div class="row mb-3">
@@ -249,19 +236,37 @@
                                         @error('is_disable') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
                                 </div>
+                                <div  class="col-md-6">
+                                    <div wire:ignore class="form-group">
+                                        <label>Disability Type: <span class="text-danger"></span></label>
+                                        <livewire:async-select
+                                            name="disable_types"
+                                            wire:model="disable_types"
+                                            :options="$this->disabilityTypes"
+                                            placeholder="Select Disability Type..."
+                                              multiple="true"
+                                        />
+                                    </div>
+                                    @error('disable_types') <small class="text-danger">{{ $message }}</small> @enderror
+                                </div>
+                                
+                            </div>
+                             <div class="row mb-3">
                                 <div wire:ignore class="col-md-6">
                                     <div class="form-group">
                                         <label>Employment Type: <span class="text-danger">*</span></label>
                                         <livewire:async-select
-                                            name="emplymentType"
+                                            name="employment_type_id"
                                             wire:model="employment_type_id"
                                             :options="$this->employmentTypes"
                                             placeholder="Select employment type..."
                                         />
-                                        @error('employment_type_id') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
+                                @error('employment_type_id') <small class="text-danger">{{ $message }}</small> @enderror
+
                                 </div>
-                            </div>
+                                
+                             </div>
 
                             <div class="mt-4">
                                 <button type="button" class="btn btn-primary" wire:click="nextStep">Next</button>

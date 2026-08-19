@@ -44,7 +44,8 @@ class Employee extends Model implements ApprovableModel
         'contacts' => 'array',
         'is_disable' => 'boolean',
         'is_hr_registered' => 'boolean',
-        'is_officer' => 'boolean'
+        'is_officer' => 'boolean',
+        'disability_types' => 'array'
 
     ];
 
@@ -58,6 +59,7 @@ class Employee extends Model implements ApprovableModel
     public function onApprovalCompleted(ProcessApproval $approval): bool
     {
         $this->is_hr_registered = true;
+        $this->is_active = true;
         $this->save();
         return true;
     }
@@ -147,7 +149,7 @@ class Employee extends Model implements ApprovableModel
     }
     public function identifications()
     {
-        return $this->hasMany(EmployeeIdentification::class);
+        return $this->hasMany(EmployeeIdentification::class,'employee_id');
     }
 
     public function division()
@@ -161,7 +163,7 @@ class Employee extends Model implements ApprovableModel
     }
     public function education_levels()
     {
-        return $this->hasMany(EmployeeEducationLevel::class);
+        return $this->hasMany(EmployeeEducationLevel::class,'employee_id');
     }
 
     public function location()

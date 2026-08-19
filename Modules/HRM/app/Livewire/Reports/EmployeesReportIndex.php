@@ -110,10 +110,6 @@ class EmployeesReportIndex extends Component
             'department_id' => $this->filterDept,
             'division_id'   => $this->filterDivision,
             'unit_id'       => $this->filterUnit,
-            // FIX: the is_active column stores 1/0 (boolean-ish), not the
-            // strings 'active'/'in-active' — a string compared against an
-            // int column gets cast to 0 by MySQL, so 'active' never matched
-            // a real row and this filter silently did nothing.
             'is_active'     => $this->filterStatus === '' ? '' : ($this->filterStatus === true ? true : false),
             'search'        => $this->search,
         ];

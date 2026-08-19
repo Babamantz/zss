@@ -23,6 +23,6 @@ class EmployeeEducationLevel extends Model
   
     public function employee_education_levels()
     {
-        return $this->belongsTo(Employee::class);
+        return $this->belongsTo(Employee::class,'employee_id');
     }
 }

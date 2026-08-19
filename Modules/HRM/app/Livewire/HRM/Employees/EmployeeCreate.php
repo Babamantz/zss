@@ -20,6 +20,7 @@ use Modules\HRM\Enums\Gender;
 use Modules\HRM\Enums\MaritalStatus;
 use Modules\HRM\Models\Bank;
 use Modules\HRM\Models\Department;
+use Modules\HRM\Models\DisabilityType;
 use Modules\HRM\Models\Division;
 use Modules\HRM\Models\Employee;
 use Modules\HRM\Models\EmploymentType;
@@ -40,6 +41,7 @@ class EmployeeCreate extends Component
 
     public $work_confirmation_date;
 
+
     public int $currentStep = 1;
 
     // ── Step 1: Basic Information ─────────────────────────────────────────────
@@ -56,7 +58,14 @@ class EmployeeCreate extends Component
     public bool $is_disable = false;
     public $employment_type_id;
 
+    public $age;
+
+
     // Contacts JSON (personal + next of kin) — always two fixed slots, keyed by type
+    public array $disable_types = [];
+
+
+
     public array $contacts = [
         ['type' => 'personal',    'phone_number' => ''],
         ['type' => 'next_of_kin', 'phone_number' => ''],
@@ -328,6 +337,8 @@ class EmployeeCreate extends Component
             'education_level_id'      => 'required|integer',
             'marital_status'          => 'required|string|in:' . implode(',', MaritalStatus::ALL),
             'is_disable'              => 'required|boolean',
+            // 'disable_types'              => 'nullable|array',
+            // 'disable_types.*'              => 'string',
             'employment_type_id'         => 'required|integer',
             'gender'                  => 'required|string|in:' . implode(',', Gender::ALL),
             'email'                   => 'required|exists:users,id',
@@ -397,6 +408,7 @@ class EmployeeCreate extends Component
                 'retiring_date',
                 'education_level_id',
                 'marital_status',
+                'disable_types',
                 'gender',
                 'is_disable',
                 'employment_type_id',
@@ -445,9 +457,39 @@ class EmployeeCreate extends Component
             return;
         }
 
-        $this->validate($this->getStepRules($this->currentStep));
-        $this->currentStep++;
+        try {
+            $this->validate($this->getStepRules($this->currentStep));
+
+            $this->currentStep++;
+        } catch (\Illuminate\Validation\ValidationException $e) {
+
+            logger()->error('Employee Step Validation Failed', [
+                'step' => $this->currentStep,
+                'errors' => $e->errors(),
+                'state' => [
+                    'email' => $this->email,
+                    'education_level_id' => $this->education_level_id,
+                    'employment_type_id' => $this->employment_type_id,
+                    'marital_status' => $this->marital_status,
+                    'gender' => $this->gender,
+                    'contacts' => $this->contacts,
+                ],
+            ]);
+
+            throw $e;
+        }
     }
+
+    // public function nextStep(): void
+    // {
+    //     if ($this->isViewMode) {
+    //         $this->currentStep++;
+    //         return;
+    //     }
+
+    //     $this->validate($this->getStepRules($this->currentStep));
+    //     $this->currentStep++;
+    // }
 
     public function previousStep(): void
     {
@@ -512,7 +554,7 @@ class EmployeeCreate extends Component
         $data = [
             'dob'             => $this->dob,
             'hired_date'      => $this->hired_date,
-            'confirmed_at_work_date' =>$this->work_confirmation_date,
+            'confirmed_at_work_date' => $this->work_confirmation_date,
             'retiring_date'   => $this->retiring_date,
             'marital_status'  => $this->marital_status,
             'gender'          => $this->gender,
@@ -525,6 +567,7 @@ class EmployeeCreate extends Component
             'designation_id'  => $this->designation_id,
             'unit_id'         => $this->unit,
             'division_id'   => $this->divisionId,
+            'disability_types' => $this->disable_types,
             'user_id'         => $this->userId,
             // FIX: guard against non-array / malformed entries so a stray
             // null (or anything not shaped like ['phone_number' => ...])
@@ -770,6 +813,7 @@ class EmployeeCreate extends Component
             'marital_status',
             'gender',
             'is_disable',
+            'disable_types',
             'employment_type_id',
             'opf_number',
             'designation_id',
@@ -837,6 +881,19 @@ class EmployeeCreate extends Component
     public function divisions(): array
     {
         return $this->formatLookup(Division::class);
+    }
+
+    
+    #[Computed]
+    public function disabilityTypes(): array
+    {
+        return DisabilityType::select(['id','name'])
+            ->get()
+            ->map(fn($model) => [
+                'value' => $model->name,
+                'label' => $model->name,
+            ])
+            ->toArray();
     }
 
     #[Computed]

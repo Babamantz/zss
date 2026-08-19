@@ -25,6 +25,7 @@ return new class extends Migration
             $table->string('gender', 10)->default('male'); //['male', 'female'])->default('male');
             $table->string('marital_status', 10)->default('single'); // ['married', 'single', 'divorced'])->default('single');
             $table->json('contacts')->nullable();
+            $table->json('disability_types')->nullable();
             $table->date('dob')->nullable(); // Added nullable()
             $table->date('age')->nullable(); // Added nullable()
             $table->date('hired_date')->nullable(); //add 
