@@ -1,10 +1,11 @@
 <?php
 
 use App\Http\Controllers\Attendance\AttendanceController;
+use App\Livewire\Approvals\ChainManager;
+use App\Livewire\Approvals\StepManager;
+use App\Livewire\Approvals\TransactionIndex;
+use App\Livewire\Approvals\TransactionShow;
 use App\Livewire\Auth\Login;
-use App\Livewire\Chain\ApprovalQueue;
-use App\Livewire\Chain\ChainTransactionCreate;
-use App\Livewire\Chain\TransactionTimeline;
 use App\Livewire\Core\Admin\Reports\UserReportIndex;
 use App\Livewire\Core\Admin\Role\RoleCreate;
 use App\Livewire\Core\Admin\Role\RoleIndex;
@@ -43,20 +44,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/attendance/preview/{id}', [AttendanceController::class, 'preview'])
         ->name('attendance.preview');
 
-    Route::prefix('chain')->name('chain.')->group(function () {
-        Route::get(
-            'transaction/create',
-            ChainTransactionCreate::class
-        )->name('transaction.create');
-        Route::get(
-            'queue',
-            ApprovalQueue::class
-        )->name('queue');
+    Route::prefix('approvals')->name('approvals.')->group(function () {
 
-        Route::get(
-            'transaction/{transactionId}/timeline',
-            TransactionTimeline::class
-        )->name('transaction.timeline');
+        Route::get('chains', ChainManager::class)->name('chains.index');
+        Route::get('chains/{chain}/steps', StepManager::class)->name('chains.steps');
+        Route::get('transactions', TransactionIndex::class)->name('transactions.index');
+        Route::get('transactions/{transaction}', TransactionShow::class)->name('transactions.show');
     });
     Route::prefix('documents')->name('documents.')->group(function () {
         Route::get('/index', DocumentIndex::class)->name('index');
@@ -107,11 +100,13 @@ Route::middleware(['auth'])->group(function () {
         )
             ->name('entry.payslip-pdf');
         Route::get(
-            'reports/deductions',DeductionReportIndex::class
+            'reports/deductions',
+            DeductionReportIndex::class
         )
             ->name('reports.deductions');
         Route::get(
-            'reports/deductions/other_reports',OtherReportIndex::class
+            'reports/deductions/other_reports',
+            OtherReportIndex::class
         )
             ->name('reports.others');
     });

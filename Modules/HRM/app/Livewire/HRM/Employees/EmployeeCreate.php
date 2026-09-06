@@ -2,6 +2,9 @@
 
 namespace Modules\HRM\Livewire\HRM\Employees;
 
+use App\Enums\ApprovalStatus;
+use App\Models\ApprovalChain;
+use App\Models\ApprovalTransaction;
 use App\Models\Certificate;
 use App\Models\Designation;
 use App\Models\EducationLevel;
@@ -589,6 +592,24 @@ class EmployeeCreate extends Component
         } else {
             $data['created_by'] = auth()->id();
             $employee = Employee::create($data);
+
+            $chain = ApprovalChain::where('name', 'Employee_Verification')
+                ->where('is_active', true)
+                ->firstOrFail();
+
+            $firstStep = $chain->steps()->orderBy('order')->firstOrFail();
+
+            Log::info($firstStep->id);
+            Log::info($chain->id);
+
+            ApprovalTransaction::create([
+                'approval_chain_id' => $chain->id,
+                'approvable_type'   => Employee::class,
+                'approvable_id'     => $employee->id,
+                'current_step_id'   => $firstStep->id,
+                'status'            => ApprovalStatus::Pending,
+                'initiated_by'      => auth()->user()->id,
+            ]);
         }
 
         return $employee->fresh();
@@ -883,11 +904,11 @@ class EmployeeCreate extends Component
         return $this->formatLookup(Division::class);
     }
 
-    
+
     #[Computed]
     public function disabilityTypes(): array
     {
-        return DisabilityType::select(['id','name'])
+        return DisabilityType::select(['id', 'name'])
             ->get()
             ->map(fn($model) => [
                 'value' => $model->name,

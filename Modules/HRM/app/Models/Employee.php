@@ -2,6 +2,8 @@
 
 namespace Modules\HRM\Models;
 
+use App\Contracts\HasApprovalStatus;
+use App\Models\ApprovalTransaction;
 use App\Models\Designation;
 use App\Models\EmployeeCertificate;
 use App\Models\EmployeeIdentification;
@@ -11,7 +13,9 @@ use App\Traits\FilterByTenant;
 use App\Traits\FilterEmployeeByTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\HRM\Enums\EmployeeHRVerification;
 use Modules\HRM\Enums\EmploymentStatus;
 use Modules\HRM\Enums\EmploymentType;
 use Modules\HRM\Enums\Gender;
@@ -22,15 +26,13 @@ use Modules\HRM\Models\EmploymentType as ModelsEmploymentType;
 use Modules\PAYROLL\Models\EmployeeComponent;
 use Modules\PAYROLL\Models\EmployeeFinanceProfile;
 use Modules\PAYROLL\Models\PayrollEntry;
-use RingleSoft\LaravelProcessApproval\Contracts\ApprovableModel;
 use RingleSoft\LaravelProcessApproval\Models\ProcessApproval;
-use RingleSoft\LaravelProcessApproval\Traits\Approvable;
 
 // use Modules\HRM\Database\Factories\EmployeeFactory;
 
-class Employee extends Model implements ApprovableModel
+class Employee extends Model implements HasApprovalStatus
 {
-    use HasFactory, SoftDeletes, FilterEmployeeByTenant, Approvable;
+    use HasFactory, SoftDeletes, FilterEmployeeByTenant;
 
 
     protected $guarded = false;
@@ -50,19 +52,7 @@ class Employee extends Model implements ApprovableModel
     ];
 
 
-    // No separate submit step — hr-officer's create IS the submission
-    public function enableAutoSubmit(): bool
-    {
-        return true;
-    }
 
-    public function onApprovalCompleted(ProcessApproval $approval): bool
-    {
-        $this->is_hr_registered = true;
-        $this->is_active = true;
-        $this->save();
-        return true;
-    }
 
 
     public function employmentType()
@@ -129,10 +119,10 @@ class Employee extends Model implements ApprovableModel
     }
 
     public function getFinanceBankAccountNumberAttribute(): ?string
-
     {
         return $this->financeProfile?->account_no;
     }
+
     public function payrollEntries()
     {
         return $this->hasMany(PayrollEntry::class);
@@ -149,7 +139,7 @@ class Employee extends Model implements ApprovableModel
     }
     public function identifications()
     {
-        return $this->hasMany(EmployeeIdentification::class,'employee_id');
+        return $this->hasMany(EmployeeIdentification::class, 'employee_id');
     }
 
     public function division()
@@ -163,7 +153,7 @@ class Employee extends Model implements ApprovableModel
     }
     public function education_levels()
     {
-        return $this->hasMany(EmployeeEducationLevel::class,'employee_id');
+        return $this->hasMany(EmployeeEducationLevel::class, 'employee_id');
     }
 
     public function location()
@@ -183,6 +173,28 @@ class Employee extends Model implements ApprovableModel
     public function bankAccount()
     {
         return $this->hasOne(EmployeeBankAccount::class, 'employee_id');
+    }
+
+    //Chain Approvals Methods
+
+    public function isHrRegistered(): bool
+    {
+        return $this->is_hr_registered === EmployeeHRVerification::Approved;
+    }
+    public function approvalTransaction(): MorphOne
+    {
+        return $this->morphOne(ApprovalTransaction::class, 'approvable')->latestOfMany();
+    }
+
+
+    public function onApprovalCompleted(): void
+    {
+        $this->update(['is_hr_registered' => true]);
+    }
+
+    public function onApprovalRejected(): void
+    {
+        $this->update(['is_hr_registered' => false]);
     }
 
     // protected static function newFactory(): EmployeeFactory

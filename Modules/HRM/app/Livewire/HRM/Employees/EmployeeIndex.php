@@ -2,16 +2,18 @@
 
 namespace Modules\HRM\Livewire\HRM\Employees;
 
-use Livewire\Component;
-use Livewire\WithPagination;
-use Livewire\Attributes\Computed;
-use Modules\HRM\Models\Employee;
-use Modules\HRM\Models\Department;
-use Modules\HRM\Models\Unit;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
+use App\Enums\ApprovalDecision;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\Approval\ApprovalEngine;
+use Livewire\Attributes\Computed;
+use Livewire\Component;
+use Livewire\WithPagination;
+use Modules\HRM\Models\Department;
+use Modules\HRM\Models\Employee;
+use Modules\HRM\Models\Unit;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class EmployeeIndex extends Component
 {
@@ -27,6 +29,10 @@ class EmployeeIndex extends Component
     // ── Sorting ───────────────────────────────────────────────────────────────
     public string $sortField = 'created_at';
     public string $sortDir   = 'desc';
+
+    public ?int $actioningEmployeeId = null;
+    public string $actionRemarks = '';
+    public string $actionType = ''; // 'approve' | 'reject'
 
     // ── Per page ──────────────────────────────────────────────────────────────
     public int $perPage = 15;
@@ -93,25 +99,7 @@ class EmployeeIndex extends Component
         session()->flash('success', 'Employee removed.');
     }
 
-    // EmployeeIndex.php
-    public function toggleApproval(int $employeeId): void
-    {
-        if (!auth()->user()->hasRole('director-hr')) {
-            $this->dispatch('toastMagic', type: 'error', message: 'Not authorized to approve.');
-            return;
-        }
 
-        $employee = Employee::findOrFail($employeeId);
-
-        if (!$employee->canBeApprovedBy(auth()->user())) {
-            $this->dispatch('toastMagic', type: 'error', message: 'This employee cannot be approved at this step.');
-            return;
-        }
-
-        $employee->approve();
-
-        $this->dispatch('toastMagic', type: 'success', message: 'Employee approved.');
-    }
 
     // ── Computed: filter options ───────────────────────────────────────────────
     #[Computed]
@@ -147,6 +135,40 @@ class EmployeeIndex extends Component
         return Tenant::select(['id', 'name'])->orderBy('name')->get();
     }
 
+    public function openActionModal(int $employeeId, string $type)
+    {
+        $this->actioningEmployeeId = $employeeId;
+        $this->actionType = $type;
+        $this->actionRemarks = '';
+        $this->resetErrorBag();
+    }
+
+    public function closeActionModal()
+    {
+        $this->reset(['actioningEmployeeId', 'actionRemarks', 'actionType']);
+    }
+
+    public function confirmAction(ApprovalEngine $engine)
+    {
+        $this->validate([
+            'actionRemarks' => 'required|string|min:3',
+        ], [], ['actionRemarks' => 'remarks']);
+
+        $employee = Employee::with('approvalTransaction.currentStep')->findOrFail($this->actioningEmployeeId);
+        $transaction = $employee->approvalTransaction;
+
+        abort_unless($transaction && $transaction->canBeActionedBy(auth()->user()), 403);
+
+        $decision = $this->actionType === 'approve'
+            ? ApprovalDecision::Approved
+            : ApprovalDecision::Rejected;
+
+        $engine->decide($transaction, auth()->user(), $decision, $this->actionRemarks);
+
+        $this->closeActionModal();
+        session()->flash('success', $decision === ApprovalDecision::Approved ? 'Employee approved.' : 'Employee rejected.');
+    }
+
     // ── Render ────────────────────────────────────────────────────────────────
     public function render()
     {
@@ -158,6 +180,7 @@ class EmployeeIndex extends Component
                 'user.tenant',
                 'division.department',
                 'unit',
+                'approvalTransaction.currentStep'
             ])
             // ->where('is_hr_registered', true)
 
@@ -227,7 +250,7 @@ class EmployeeIndex extends Component
             ->paginate($this->perPage);
 
         $counts = [
-            'total'    => Employee::where('is_hr_registered', true)->count(),
+            'total'    => Employee::whereHas('user', fn($u) => $u->where('is_active', true)->where('is_active', true))->orWhere('is_hr_registered', true)->count(),
             'active'   => Employee::where('is_hr_registered', true)
                 ->whereHas('user', fn($u) => $u->where('is_active', true))
                 ->count(),

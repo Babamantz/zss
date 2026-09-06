@@ -19,9 +19,9 @@ class EmployeeDashboard extends Component
     public function render()
     {
         // ── Core counts ───────────────────────────────────────────────────────
-        $totalActive   = Employee::whereHas('user', fn($q) => $q->where('is_active', true))->count();
-        $totalInactive = Employee::whereHas('user', fn($q) => $q->where('is_active', false))->count();
-        $totalAll      = Employee::count();
+        $totalActive   = Employee::whereHas('user', fn($q) => $q->where('is_active', true))->orWhere('is_hr_registered',true)->count();
+        $totalInactive = Employee::whereHas('user', fn($q) => $q->where('is_active', false))->orWhere('is_hr_registered',false)->count();
+        $totalAll      = Employee::where('is_hr_registered',true)->count();
 
         // ── Gender breakdown ──────────────────────────────────────────────────
         $genderRatio = Employee::whereHas('user', fn($q) => $q->where('is_active', true))

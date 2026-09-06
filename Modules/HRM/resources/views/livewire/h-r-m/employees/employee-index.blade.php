@@ -278,9 +278,9 @@
                                     </span>
                                 </button>
                             </th>
+                          
                             <th class="th">
-                                Registered by Hr
-
+                                Approval Status
                             </th>
 
                             <th class="text-end">Actions</th>
@@ -394,23 +394,29 @@
                                                             </span>
                                                         @endif
                                                     </td>
-
-                                                    <td class="">
-                                                        @if(auth()->user()->hasRole('director-hr'))
-                                                            <div class="form-check form-switch">
-                                                                <input class="form-check-input" type="checkbox"
-                                                                    wire:click="toggleApproval({{ $employee->id }})"
-                                                                    @checked($employee->is_hr_registered) @disabled($employee->is_hr_registered)>
-                                                            </div>
-                                                        @else
-                                                            <span class="badge {{ $employee->is_hr_registered ? 'bg-success' : 'bg-warning' }}">
-                                                                {{ $employee->is_hr_registered ? 'Approved' : 'Pending' }}
-                                                            </span>
-                                                        @endif
-                                                    </td>
+<td>
+    @if ($employee->approvalTransaction)
+        @if ($employee->is_hr_registered)
+            <span class="badge bg-success-subtle text-success">
+                <i class="fa fa-check-circle fa-xs me-1"></i> HR Registered
+            </span>
+        @elseif ($employee->approvalTransaction->status->value === 'rejected')
+            <span class="badge bg-danger-subtle text-danger">
+                <i class="fa fa-xmark-circle fa-xs me-1"></i> Rejected
+            </span>
+        @elseif ($employee->approvalTransaction->status->value === 'pending')
+            <span class="badge bg-warning-subtle text-warning">
+                <i class="fa fa-clock fa-xs me-1"></i>
+                {{ $employee->approvalTransaction->currentStep?->name ?? 'Pending' }}
+            </span>
+        @endif
+    @else
+        <span class="text-muted small">Not submitted</span>
+    @endif
+</td>
 
                                                     {{-- Actions --}}
-                                                    <td class="text-end">
+                                                    {{-- <td class="text-end">
                                                         <div class="d-flex gap-1 justify-content-end">
                                                             <a class="btn btn-sm btn-outline-info" href="{{ route('hrm.employee.edit', [
                                 'employeeId' => $employee->id,
@@ -430,7 +436,32 @@
                                                                 <i class="fa fa-trash"></i>
                                                             </button>
                                                         </div>
-                                                    </td>
+                                                    </td> --}}
+                                                    <td class="text-end">
+    <div class="d-flex gap-1 justify-content-end">
+        {{-- @if ($employee->approvalTransaction?->canBeActionedBy(auth()->user())) --}}
+            <button class="btn btn-sm btn-outline-success"
+                wire:click="openActionModal({{ $employee->id }}, 'approve')" title="Approve">
+                <i class="fa fa-check"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-danger"
+                wire:click="openActionModal({{ $employee->id }}, 'reject')" title="Reject">
+                <i class="fa fa-xmark"></i>
+            </button>
+        {{-- @endif --}}
+
+        {{-- your existing view/edit/delete buttons, unchanged --}}
+        <a class="btn btn-sm btn-outline-info" href="{{ route('hrm.employee.edit', ['employeeId' => $employee->id, 'mode' => 'view']) }}" wire:navigate title="View">
+            <i class="fa fa-eye"></i>
+        </a>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ route('hrm.employee.edit', ['employeeId' => $employee->id, 'mode' => 'edit']) }}" wire:navigate title="Edit">
+            <i class="fa fa-pencil"></i>
+        </a>
+        <button class="btn btn-sm btn-outline-danger" wire:click="deleteEmployee({{ $employee->id }})" wire:confirm="Remove this employee?" title="Delete">
+            <i class="fa fa-trash"></i>
+        </button>
+    </div>
+</td>
 
                                                 </tr>
                         @empty
@@ -453,6 +484,49 @@
                 </table>
             </div>
         </div>
+
+        @if ($actioningEmployeeId)
+    <div class="modal fade show d-block" tabindex="-1" role="dialog" style="background: rgba(0,0,0,0.5);"
+         wire:click.self="closeActionModal">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <form wire:submit.prevent="confirmAction">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            {{ $actionType === 'approve' ? 'Approve Employee' : 'Reject Employee' }}
+                        </h5>
+                        <button type="button" class="close" wire:click="closeActionModal">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+
+                    <div class="modal-body">
+                        <p class="text-muted small mb-3">
+                            {{ $actionType === 'approve'
+                                ? 'This will move the employee to the next approval step, or mark them as HR registered if this is the final step.'
+                                : 'This will reject the employee record. HR will need to review and resubmit.' }}
+                        </p>
+
+                        <div class="form-group mb-0">
+                            <label>Remarks</label>
+                            <textarea wire:model="actionRemarks" rows="3"
+                                class="form-control @error('actionRemarks') is-invalid @enderror"
+                                placeholder="Add a reason or note..."></textarea>
+                            @error('actionRemarks') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" wire:click="closeActionModal" class="btn btn-secondary">Cancel</button>
+                        <button type="submit" class="btn {{ $actionType === 'approve' ? 'btn-success' : 'btn-danger' }}">
+                            {{ $actionType === 'approve' ? 'Confirm Approve' : 'Confirm Reject' }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+@endif
 
         {{-- ── Pagination ───────────────────────────────────────────────────── --}}
         @if ($employees->hasPages())

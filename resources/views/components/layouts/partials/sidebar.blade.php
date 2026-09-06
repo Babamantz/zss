@@ -71,7 +71,7 @@
                 src="{{ Storage::disk('public')->url($employee->photo_file) }}" alt="{{ $authUser?->first_name }}">
         @else
             <div class="img-90 rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width:90px;height:90px;background:#E8EAF6;
-                                           font-size:28px;font-weight:700;color:#1a237e;">
+                                                       font-size:28px;font-weight:700;color:#1a237e;">
                 {{ $initials }}
             </div>
         @endif
@@ -185,32 +185,28 @@
                                 </li>
                             </ul>
                         </li>
-                        {{-- <li class="dropdown">
-                            <a class="nav-link menu-title {{ prefixActive('/transaction/create') }}"
-                                href="javascript:void(0)"><i data-feather="file"></i><span>Transaction</span></a>
-                            <ul class="nav-submenu menu-content" style="display: {{ prefixBlock('/index') }};">
-                                <li><a href="{{ route('chain.transaction.create') }}"
-                                        class="{{ routeActive('chain.transaction.create') }}">Transaction</a>
+                        <li class="dropdown">
+                            <a class="nav-link menu-title {{ prefixActive('/approvals/chains') }}"
+                                href="javascript:void(0)"><i data-feather="file"></i><span>Chains</span></a>
+                            <ul class="nav-submenu menu-content" style="display: {{ prefixBlock('/approvals') }};">
+                                <li><a href="{{ route('approvals.chains.index') }}"
+                                        class="{{ routeActive('approvals.chains.index') }}">Chains</a>
                                 </li>
                             </ul>
                         </li>
+                       
                         <li class="dropdown">
-                            <a class="nav-link menu-title {{ prefixActive('/queue') }}" href="javascript:void(0)"><i
-                                    data-feather="file"></i><span>Queue</span></a>
-                            <ul class="nav-submenu menu-content" style="display: {{ prefixBlock('/index') }};">
-                                <li><a href="{{ route('chain.queue') }}" class="{{ routeActive('chain.queue') }}">Queues</a>
+                            <a class="nav-link menu-title {{ prefixActive('approvals/transactions') }}"
+                                href="javascript:void(0)"><i data-feather="file"></i><span>Transaction</span></a>
+                            <ul class="nav-submenu menu-content" style="display: {{ prefixBlock('/aprovals') }};">
+                                <li><a href="{{ route('approvals.transactions.index') }}"
+                                        class="{{ routeActive('approvals.transactions.index') }}">Transactions</a>
                                 </li>
                             </ul>
-                        </li> --}}
-                        {{-- <li class="dropdown">
-                            <a class="nav-link menu-title {{ prefixActive('transaction/{transactionId}/timeline') }}"
-                                href="javascript:void(0)"><i data-feather="file"></i><span>Transaction Timeline</span></a>
-                            <ul class="nav-submenu menu-content" style="display: {{ prefixBlock('/index') }};">
-                                <li><a href="{{ route('chain.transaction.timeline') }}"
-                                        class="{{ routeActive('chain.transaction.timeline') }}">Users</a>
-                                </li>
-                            </ul>
-                        </li> --}}
+                        </li>
+
+                      
+                         
                     </ul>
                 </div>
                 <div class="right-arrow" id="right-arrow"><i data-feather="arrow-right"></i></div>
