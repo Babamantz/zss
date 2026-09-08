@@ -12,7 +12,7 @@ class ApprovalStep extends Model
     use HasFactory;
 
     protected $fillable = [
-        'chain_module_id',
+        'approval_chain_id',
         'level_no',
         'level_name',
         'order',
@@ -24,8 +24,8 @@ class ApprovalStep extends Model
     public function module()
     {
         return $this->belongsTo(
-            ChainModule::class,
-            'chain_module_id'
+            ApprovalChain::class,
+            'approval_chain_id'
         );
     }
 

@@ -36,6 +36,7 @@ class ChainManager extends Component
             'name'      => $this->name,
             'module'    => $this->module,
             'is_active' => $this->is_active,
+            'tenant_id' => auth()->user()->tenant->id
         ]);
 
         $this->reset(['name', 'module', 'showForm']);

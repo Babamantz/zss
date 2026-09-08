@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('module')->nullable(); // e.g. 'payroll', 'leave'
             $table->boolean('is_active')->default(true);
+            $table->foreignId('tenant_id')->nullable()->constrained('tenants');
             $table->timestamps();
         });
     }

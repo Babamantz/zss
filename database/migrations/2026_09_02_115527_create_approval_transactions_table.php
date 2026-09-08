@@ -17,6 +17,7 @@ return new class extends Migration
             $table->morphs('approvable'); // approvable_type, approvable_id — polymorphic
             $table->foreignId('current_step_id')->nullable()->constrained('approval_chain_steps');
             $table->string('status')->default('pending'); // pending|approved|rejected|cancelled
+            $table->foreignId('tenant_id')->nullable()->constrained('tenants');
             $table->foreignId('initiated_by')->constrained('users');
             $table->timestamp('completed_at')->nullable();
             $table->timestamps();

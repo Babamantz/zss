@@ -13,7 +13,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles,SoftDeletes;
+    use HasFactory, Notifiable, HasRoles, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -33,10 +33,10 @@ class User extends Authenticatable
         'password',
     ];
 
-    protected $casts = [
-        'is_active' => 'boolean',
-        'is_officer' => 'boolean'
-    ];
+    // protected $casts = [
+    //     'is_active' => 'boolean',
+    //     'is_officer' => 'boolean'
+    // ];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -58,8 +58,11 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
+            'is_officer' => 'boolean',
         ];
     }
+
 
     public function tenant()
     {
@@ -86,4 +89,10 @@ class User extends Authenticatable
     //         }
     //     });
     // }
+
+
+
+
+
+
 }

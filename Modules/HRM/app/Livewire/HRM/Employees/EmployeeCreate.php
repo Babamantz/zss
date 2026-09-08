@@ -593,7 +593,7 @@ class EmployeeCreate extends Component
             $data['created_by'] = auth()->id();
             $employee = Employee::create($data);
 
-            $chain = ApprovalChain::where('name', 'Employee_Verification')
+            $chain = ApprovalChain::where('name', 'HQ_Employee_Verification')
                 ->where('is_active', true)
                 ->firstOrFail();
 
@@ -607,6 +607,7 @@ class EmployeeCreate extends Component
                 'approvable_type'   => Employee::class,
                 'approvable_id'     => $employee->id,
                 'current_step_id'   => $firstStep->id,
+                'tenant_id' => $employee->user?->tenant->id,
                 'status'            => ApprovalStatus::Pending,
                 'initiated_by'      => auth()->user()->id,
             ]);
@@ -968,15 +969,16 @@ class EmployeeCreate extends Component
     {
         return User::query()
             ->select(['id', 'email'])
-            ->where('is_active', 'active')
-            ->orWhereDoesntHave('employee') // Select only what we need
+            ->where('is_active', false)
+            ->WhereDoesntHave('employee') // Select only what we need
             ->when(
                 $this->employeeId,
                 // Edit mode: allow the currently-assigned user to show up
                 fn($q) => $q->where(function ($q2) {
                     $q2->doesntHave('employee')
                         ->orWhere('id', $this->userId);
-                }),
+                }),       
+
                 // Create mode: only show users without an employee record
                 fn($q) => $q->doesntHave('employee')
             )

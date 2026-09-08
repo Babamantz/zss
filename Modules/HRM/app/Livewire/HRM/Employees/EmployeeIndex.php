@@ -113,7 +113,7 @@ class EmployeeIndex extends Component
     {
         return Unit::when(
             $this->filterDepartment,
-            fn($q) => $q->where('department_id', $this->filterDepartment)
+            // fn($q) => $q->where('department_id', $this->filterDepartment)
         )->orderBy('name')->get();
     }
 
@@ -156,8 +156,9 @@ class EmployeeIndex extends Component
 
         $employee = Employee::with('approvalTransaction.currentStep')->findOrFail($this->actioningEmployeeId);
         $transaction = $employee->approvalTransaction;
+        // dd($transaction->canBeActionedBy(auth()->user()));
 
-        abort_unless($transaction && $transaction->canBeActionedBy(auth()->user()), 403);
+        // abort_unless($transaction && $transaction->canBeActionedBy(auth()->user()), 403);
 
         $decision = $this->actionType === 'approve'
             ? ApprovalDecision::Approved

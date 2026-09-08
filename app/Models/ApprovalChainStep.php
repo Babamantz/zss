@@ -30,13 +30,51 @@ class ApprovalChainStep extends Model
     }
 
     /** Resolve which users can act on this step */
-    public function eligibleApprovers(): Collection
+    // public function eligibleApprovers(): Collection
+    // {
+    //     return match ($this->approver_type) {
+    //         ApproverType::User => User::where('id', $this->approver_value)->get(),
+    //         ApproverType::Role => User::role($this->approver_value)->get(), // Spatie
+    //         ApproverType::DepartmentHead => User::where('department_id', $this->approver_value)
+    //             ->where('is_department_head', true)->get(),
+    //     };
+    // }
+
+    // // Inside your ApprovalChainStep model
+    // public function eligibleApprovers(int $resourceTenantId): Collection
+    // {
+    //     // dd('nafika');
+    //     $users = match ($this->approver_type) {
+    //         ApproverType::User => User::where('id', $this->approver_value)->get(),
+    //         ApproverType::Role => User::role($this->approver_value)->get(),
+    //         ApproverType::DepartmentHead => User::where('department_id', $this->approver_value)
+    //             ->where('is_department_head', true)->get(),
+    //     };
+
+    //     // Strictly enforce multi-tenancy bounds
+    //     return $users->filter(
+    //         fn(User $u) => $u->hasAnyRole($globalRoles) || $u->tenant_id === $resourceTenantId
+    //     );
+    // }
+
+    public function eligibleApprovers(int $resourceTenantId): Collection
     {
         return match ($this->approver_type) {
-            ApproverType::User => User::where('id', $this->approver_value)->get(),
-            ApproverType::Role => User::role($this->approver_value)->get(), // Spatie
-            ApproverType::DepartmentHead => User::where('department_id', $this->approver_value)
-                ->where('is_department_head', true)->get(),
+            ApproverType::User =>
+            User::where('id', $this->approver_value)
+                ->where('tenant_id', $resourceTenantId)
+                ->get(),
+
+            ApproverType::Role =>
+            User::role($this->approver_value)
+                ->where('tenant_id', $resourceTenantId)
+                ->get(),
+
+            ApproverType::DepartmentHead =>
+            User::where('department_id', $this->approver_value)
+                ->where('is_department_head', true)
+                ->where('tenant_id', $resourceTenantId)
+                ->get(),
         };
     }
 }

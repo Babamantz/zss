@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('approval_actions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('approval_transaction_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('approval_chain_step_id')->constrained();
+            $table->foreignId('approval_transaction_id')->unique()->constrained()->cascadeOnDelete();
+            $table->foreignId('approval_chain_step_id')->unique()->constrained();
             $table->foreignId('actioned_by')->constrained('users');
             $table->string('decision'); // approved|rejected
             $table->text('remarks')->nullable();
