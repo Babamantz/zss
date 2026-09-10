@@ -2,15 +2,16 @@
 
 namespace App\Livewire\Core\Admin\Users;
 
-use App\Models\User;
 use App\Models\Tenant;
-use Livewire\Component;
-use Livewire\Attributes\Computed;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use Livewire\Attributes\Computed;
+use Livewire\Component;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Throwable;
 
 class UserCreate extends Component
@@ -111,7 +112,7 @@ class UserCreate extends Component
                     'is_officer' => (bool) filter_var($this->is_officer, FILTER_VALIDATE_BOOLEAN),
                     'email' => $this->email,
                     'tenant_id' => $this->location,
-                    'password' => Hash::make($this->last_name),
+                    'password' => Hash::make(Str::upper($this->last_name)),
                     'created_by' => auth()->id()
                 ]);
 
