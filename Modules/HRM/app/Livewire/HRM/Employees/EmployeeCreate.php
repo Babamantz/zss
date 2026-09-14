@@ -10,6 +10,7 @@ use App\Models\Designation;
 use App\Models\EducationLevel;
 use App\Models\Identification;
 use App\Models\User;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -284,6 +285,9 @@ class EmployeeCreate extends Component
 
         $this->loadEmail();
     }
+
+
+
 
     // =========================================================================
     // USER SELECTION
@@ -960,6 +964,11 @@ class EmployeeCreate extends Component
         return $this->getAvailableEmails();
     }
 
+    public function updatedDob(): void
+    {
+        $this->age = Carbon::parse($this->dob)->age;
+    }
+
     public function updatedEmail(): void
     {
 
@@ -977,7 +986,7 @@ class EmployeeCreate extends Component
                 fn($q) => $q->where(function ($q2) {
                     $q2->doesntHave('employee')
                         ->orWhere('id', $this->userId);
-                }),       
+                }),
 
                 // Create mode: only show users without an employee record
                 fn($q) => $q->doesntHave('employee')

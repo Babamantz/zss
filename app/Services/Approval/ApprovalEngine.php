@@ -193,9 +193,6 @@ class ApprovalEngine
         });
     }
 
-
-
-
     protected function eligibleApprovers(ApprovalChainStep $step, int $resourceTenantId): Collection
     {
         $users = match ($step->approver_type) {
@@ -205,19 +202,39 @@ class ApprovalEngine
                 ->where('is_department_head', true)->get(),
         };
 
-        // dd($users);
-
-
-
-        // return $users->filter(
-        //     fn(User $u) => $u->hasAnyRole(static::$globalApprovalRoles) || $u->tenant_id === $resourceTenantId
-        // );
-
+        $module = $step->chain->module; // e.g. 'payroll', 'employee'
+        $bypassPermission = "approve_any_{$module}";
 
         return $users->filter(
-            fn(User $u) => $u->hasPermissionTo('approve_any_employee')
+            fn(User $u) => $u->hasPermissionTo($bypassPermission) || $u->tenant_id === $resourceTenantId
         );
     }
+
+
+
+
+    // protected function eligibleApprovers(ApprovalChainStep $step, int $resourceTenantId): Collection
+    // {
+    //     $users = match ($step->approver_type) {
+    //         ApproverType::User => User::where('id', $step->approver_value)->get(),
+    //         ApproverType::Role => User::whereHas('roles', fn($q) => $q->where('name', $step->approver_value))->get(),
+    //         ApproverType::DepartmentHead => User::where('department_id', $step->approver_value)
+    //             ->where('is_department_head', true)->get(),
+    //     };
+
+    //     // dd($users);
+
+
+
+    //     // return $users->filter(
+    //     //     fn(User $u) => $u->hasAnyRole(static::$globalApprovalRoles) || $u->tenant_id === $resourceTenantId
+    //     // );
+
+
+    //     return $users->filter(
+    //         fn(User $u) => $u->hasPermissionTo('approve_any_employee')
+    //     );
+    // }
 
     protected function syncApprovable(ApprovalTransaction $transaction, bool $rejected): void
     {

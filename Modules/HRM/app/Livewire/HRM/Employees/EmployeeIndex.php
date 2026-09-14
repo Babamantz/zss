@@ -148,6 +148,28 @@ class EmployeeIndex extends Component
         $this->reset(['actioningEmployeeId', 'actionRemarks', 'actionType']);
     }
 
+    // public function confirmAction(ApprovalEngine $engine)
+    // {
+    //     $this->validate([
+    //         'actionRemarks' => 'required|string|min:3',
+    //     ], [], ['actionRemarks' => 'remarks']);
+
+    //     $employee = Employee::with('approvalTransaction.currentStep')->findOrFail($this->actioningEmployeeId);
+    //     $transaction = $employee->approvalTransaction;
+    //     // dd($transaction->canBeActionedBy(auth()->user()));
+
+    //     // abort_unless($transaction && $transaction->canBeActionedBy(auth()->user()), 403);
+
+    //     $decision = $this->actionType === 'approve'
+    //         ? ApprovalDecision::Approved
+    //         : ApprovalDecision::Rejected;
+
+    //     $engine->decide($transaction, auth()->user(), $decision, $this->actionRemarks);
+
+    //     $this->closeActionModal();
+    //     session()->flash('success', $decision === ApprovalDecision::Approved ? 'Employee approved.' : 'Employee rejected.');
+    // }
+
     public function confirmAction(ApprovalEngine $engine)
     {
         $this->validate([
@@ -156,15 +178,20 @@ class EmployeeIndex extends Component
 
         $employee = Employee::with('approvalTransaction.currentStep')->findOrFail($this->actioningEmployeeId);
         $transaction = $employee->approvalTransaction;
-        // dd($transaction->canBeActionedBy(auth()->user()));
 
-        // abort_unless($transaction && $transaction->canBeActionedBy(auth()->user()), 403);
+        abort_unless($transaction, 404);
 
         $decision = $this->actionType === 'approve'
             ? ApprovalDecision::Approved
             : ApprovalDecision::Rejected;
 
-        $engine->decide($transaction, auth()->user(), $decision, $this->actionRemarks);
+        try {
+            $engine->decide($transaction, auth()->user(), $decision, $this->actionRemarks);
+        } catch (\RuntimeException $e) {
+            session()->flash('error', $e->getMessage());
+            $this->closeActionModal();
+            return;
+        }
 
         $this->closeActionModal();
         session()->flash('success', $decision === ApprovalDecision::Approved ? 'Employee approved.' : 'Employee rejected.');

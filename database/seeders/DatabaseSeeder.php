@@ -20,6 +20,8 @@ use Modules\HRM\Database\Seeders\EmployeeEducationLevelSeeder;
 use Modules\HRM\Database\Seeders\EmployeeIdentificationSeeder;
 use Modules\HRM\Database\Seeders\EmployeeSeeder;
 use Modules\HRM\Database\Seeders\EmploymentTypeSeeder;
+use Modules\HRM\Database\Seeders\HrmPermissionSeeder;
+use Modules\HRM\Database\Seeders\HrmRolePermissionSeeder;
 use Modules\HRM\Database\Seeders\IdentificationSeeder;
 use Modules\HRM\Database\Seeders\UnitSeeder;
 use Modules\PAYROLL\Database\Seeders\ComponentSeeder;
@@ -94,7 +96,9 @@ class DatabaseSeeder extends Seeder
             // PayrollEntryItemSeeder::class,
             // TenantSeeder::class,
             PermissionSeeder::class,
-            RoleSeeder::class
+            HrmPermissionSeeder::class,
+            RoleSeeder::class,
+            HrmRolePermissionSeeder::class
         ]);
 
 

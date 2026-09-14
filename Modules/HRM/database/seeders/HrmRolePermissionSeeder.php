@@ -13,54 +13,113 @@ class HrmRolePermissionSeeder extends Seeder
      */
     public function run(): void
     {
-        $superAdmin = Role::firstOrCreate(['name' => 'super-admin', 'guard_name' => 'web']);
-        $superAdmin->givePermissionTo(Permission::all()); // unrestricted
+        /*
+    |--------------------------------------------------------------------------
+    | Super Admin
+    |--------------------------------------------------------------------------
+    */
 
-        $directorGeneral = Role::firstOrCreate(['name' => 'director-general', 'guard_name' => 'web']);
-        $directorGeneral->givePermissionTo([
+        $superAdmin = Role::firstOrCreate([
+            'name' => 'super-admin',
+            'guard_name' => 'web',
+        ]);
+
+        $superAdmin->syncPermissions(
+            Permission::where('guard_name', 'web')->get()
+        );
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | Director General
+    |--------------------------------------------------------------------------
+    */
+
+        $directorGeneral = Role::firstOrCreate([
+            'name' => 'director-general',
+            'guard_name' => 'web',
+        ]);
+
+        $directorGeneral->syncPermissions([
             'hrm.employees.view',
             'hrm.employees.view-any',
             'hrm.employees.view-cross-tenant',
+
             'hrm.employees.approve',
             'hrm.employees.reject',
             'hrm.employees.approve-cross-tenant',
+
             'hrm.employees.view-approval-history',
+
             'hrm.reports.view',
             'hrm.reports.export',
         ]);
 
-        $directorHr = Role::firstOrCreate(['name' => 'director-hr', 'guard_name' => 'web']);
-        $directorHr->givePermissionTo([
+
+        /*
+    |--------------------------------------------------------------------------
+    | Director HR
+    |--------------------------------------------------------------------------
+    */
+
+        $directorHr = Role::firstOrCreate([
+            'name' => 'director-hr',
+            'guard_name' => 'web',
+        ]);
+
+        $directorHr->syncPermissions([
             'hrm.employees.view',
             'hrm.employees.view-any',
             'hrm.employees.view-cross-tenant',
+
             'hrm.employees.edit',
+
             'hrm.employees.approve',
             'hrm.employees.reject',
             'hrm.employees.approve-cross-tenant',
+
             'hrm.employees.view-approval-history',
+
             'hrm.approval-chains.view',
             'hrm.approval-chains.create',
             'hrm.approval-chains.edit',
             'hrm.approval-chains.manage-steps',
+
             'hrm.departments.view',
             'hrm.units.view',
             'hrm.divisions.view',
+
             'hrm.reports.view',
             'hrm.reports.export',
         ]);
 
-        $hrOfficer = Role::firstOrCreate(['name' => 'hr-officer', 'guard_name' => 'web']);
-        $hrOfficer->givePermissionTo([
+
+        /*
+    |--------------------------------------------------------------------------
+    | HR Officer
+    |--------------------------------------------------------------------------
+    */
+
+        $hrOfficer = Role::firstOrCreate([
+            'name' => 'hr-officer',
+            'guard_name' => 'web',
+        ]);
+
+        $hrOfficer->syncPermissions([
             'hrm.employees.view',
             'hrm.employees.view-any',
+
             'hrm.employees.create',
             'hrm.employees.edit',
+
             'hrm.employees.submit-for-approval',
+
             'hrm.employees.view-approval-history',
+
             'hrm.departments.view',
             'hrm.units.view',
             'hrm.divisions.view',
+
             'hrm.reports.view',
         ]);
     }

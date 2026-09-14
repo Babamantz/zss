@@ -102,14 +102,14 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Date of Birth: <span class="text-danger">*</span></label>
-                                        <input class="form-control" type="date" wire:model.defer="dob">
+                                        <input class="form-control" type="date" wire:model.live="dob">
                                         @error('dob') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Age: <span class="text-danger">*</span></label>
-                                        <input class="form-control" type="text" wire:model.defer="age">
+                                        <input class="form-control" type="text" wire:model="age">
                                         {{-- @error('dob') <small class="text-danger">{{ $message }}</small> @enderror --}}
                                     </div>
                                 </div>

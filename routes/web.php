@@ -118,7 +118,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/roles/create', RoleCreate::class)->name('roles.create');
     Route::get('/password/reset', PassswordReset::class)->name('password.reset');
     Route::get('/roles/{roleName}/permissions', RoleCreate::class)->name('roles.edit');
-    Route::get('/report/users', UserReportIndex::class)->name('user.report.index');
+    Route::get('/report/users', UserReportIndex::class)->name('report.users.index');
 
     // Add logout route
     Route::post('/logout', function (Request $request) {

@@ -13,32 +13,6 @@ class HrmPermissionSeeder extends Seeder
     public function run(): void
     {
         $permissions = [
-
-            // Core CRUD
-            'users.view',
-            'users.view-any',          // list/index access
-            'users.create',
-            'users.edit',
-            'users.delete',
-            'users.export',
-
-            // Account state
-            'users.activate',
-            'users.deactivate',
-            'users.reset-password',
-            'users.impersonate',
-
-            // Role & permission management (separate from editing basic user fields)
-            'users.assign-roles',
-            'users.assign-permissions',
-            'users.view-roles',
-
-            // Tenant assignment (relevant given FilterByTenant/tenant_id drives so much of this app)
-            'users.assign-tenant',
-            'users.view-cross-tenant',
-
-            // Audit
-            'users.view-activity-log',
             // Employee records
             'hrm.employees.view',
             'hrm.employees.view-any',       // list/index access

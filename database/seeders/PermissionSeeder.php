@@ -13,9 +13,86 @@ class PermissionSeeder extends Seeder
      */
     public function run(): void
     {
-        //
-        Permission::create([
-            'name' => 'user.view'
-        ]);
+        $permissions = [
+
+            // =====================================================
+            // ATTENDANCE
+            // =====================================================
+            'attendaces.index',
+            'attendaces.create',
+            'attendaces.view',
+            'attendaces.edit',
+            'attendaces.delete',
+
+            // =====================================================
+            // USERS
+            // =====================================================
+            'users.view',
+            'users.view-any',
+            'users.create',
+            'users.edit',
+            'users.delete',
+            'users.export',
+            'users.index',
+            'users.profile',
+
+            // Account state
+            'users.activate',
+            'users.deactivate',
+            'users.reset-password',
+            'users.impersonate',
+
+            // Roles & permissions
+            'users.assign-roles',
+            'users.assign-permissions',
+            'users.view-roles',
+
+            // Tenant
+            'users.assign-tenant',
+            'users.view-cross-tenant',
+
+            // Audit
+            'users.view-activity-log',
+
+            // =====================================================
+            // DOCUMENTS
+            // =====================================================
+            'documents.view',
+            'documents.create',
+            'documents.edit',
+            'documents.index',
+            'documents.delete',
+
+            // =====================================================
+            // REPORTS
+            // =====================================================
+            'reports',
+            'reports.index',
+            'reports.users.index',
+
+            // =====================================================
+            // APPROVALS
+            // =====================================================
+            'transactions',
+            'approvals.transaction.index',
+
+            // =====================================================
+            // APPROVAL CHAINS
+            // =====================================================
+            'chains',
+            'approvals.chains.index',
+
+            // =====================================================
+            // MANAGEMENT
+            // =====================================================
+            'management',
+        ];
+
+        foreach ($permissions as $permission) {
+            Permission::firstOrCreate([
+                'name' => $permission,
+                'guard_name' => 'web',
+            ]);
+        }
     }
 }
