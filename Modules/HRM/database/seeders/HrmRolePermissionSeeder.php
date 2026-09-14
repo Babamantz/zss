@@ -44,6 +44,8 @@ class HrmRolePermissionSeeder extends Seeder
             'hrm.employees.view',
             'hrm.employees.view-any',
             'hrm.employees.view-cross-tenant',
+            // 'hrm.employees.approve',
+            // 'hrm.employees.reject',
 
             'hrm.employees.approve',
             'hrm.employees.reject',
@@ -51,9 +53,17 @@ class HrmRolePermissionSeeder extends Seeder
 
             'hrm.employees.view-approval-history',
 
+            // 'hrm.employees.view-approval-history',
             'hrm.reports.view',
-            'hrm.reports.export',
+            // 'hrm.reports.export',
         ]);
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | Director HR
+    |--------------------------------------------------------------------------
+    */
 
 
         /*

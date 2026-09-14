@@ -54,6 +54,6 @@ class ChainManager extends Component
 
     public function render()
     {
-        return view('livewire.Approvals.chain-manager');
+        return view('livewire.approvals.chain-manager');
     }
 }
