@@ -70,8 +70,8 @@ class EmployeeEdit extends Component
     // ── Step 2: Employment Details ────────────────────────────────────────────
     public $opf_number;
     public $designation_id;
-    public $unit;
-    public $department;
+    public $unit_id;
+    public $department_id;
     public $location;
 
     public $employee_bank_id;

@@ -158,6 +158,8 @@
                                         />
                                         @error('education_level_id') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
+                                 @error('education_level_id') <small class="text-danger">{{ $message }}</small> @enderror
+
                                 </div>
                             </div>
 
@@ -273,6 +275,7 @@
                                         />
                                         @error('employment_type_id') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
+                                    @error('employment_type_id') <small class="text-danger">{{ $message }}</small> @enderror
                                 </div>
                             </div>
 
