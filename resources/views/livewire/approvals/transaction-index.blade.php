@@ -46,6 +46,8 @@
                             </span>
                         </td>
                         <td class="text-right">
+
+                            
                             <a href="{{ route('approvals.transactions.show', $txn) }}" wire:navigate
                                 class="btn btn-link btn-sm p-0">
                                 View Timeline

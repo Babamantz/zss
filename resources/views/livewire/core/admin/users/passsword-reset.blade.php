@@ -44,10 +44,12 @@
                                 <i class="fa fa-arrow-left me-1"></i> Back to Users
                             </a>
                             <div>
+                                @can('reset-password')
                                 <button class="btn btn-outline-secondary me-2" type="reset"> Cancel </button>
                                 <button type="submit" wire:loading.attr="disabled" class="btn btn-primary px-4">
                                     <i class="fa fa-key me-1"></i> Reset Password
                                 </button>
+                                @endcan
                             </div>
                         </div>
                     </form>

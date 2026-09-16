@@ -6,9 +6,11 @@
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="mb-0">Approval Chains</h5>
-        <button wire:click="$set('showForm', true)" class="btn btn-primary btn-sm">
-            + New Chain
-        </button>
+        @can('chains.create')
+            <button wire:click="$set('showForm', true)" class="btn btn-primary btn-sm">
+                + New Chain
+            </button>
+        @endcan
     </div>
 
     <div class="table-responsive">

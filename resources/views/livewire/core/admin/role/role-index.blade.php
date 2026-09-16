@@ -34,9 +34,11 @@
                 Manage system roles and their permission assignments
             </small>
         </div>
+        @can('users.assign-roles')
         <a class="btn btn-primary btn-sm" href="{{ route('roles.create') }}">
             <i class="fa fa-plus me-1"></i> Create Role
         </a>
+        @endcan
     </div>
 
     {{-- ── Flash ───────────────────────────────────────────────────────────── --}}
@@ -275,11 +277,13 @@
                                 {{-- Actions --}}
                                 <td class="text-end">
                                     <div class="d-flex gap-1 justify-content-end">
+                                        @can('users.assign-roles.edit')
                                         <a class="btn btn-sm btn-outline-secondary"
                                             href="{{ route('roles.edit', ['roleName' => $role->name]) }}"
                                             title="Edit Role">
                                             <i class="fa fa-pencil"></i>
                                         </a>
+                                        @endcan
                                     </div>
                                 </td>
 

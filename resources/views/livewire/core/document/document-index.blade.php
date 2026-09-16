@@ -58,9 +58,11 @@
                 Manage uploaded documents and files
             </small>
         </div>
+        @can('documents.create')
         <a class="btn btn-primary btn-sm" href="{{ route('documents.create') }}" wire:navigate>
             <i class="fa fa-plus me-1"></i> Add Document
         </a>
+        @endcan
     </div>
 
     {{-- ── Flash ───────────────────────────────────────────────────────────── --}}
@@ -246,25 +248,33 @@
                                 {{-- Actions --}}
                                 <td class="text-end">
                                     <div class="d-flex gap-1 justify-content-end">
+                                        @can('documents.view')
                                         <a class="btn btn-sm btn-outline-info"
                                             href="{{ route('documents.edit', ['documentId' => $document->id, 'mode' => 'view']) }}"
                                             title="View" wire:navigate>
                                             <i class="fa fa-eye"></i>
                                         </a>
+                                        @endcan
+                                        @can('documents.edit')
                                         <a class="btn btn-sm btn-outline-secondary"
                                             href="{{ route('documents.edit', ['documentId' => $document->id]) }}"
                                             title="Edit" wire:navigate>
                                             <i class="fa fa-pencil"></i>
                                         </a>
+                                        @endcan
+                                        @can('documents.download')
                                         <a class="btn btn-sm btn-outline-success"
                                             href="{{ Storage::url($document->document_path) }}" title="Download"
                                             target="_blank">
                                             <i class="fa fa-download"></i>
                                         </a>
+                                        @endcan
+                                        @can('documents.delete')
                                         <button class="btn btn-sm btn-outline-danger" title="Delete"
                                             wire:click="confirmDelete({{ $document->id }})">
                                             <i class="fa fa-trash"></i>
                                         </button>
+                                        @endcan
                                     </div>
                                 </td>
 

@@ -58,9 +58,11 @@
                 Manage attendance capture forms and their submitted rows
             </small>
         </div>
+        @can('attendaces.create')
         <a class="btn btn-primary btn-sm" href="{{ route('attendance.create') }}" wire:navigate>
             <i class="fa fa-plus me-1"></i> Create New Form
         </a>
+        @endcan
     </div>
 
     {{-- ── Flash ───────────────────────────────────────────────────────────── --}}
@@ -269,25 +271,33 @@
                                 {{-- Actions --}}
                                 <td class="text-end">
                                     <div class="d-flex gap-1 justify-content-end">
+                                        @can('attendaces.view')
                                         <a class="btn btn-sm btn-outline-info"
                                             href="{{ route('attendance.edit', ['attendanceId' => $attendance->id, 'mode' => 'view']) }}"
                                             title="View" wire:navigate>
                                             <i class="fa fa-eye"></i>
                                         </a>
+                                        @endcan
+                                        @can('attendaces.edit')
                                         <a class="btn btn-sm btn-outline-secondary"
                                             href="{{ route('attendance.edit', ['attendanceId' => $attendance->id]) }}"
                                             title="Edit" wire:navigate>
                                             <i class="fa fa-pencil"></i>
                                         </a>
+                                        @endcan
+                                        @can('attendaces.preview')
                                         <a class="btn btn-sm btn-outline-success"
                                             href="{{ route('attendance.preview', $attendance->id) }}" title="Preview"
                                             target="_blank">
                                             <i class="fa fa-print"></i>
                                         </a>
+                                        @endcan
+                                        @can('attendaces.delete')
                                         <button class="btn btn-sm btn-outline-danger" title="Delete"
                                             wire:click="confirmDelete({{ $attendance->id }})">
                                             <i class="fa fa-trash"></i>
                                         </button>
+                                        @endcan
                                     </div>
                                 </td>
 

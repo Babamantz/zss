@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class PermissionSeeder extends Seeder
 {
@@ -22,6 +21,7 @@ class PermissionSeeder extends Seeder
             'attendaces.create',
             'attendaces.view',
             'attendaces.edit',
+            'attendaces.preview',
             'attendaces.delete',
 
             // =====================================================
@@ -46,6 +46,7 @@ class PermissionSeeder extends Seeder
             'users.assign-roles',
             'users.assign-permissions',
             'users.view-roles',
+            'users.assign-roles.edit',
 
             // Tenant
             'users.assign-tenant',
@@ -62,6 +63,7 @@ class PermissionSeeder extends Seeder
             'documents.edit',
             'documents.index',
             'documents.delete',
+            'documents.download',
 
             // =====================================================
             // REPORTS
@@ -80,12 +82,19 @@ class PermissionSeeder extends Seeder
             // APPROVAL CHAINS
             // =====================================================
             'chains',
+            'chains.create',
             'approvals.chains.index',
 
             // =====================================================
             // MANAGEMENT
             // =====================================================
             'management',
+
+            'fuel',
+            'inventory',
+            'payroll',
+            'safari',
+            'leave'
         ];
 
         foreach ($permissions as $permission) {

@@ -57,9 +57,11 @@
             <h4 class="mb-1">Users</h4>
             <small class="text-muted">Manage system users, roles and permissions</small>
         </div>
-        <a class="btn btn-primary btn-sm" href="{{ route('users.create') }}">
-            <i class="fa fa-plus me-1"></i> Create User
-        </a>
+        @can('users.create')
+            <a class="btn btn-primary btn-sm" href="{{ route('users.create') }}">
+                <i class="fa fa-plus me-1"></i> Create User
+            </a>
+        @endcan
     </div>
 
     {{-- ── Flash ───────────────────────────────────────────────────────────── --}}
@@ -110,7 +112,7 @@
                 <div class="card border-0 shadow-sm">
                     <div class="card-body d-flex align-items-center gap-3">
                         <div class="rounded-circle bg-{{ $card['color'] }}-subtle
-                                                p-3 flex-shrink-0">
+                                                    p-3 flex-shrink-0">
                             <i class="fa {{ $card['icon'] }} text-{{ $card['color'] }} fa-lg"></i>
                         </div>
                         <div>
@@ -353,7 +355,7 @@
                                                             @if ($perms->count() > 2)
                                                                 <span
                                                                     class="badge bg-secondary-subtle
-                                                                                                                                                text-secondary"
+                                                                                                                                                                            text-secondary"
                                                                     style="font-size:9px;" title="{{ $perms->skip(2)->implode(', ') }}">
                                                                     +{{ $perms->count() - 2 }} more
                                                                 </span>
@@ -367,16 +369,22 @@
                                                 {{-- Actions --}}
                                                 <td class="text-end">
                                                     <div class="d-flex gap-1 justify-content-end">
-                                                        <a class="btn btn-sm btn-outline-info"
-                                                            href="{{ route('users.edit', ['id' => $user->id, 'mode' => 'view']) }}"
-                                                            wire:navigate title="View">
-                                                            <i class="fa fa-eye"></i>
-                                                        </a>
-                                                        <a class="btn btn-sm btn-outline-secondary"
-                                                            href="{{ route('users.edit', ['id' => $user->id, 'mode' => 'edit']) }}"
-                                                            wire:navigate title="Edit">
-                                                            <i class="fa fa-pencil"></i>
-                                                        </a>
+
+                                                        @can('users.view')
+                                                            <a class="btn btn-sm btn-outline-info"
+                                                                href="{{ route('users.edit', ['id' => $user->id, 'mode' => 'view']) }}"
+                                                                wire:navigate title="View">
+                                                                <i class="fa fa-eye"></i>
+                                                            </a>
+                                                        @endcan
+
+                                                        @can('users.edit', 'User')
+                                                            <a class="btn btn-sm btn-outline-secondary"
+                                                                href="{{ route('users.edit', ['id' => $user->id, 'mode' => 'edit']) }}"
+                                                                wire:navigate title="Edit">
+                                                                <i class="fa fa-pencil"></i>
+                                                            </a>
+                                                        @endcan
                                                     </div>
                                                 </td>
 
@@ -407,7 +415,7 @@
         {{-- Pagination --}}
         @if ($users->hasPages())
             <div class="card-footer d-flex justify-content-between
-                                    align-items-center py-2">
+                                        align-items-center py-2">
                 <small class="text-muted">
                     Showing {{ $users->firstItem() }}–{{ $users->lastItem() }}
                     of {{ $users->total() }} users

@@ -14,7 +14,10 @@ class HrmPermissionSeeder extends Seeder
     {
         $permissions = [
             // Employee records
+            'employees',
+            'hrm',
             'hrm.employees.view',
+            'hrm.employees.index',
             'hrm.employees.view-any',       // list/index access
             'hrm.employees.create',
             'hrm.employees.edit',

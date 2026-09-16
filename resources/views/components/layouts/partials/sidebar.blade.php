@@ -71,7 +71,7 @@
                 src="{{ Storage::disk('public')->url($employee->photo_file) }}" alt="{{ $authUser?->first_name }}">
         @else
             <div class="img-90 rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width:90px;height:90px;background:#E8EAF6;
-                                                                   font-size:28px;font-weight:700;color:#1a237e;">
+                                                                       font-size:28px;font-weight:700;color:#1a237e;">
                 {{ $initials }}
             </div>
         @endif
@@ -125,122 +125,122 @@
 
     </div>
     <nav>
-                @if (session('module') === 'general')
-                    <div class="main-navbar">
-                        <div class="left-arrow" id="left-arrow"><i data-feather="arrow-left"></i></div>
-                        <div id="mainnav">
-                            <ul class="nav-menu custom-scrollbar">
-                                <li class="back-btn">
-                                    <div class="mobile-back text-end"><span>Back</span><i class="fa fa-angle-right ps-2"
-                                            aria-hidden="true"></i></div>
-                                </li>
-                                <li class="sidebar-main-title">
-                                    <div>
-                                        <h6>General</h6>
-                                    </div>
-                                </li>
-                                <li class="dropdown">
-                                    <a class="nav-link {{ prefixActive('/index') }}" href="{{ route('index') }}"><i
-                                            data-feather="home"></i><span>Dashboard</span>
-                                    </a>
-                                </li>
-                                @can('users.profile')
-                                    <li class="dropdown">
-                                        <a class="nav-link {{ prefixActive('/index') }}" href="{{ route('profile') }}"><i
-                                                data-feather="user"></i><span>Profile</span>
-                                        </a>
+        @if (session('module') === 'general')
+            <div class="main-navbar">
+                <div class="left-arrow" id="left-arrow"><i data-feather="arrow-left"></i></div>
+                <div id="mainnav">
+                    <ul class="nav-menu custom-scrollbar">
+                        <li class="back-btn">
+                            <div class="mobile-back text-end"><span>Back</span><i class="fa fa-angle-right ps-2"
+                                    aria-hidden="true"></i></div>
+                        </li>
+                        <li class="sidebar-main-title">
+                            <div>
+                                <h6>General</h6>
+                            </div>
+                        </li>
+                        <li class="dropdown">
+                            <a class="nav-link {{ prefixActive('/index') }}" href="{{ route('index') }}"><i
+                                    data-feather="home"></i><span>Dashboard</span>
+                            </a>
+                        </li>
+                        @can('users.profile')
+                            <li class="dropdown">
+                                <a class="nav-link {{ prefixActive('/index') }}" href="{{ route('profile') }}"><i
+                                        data-feather="user"></i><span>Profile</span>
+                                </a>
+                            </li>
+                        @endcan
+
+
+                        @can('documents.index')
+                            <li class="dropdown">
+                                <a class="nav-link  {{ prefixActive('/index') }}" href="{{ route('documents.index') }}"><i
+                                        data-feather="file"></i><span>Documents</span>
+                                </a>
+                            </li>
+                        @endcan
+
+                        @can('attendaces.index')
+                            <li class="dropdown">
+                                <a class="nav-link  {{ prefixActive('/index') }}" href="{{ route('attendance.index') }}"><i
+                                        data-feather="users"></i><span>Attendace</span>
+                                </a>
+                            </li>
+                        @endcan
+
+                        @can('management')
+                            <li class="dropdown">
+                                <a class="nav-link menu-title {{ prefixActive('/index') }}" href="javascript:void(0)"><i
+                                        data-feather="users"></i><span>Management</span></a>
+                                <ul class="nav-submenu menu-content" style="display: {{ prefixBlock('/index') }};">
+                                    {{-- @can('users.index') --}}
+                                    <li><a href="{{ route('users.index') }}" class="{{ routeActive('users.index') }}">Users</a>
                                     </li>
+                                    {{-- @endcan --}}
+                                    @can('users.reset-password')
+                                        <li><a href="{{ route('password.reset') }}"
+                                                class="{{ routeActive('password.reset') }}">reset</a>
+                                        </li>
+                                    @endcan
+                                    @can('users.assign-roles')
+                                        <li><a href="{{ route('roles.index') }}" class="{{ routeActive('roles.index') }}">Roles</a>
+                                        </li>
+                                    @endcan
+                                </ul>
+                            </li>
+                        @endcan
+
+
+                        @can('reports')
+                            <li class="dropdown">
+                                <a class="nav-link menu-title {{ prefixActive('/index') }}" href="javascript:void(0)"><i
+                                        data-feather="file"></i><span>Reports</span></a>
+
+                                @can('report.users.index')
+                                    <ul class="nav-submenu menu-content" style="display: {{ prefixBlock('/index') }};">
+                                        <li><a href="{{ route('report.users.index') }}"
+                                                class="{{ routeActive('report.users.index') }}">Users</a>
+                                        </li>
+                                    </ul>
                                 @endcan
-
-
-                                @can('documents.index')
-                                    <li class="dropdown">
-                                        <a class="nav-link  {{ prefixActive('/index') }}" href="{{ route('documents.index') }}"><i
-                                                data-feather="file"></i><span>Documents</span>
-                                        </a>
-                                    </li>
+                            </li>
+                        @endcan
+                        @can('chains')
+                            <li class="dropdown">
+                                <a class="nav-link menu-title {{ prefixActive('/approvals/chains') }}"
+                                    href="javascript:void(0)"><i data-feather="file"></i><span>Chains</span></a>
+                                @can('approvals.chains.index')
+                                    <ul class="nav-submenu menu-content" style="display: {{ prefixBlock('/approvals') }};">
+                                        <li><a href="{{ route('approvals.chains.index') }}"
+                                                class="{{ routeActive('approvals.chains.index') }}">Chains</a>
+                                        </li>
+                                    </ul>
                                 @endcan
+                            </li>
+                        @endcan
 
-                                @can('attendaces.index')
-                                    <li class="dropdown">
-                                        <a class="nav-link  {{ prefixActive('/index') }}" href="{{ route('attendance.index') }}"><i
-                                                data-feather="users"></i><span>Attendace</span>
-                                        </a>
-                                    </li>
+                        @can('transactions')
+                            <li class="dropdown">
+                                <a class="nav-link menu-title {{ prefixActive('approvals/transactions') }}"
+                                    href="javascript:void(0)"><i data-feather="file"></i><span>Transaction</span></a>
+                                @can('approvals.transaction.index')
+                                    <ul class="nav-submenu menu-content" style="display: {{ prefixBlock('/aprovals') }};">
+                                        <li><a href="{{ route('approvals.transactions.index') }}"
+                                                class="{{ routeActive('approvals.transactions.index') }}">Transactions</a>
+                                        </li>
+                                    </ul>
                                 @endcan
-
-                                {{-- @can('management') --}}
-                                    <li class="dropdown">
-                                        <a class="nav-link menu-title {{ prefixActive('/index') }}" href="javascript:void(0)"><i
-                                                data-feather="users"></i><span>Management</span></a>
-                                        <ul class="nav-submenu menu-content" style="display: {{ prefixBlock('/index') }};">
-                                            {{-- @can('users.index') --}}
-                                                <li><a href="{{ route('users.index') }}" class="{{ routeActive('users.index') }}">Users</a>
-                                                </li>
-                                            {{-- @endcan --}}
-                                            @can('users.reset-password')
-                                                <li><a href="{{ route('password.reset') }}"
-                                                        class="{{ routeActive('password.reset') }}">reset</a>
-                                                </li>
-                                            @endcan
-                                            @can('users.assign-roles')
-                                                <li><a href="{{ route('roles.index') }}" class="{{ routeActive('roles.index') }}">Roles</a>
-                                                </li>
-                                            @endcan
-                                        </ul>
-                                    </li>
-                                {{-- @endcan --}}
-
-
-                                @can('reports')
-                                    <li class="dropdown">
-                                        <a class="nav-link menu-title {{ prefixActive('/index') }}" href="javascript:void(0)"><i
-                                                data-feather="file"></i><span>Reports</span></a>
-
-                                        @can('report.users.index')
-                                            <ul class="nav-submenu menu-content" style="display: {{ prefixBlock('/index') }};">
-                                                <li><a href="{{ route('report.users.index') }}"
-                                                        class="{{ routeActive('report.users.index') }}">Users</a>
-                                                </li>
-                                            </ul>
-                                        @endcan
-                                    </li>
-                                @endcan
-                                @can('chains')
-                                    <li class="dropdown">
-                                        <a class="nav-link menu-title {{ prefixActive('/approvals/chains') }}"
-                                            href="javascript:void(0)"><i data-feather="file"></i><span>Chains</span></a>
-                                        @can('approvals.chains.index')
-                                            <ul class="nav-submenu menu-content" style="display: {{ prefixBlock('/approvals') }};">
-                                                <li><a href="{{ route('approvals.chains.index') }}"
-                                                        class="{{ routeActive('approvals.chains.index') }}">Chains</a>
-                                                </li>
-                                            </ul>
-                                        @endcan
-                                    </li>
-                                @endcan
-
-                                @can('transactions')
-                                    <li class="dropdown">
-                                        <a class="nav-link menu-title {{ prefixActive('approvals/transactions') }}"
-                                            href="javascript:void(0)"><i data-feather="file"></i><span>Transaction</span></a>
-                                        @can('approvals.transaction.index')
-                                            <ul class="nav-submenu menu-content" style="display: {{ prefixBlock('/aprovals') }};">
-                                                <li><a href="{{ route('approvals.transactions.index') }}"
-                                                        class="{{ routeActive('approvals.transactions.index') }}">Transactions</a>
-                                                </li>
-                                            </ul>
-                                        @endcan
-                                    </li>
-                                @endcan
+                            </li>
+                        @endcan
 
 
 
-                            </ul>
-                        </div>
-                        <div class="right-arrow" id="right-arrow"><i data-feather="arrow-right"></i></div>
-                    </div>
-                @endif
+                    </ul>
+                </div>
+                <div class="right-arrow" id="right-arrow"><i data-feather="arrow-right"></i></div>
+            </div>
+        @endif
 
         {{-- HRM Module Start --}}
         @if (session('module') === 'HRM')
@@ -263,19 +263,27 @@
                                     data-feather="home"></i><span>Dashboard</span>
                             </a>
                         </li>
-                        <li class="dropdown">
-                            <a class="nav-link menu-title {{ prefixActive('/index') }}" href="javascript:void(0)"><i
-                                    data-feather="users"></i><span>Employees</span></a>
-                            <ul class="nav-submenu menu-content"
-                                style="display: {{ prefixBlock('/module/hrm/employees/index') }};">
-                                <li><a href="{{ route('hrm.employees.index') }}"
-                                        class="{{ routeActive('hrm.employees.index') }}">Employees</a>
-                                </li>
-                                <li><a href="{{ route('hrm.employee.report') }}" class="">Report</a>
-                                </li>
+                        @can('employees')
 
-                            </ul>
-                        </li>
+                            <li class="dropdown">
+                                <a class="nav-link menu-title {{ prefixActive('/index') }}" href="javascript:void(0)"><i
+                                        data-feather="users"></i><span>Employees</span></a>
+                                <ul class="nav-submenu menu-content"
+                                    style="display: {{ prefixBlock('/module/hrm/employees/index') }};">
+                                    @can('hrm.employees.index')
+                                        <li><a href="{{ route('hrm.employees.index') }}"
+                                                class="{{ routeActive('hrm.employees.index') }}">Employees</a>
+                                        </li>
+                                    @endcan
+                                    @can('hrm.employees.export')
+                                        <li><a href="{{ route('hrm.employee.report') }}" class="">Report</a>
+                                        </li>
+                                    @endcan
+
+
+                                </ul>
+                            </li>
+                        @endcan
                     </ul>
                 </div>
                 <div class="right-arrow" id="right-arrow"><i data-feather="arrow-right"></i></div>
